@@ -1,41 +1,75 @@
 # CheapoDC
 Cheap and easy ESP32C3 based Dew Controller for Astrophotography
+![CheapoDC Logo](images/logo.png)
 
-Basic Algoritm for Cheapo Dew Controller
+# How the Controller Works
 
-Modes:
-    Automatic
-        Local Temperature - local telescope temperature updated via API or probe (not currently supported)
-        No Local Temperature - no telescope temperature. PWM calculations based only on weather query information
-    Manual
-        PWM control is fully manual through the web interface or the API
+The following modes of operation are used in the algorithm that calculates controller output. The first item under each 
+mode is the default.
 
-General Automated Model
-    Variables:
-        Ambient Temperature - retrieved from weather query
-        Humidity - retrieved from weather query
-        Dew Point - calculated from Ambient Temperature & Humidity
-        Automated Mode - as above
-        Dew Control Mode - one of
-            Dew Point based - calculates PWM based on difference between a set point equal to the Dew Point and either Ambient or Telescope temperature
-            Temperature based - calculates PWM based on difference between a defined temperature set point (default 0 Celsius) and either Ambient or Telescope temperature.
-        Tracking Range - degrees Celsius range for modifying PWM from 0% to 100% - 4 degrees is lowest. 10 degrees is highest. Default is 5.
-        Track Point Offset - degrees offset to move the Tracking Range relative to the Set Point temperature.
-        Minimum PWM - Minimum PWM setting, default is 0%
-        Maximum PWM - Maximum PWM setting, default is 100%
+## Controller Modes:
+    ### Automatic
+        Uses the **Set Point Mode** and **Temperature Mode** settings to calculate the controller output based on the 
+        algorithm below.
+    ### Manual
+        Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the
+         API.
+    ### Off
+        Controller output is set to Zero.
+
+## Set Point Modes:
+    ### Dew Point
+        Use the **Dew Point** as the Set Point used for calculating output.
+    ### Temperature
+        Use a **Temperature Set Point** value input via the Web UI or API as the Set Point for calculating output.
+    ### Midpoint
+        Use the midpoint between the current **Temperature Mode** temperature value and the Dew Point value as the Set Point
+         for calculating output.
+
+## Temperature Modes:
+    ### Weather Query
+        Use the Ambient Temperature returned by the OpenWeather weather query as the reference temperature for calculating 
+        the controller output.
+    ### External Input
+        Use the **External Input** temperature set through the Web UI or API as the reference temperature for calculating the 
+        controller output. This may be the preferred mode when using the controller with KStars/Indi. The CheapoDC Indilib 
+        driver can use a temperature probe attached to a focuser as the external input. 
 
 
-    Algorithm:
-        T-Temp = Tracking Temperature in degrees C, default is Ambient Temperature
-        SP-Temp = Set Point Temperature in degrees C, default is Dew Point Temperature
-        SP-Offset = +/- offset to set point in degrees C, default is 0
-        Range = Tracking Range in degrees C, default is 5
+## General Automated Model
+    ### Variables:
+        **Set Point** = ***SP*** - as set using the **Set Point** selection.
+        **Reference Temperature** = ***RT*** - as set using the **Temperature Mode** selection.
+        **Track Point** = ***TP*** - the temperature point where the **Tracking Range** starts. Reference Temperatures less than or equal 
+        to the Track Point cause the controller to use maximum output. 
+        **Track Point Offset** = ***TPO*** - an offset applied to the Set Point when determining the Track Point relative to the Set Point. 
+        The Track Point Offset may be set from 0.0 to 5.0 degrees Celsius. The default is 0.0 degrees Celsius.
+        **Tracking Range** = ***TR*** - the temperature range starting at the Track Point where the controller output ramps up from minimum 
+        output at the high end of the range to maximum output at the low end of the range. The range may be set to values from 
+        4.0 to 10.0 degrees Celsius. The default is 4.0 degrees celsius.
+        **Power Output** = ***PO*** - the percentage of power the controller is outputting to the dew straps. It varies from the Minimum 
+        Output (***MinO***) setting to the Maximum Output (***MaxO***) setting. The minimum output defaults to 0% and maximum output defaults to 100%
 
-        Simple algorithm:
-            1 - At regular intervals the delta Temperature is calculated based on D-Temp = T-Temp - (SP-Temp + SP-Offset).
-            2 - If the Delta Temperature D-Temp is less than the Range then the PWM value is calculated base on the range. PWM = 100/Range.
-            3 - If the PWM result is less than Min-PWM then Min-PWM is used. 
-            4 - If the PWM result is more than the Max-PWM then the Max-PWM is used.
+    ### Calculations
+        ***TP*** = ***SP*** + ***TP***
+
+        IF ( ***RT*** <= ***TP*** ) THEN ***PO*** = ***MaxO***
+        ELSE IF ( ***RT*** - ***TP*** ) >= ***TR*** THEN ***PO*** = ***MinO***
+        ELSE IF ( ***RT*** - ***TP*** ) < ***TR*** THEN 
+        ***PO*** = ***MinO*** + (***MaxO*** - ***MinO***) * ( 1 - (***RT*** - ***TP***)/(***TR***))
+
+    ### Examples
+
+        1. Reference image to illustrate the definitions above.
+        ![Example 1](images/example1.png)
+
+        2. Example 2
+        ![Example 1](images/example2.png)
+
+        3. Example 3
+        ![Example 1](images/example3.png)
+        
+        
 
         
 
