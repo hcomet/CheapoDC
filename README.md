@@ -1,7 +1,9 @@
 ![CheapoDC Logo](images/logo.png)
 
-# CheapoDC
-Cheap and easy ESP32-C3 based Dew Controller for Astrophotography
+The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini. Parts required include the ESP32-C3 mini, one or two MOSFET modules, 12V to 5V buck converter, some proto board, a couple of RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that controls 2 dew strap heaters.
+
+A primary goal was to keep the build simple with minimal parts. This is done by leveraging the ESP32 WiFi capability to query the OpenWeather API for ambient temperature and dew point. This is then used for calculating CheapoDC's power output. No additional components to support temperature or humidity probes. The responsiveness or aggressiveness of the controller can be adjusted through several settings. CheapoDC works best with Internet connectivity supporting the weather queries to OpenWeather but it can also be used in a limited way without Internet access. 
+
 
 # How the Controller Works
 
@@ -33,20 +35,28 @@ mode is the default.
 
 ## Controller Power Output Model
 ### Variables:
-* **Set Point** = ***SP*** - as set using the **Set Point** selection.
-* **Reference Temperature** = ***RT*** - as set using the **Temperature Mode** selection.
-* **Track Point** = ***TP*** - the temperature point where the **Tracking Range** starts. A **Reference Temperature** less than or equal 
+* **Set Point** = ***SP***
+  - as set using the **Set Point** selection.
+* **Reference Temperature** = ***RT***
+  - as set using the **Temperature Mode** selection.
+* **Track Point** = ***TP***
+  - the temperature point where the **Tracking Range** starts. A **Reference Temperature** less than or equal 
 to the **Track Point** will cause the controller to use **Maximum Output**. 
-* **Track Point Offset** = ***TPO*** - an offset applied to the **Set Point** when determining the **Track Point** relative to the **Set Point**. 
+* **Track Point Offset** = ***TPO***
+  - an offset applied to the **Set Point** when determining the **Track Point** relative to the **Set Point**. 
 The **Track Point Offset** may be set from -5.0 to 5.0 degrees Celsius. The default is 0.0 degrees Celsius.
-* **Tracking Range** = ***TR*** - the temperature range starting at the **Track Point** where the controller output ramps up from **Minimum Output** at the high end of the range to **Maximum Output** at the low end of the range. The range may be set to values from 
+* **Tracking Range** = ***TR***
+  - the temperature range starting at the **Track Point** where the controller output ramps up from **Minimum Output** at the high end of the range to **Maximum Output** at the low end of the range. The range may be set to values from 
 4.0 to 10.0 degrees Celsius. The default is 4.0 degrees celsius.
-* **Power Output** = ***PO*** - the percentage of power the controller is outputting to the dew straps. It varies from the **Minimum Output** setting to the **Maximum Output** setting.
-* **Minimum Output** = ***MinO*** - the minimum percent power setting for the controller to output when not in the **Off** **Controller Mode**. Defaults to 0%.
-* **Maximum Output** = ***MaxO*** - the maximum percent power setting for the controller to output when at full output. Defaults to 100%.
+* **Power Output** = ***PO***
+  - the percentage of power the controller is outputting to the dew straps. It varies from the **Minimum Output** setting to the **Maximum Output** setting.
+* **Minimum Output** = ***MinO***
+  - the minimum percent power setting for the controller to output when not in the **Off** **Controller Mode**. Defaults to 0%.
+* **Maximum Output** = ***MaxO***
+  - the maximum percent power setting for the controller to output when at full output. Defaults to 100%.
 
 ### Calculations
-$`TP = SP + TP`$
+$`TP = SP + TPO`$
 
 $`IF`$ $`(RT <= TP )`$ $`THEN`$ $`PO= MaxO`$
 
@@ -57,12 +67,16 @@ $`IF`$ $`(( RT - TP) < TR)`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - (RT - 
 ### Examples
 
 1. Reference image to illustrate the definitions above.
-![Example 1](images/example1.png)
+   * SP = -1, TPO = 3 creating a TP = 2
+   * TPR = 5, but RT = 8 which is greater than TP + TPR = 7
+   * PO is set to MinO, which is 0%
+ 
+![Example 1](images/example1.jpg)
 
-2. Example 2
+3. Example 2
 ![Example 1](images/example2.png)
 
-3. Example 3
+4. Example 3
 ![Example 1](images/example3.png)
         
         
