@@ -71,7 +71,7 @@ $`IF`$ $`(( RT - TP) < TR)`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - (RT - 
    * TPR = 5, but RT = 8 which is greater than TP + TPR = 7
    * PO is set to MinO, which is 0%
  
-![Example 1](images/example1.png)
+![Example 1](images/example1.jpg)
 
 3. Example 2
 ![Example 1](images/example2.png)
