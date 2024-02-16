@@ -16,7 +16,7 @@
         <h2>File Upload</h2>
         <div class="fileUpload">
             <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
-                <input type="file" name="file1" id="file1"/><input type="button" name="upload" value="Upload" title="Upload File" onclick="uploadFile()"/>
+                <input type="file" name="file1" id="file1"/><input type="button" name="upload" id="iupload" value="Upload" title="Upload File" onclick="uploadFile()" disabled/>
                 <h3 id="status">Completed: 0&percnt;</h3> <p id="loaded_n_total"><span id="filename"></span><span id="filesize"></span></p>
             </form>
         </div>
@@ -40,6 +40,7 @@
  <div class="atribution">Cheapo Dew Controller - &copy; 2024 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
 </footer></div>
 <script>
+document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
 function uploadFile() {
   var file = document.getElementById("file1").files[0];
   document.getElementById("filename").innerHTML =  document.getElementById("file1").value.replace(/.*[\/\\]/, '') + ": ";
@@ -77,6 +78,8 @@ function completeHandler(event) {
   xmlhttp.send();
   document.getElementById("status").innerHTML = "File Uploaded";
   document.getElementById("file1").outerHTML = "<input type=\"file\" name=\"file1\" id=\"file1\"/>";
+  document.getElementById('iupload').disabled = true;
+  document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
   //document.getElementById("detailsheader").innerHTML = "<h3>Files<h3>";
   //document.getElementById("details").innerHTML = xmlhttp.responseText;
 }

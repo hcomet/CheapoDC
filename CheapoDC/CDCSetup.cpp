@@ -6,13 +6,13 @@
 
 #include <Arduino.h>
 #include "CDCdefines.h"
-#include "time.h"
+//#include "time.h"
 #include <ArduinoJson.h>
 #include <EasyLogger.h>
 #include "FS.h"
 #include <LittleFS.h>
-#include <ESP32Time.h>
 #include <TimeLib.h>
+#include <ESP32Time.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <ESPmDNS.h>
@@ -24,6 +24,10 @@
 #include "CDCommands.h"
 
 #define FORMAT_LITTLEFS_IF_FAILED true
+
+//** TimeLib dayShortStr() not working so use my own:
+char* mydayShortStr[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+
 
 
 //********************************************************************************************
@@ -62,6 +66,8 @@ String httpGETRequest(const char* serverName, int retryCount = 0) {
 //********************************************************************************************
 bool CDCSetup::queryWeather(void)
 {
+    time_t  tempTime = 0;
+    time_t  tempTZ = 0;
     char httpRequestURL[256];
     DynamicJsonDocument doc(1024);
     float alphaDP;
@@ -92,6 +98,37 @@ bool CDCSetup::queryWeather(void)
     LOG_DEBUG("queryWeather","ESP32 date: <" << theTime->getDateTime() << ">");
     LOG_DEBUG("queryWeather","New query date: " << this->getLastWeatherQueryDate());
 
+    // Do Date-Time items which are in LINUX UTC Time
+    tempTime = doc["dt"] | 0;
+    tempTZ = doc["timezone"] | 0;
+    tempTime = tempTime + tempTZ;
+
+    if (tempTime != 0 ) {
+      sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, hour(tempTime),minute(tempTime),second(tempTime));
+      sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, mydayShortStr[weekday(tempTime)-1], monthShortStr(month(tempTime)), day(tempTime),year(tempTime));
+    } else {
+      strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+      strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+    }
+
+    LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
+
+    tempTime = doc["sys"]["sunrise"] | 0;
+    tempTime = tempTime + tempTZ;
+    if (tempTime != 0 ) 
+      sprintf(this->_currentWeather.sunrise, CDC_TIME, hour(tempTime),minute(tempTime),second(tempTime));
+    else
+      strlcpy(this->_currentWeather.sunrise, CDC_NA, sizeof(this->_currentWeather.sunrise));
+
+    tempTime = doc["sys"]["sunset"] | 0;
+    tempTime = tempTime - tempTZ;
+    if (tempTime != 0 ) 
+      sprintf(this->_currentWeather.sunset, CDC_TIME, hour(tempTime),minute(tempTime),second(tempTime));
+    else
+      strlcpy(this->_currentWeather.sunset, CDC_NA, sizeof(this->_currentWeather.sunset));
+
+    // Get temperature, Humidity and calculate Dew point
+
     this->_currentWeather.ambientTemperature = main["temp"] | 0.0;
     this->_currentWeather.humidity = main["humidity"] | 0.0;
     if ((this->_currentWeather.ambientTemperature == 0.0) && (this->_currentWeather.humidity == 0.0))
@@ -111,16 +148,12 @@ bool CDCSetup::queryWeather(void)
     this->_currentWeather.windSpeed = doc["wind"]["speed"] | 0.0;
     this->_currentWeather.windDirection = doc["wind"]["deg"] | 0;
     this->_currentWeather.cloudCoverage = doc["clouds"]["all"] | 0;
-    this->_currentWeather.sunrise = doc["sys"]["sunrise"] | 0;
-    this->_currentWeather.sunset = doc["sys"]["sunset"] | 0;
-    this->_currentWeather.weatherUpdated = doc["dt"] | 0;
-
-    strlcpy(this->_currentWeather.weatherUpdateLocation, doc["name"] | "NA", sizeof(this->_currentWeather.weatherUpdateLocation));
-    String tempDescription = String(doc["weather"][0]["main"] | "NA");
-    tempDescription += String(" - ") + String(doc["weather"][0]["description"] | "NA");
+     
+    strlcpy(this->_currentWeather.weatherUpdateLocation, doc["name"] | CDC_NA, sizeof(this->_currentWeather.weatherUpdateLocation));
+    String tempDescription = String(doc["weather"][0]["main"] | CDC_NA);
+    tempDescription += String(" - ") + String(doc["weather"][0]["description"] | CDC_NA);
     tempDescription.toCharArray(this->_currentWeather.weatherDescription, sizeof(this->_currentWeather.weatherDescription));
-    //strlcpy(this->_currentWeather.weatherDescription, tempDescription, sizeof(this->_currentWeather.weatherDescription));
-    strlcpy(this->_currentWeather.weatherIcon, doc["weather"][0]["icon"] | "NA", sizeof(this->_currentWeather.weatherIcon));
+    strlcpy(this->_currentWeather.weatherIcon, doc["weather"][0]["icon"] | CDC_NA, sizeof(this->_currentWeather.weatherIcon));
     
     LOG_DEBUG("queryWeather", "Current Weather: " << this->_currentWeather.lastWeatherQueryDate << " " << this->_currentWeather.lastWeatherQueryTime << " From: " << this->_currentWeather.weatherUpdateLocation );
     LOG_DEBUG("queryWeather", "    temperature: " << this->_currentWeather.ambientTemperature );
@@ -135,13 +168,7 @@ bool CDCSetup::queryWeather(void)
     LOG_DEBUG("queryWeather", "    weatherIcon: " << this->_currentWeather.weatherIcon );
     LOG_DEBUG("queryWeather", "    sunrise: " << this->_currentWeather.sunrise );
     LOG_DEBUG("queryWeather", "    sunset: " << this->_currentWeather.sunset );
-    LOG_DEBUG("queryWeather", "    data updated: " << this->_currentWeather.weatherUpdated );
-    LOG_DEBUG("queryWeather", "    Alternate data updated: " << year(this->_currentWeather.weatherUpdated) );
-    LOG_DEBUG("queryWeather", "    Alternate data updated: " << month(this->_currentWeather.weatherUpdated) );
-    LOG_DEBUG("queryWeather", "    Alternate data updated: " << day(this->_currentWeather.weatherUpdated) );
-    LOG_DEBUG("queryWeather", "    Alternate data updated: " << hour(this->_currentWeather.weatherUpdated) );
-    LOG_DEBUG("queryWeather", "    Alternate data updated: " << minute(this->_currentWeather.weatherUpdated) );
-    LOG_DEBUG("queryWeather", "    Alternate data updated: " << second(this->_currentWeather.weatherUpdated) );
+    LOG_DEBUG("queryWeather", "    data updated: " << this->_currentWeather.lastWeatherUpdateDate << " " << this->_currentWeather.lastWeatherUpdateTime );
 
     return true;
 
@@ -179,8 +206,8 @@ CDCSetup::CDCSetup(void)
   theTime = new ESP32Time(0);
   
 
-  strlcpy(this->_currentWeather.lastWeatherQueryTime, "NA", sizeof(this->_currentWeather.lastWeatherQueryTime));
-  strlcpy(this->_currentWeather.lastWeatherQueryDate, "NA", sizeof(this->_currentWeather.lastWeatherQueryDate));
+  strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+  strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
    
   return;
 }
@@ -297,6 +324,8 @@ void CDCSetup::_loadDefaults(void) {
   memset(this->_currentWeather.weatherUpdateLocation, '\0', sizeof(this->_currentWeather.weatherUpdateLocation));
   memset(this->_currentWeather.lastWeatherQueryTime, '\0', sizeof(this->_currentWeather.lastWeatherQueryTime));
   memset(this->_currentWeather.lastWeatherQueryDate, '\0', sizeof(this->_currentWeather.lastWeatherQueryDate));
+  memset(this->_currentWeather.lastWeatherUpdateTime, '\0', sizeof(this->_currentWeather.lastWeatherUpdateTime));
+  memset(this->_currentWeather.lastWeatherUpdateDate, '\0', sizeof(this->_currentWeather.lastWeatherUpdateDate));
 
   this->_currentWeather.ambientTemperature = 0.0;
   this->_currentWeather.humidity = 0.0;
@@ -310,9 +339,8 @@ void CDCSetup::_loadDefaults(void) {
   this->_currentWeather.cloudCoverage = 0;
   memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
   memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
-  this->_currentWeather.weatherUpdated = 0;
-  this->_currentWeather.sunrise = 0;
-  this->_currentWeather.sunset = 0;
+  memset(this->_currentWeather.sunrise, '\0', sizeof(this->_currentWeather.sunrise));
+  memset(this->_currentWeather.sunset, '\0', sizeof(this->_currentWeather.sunset));
 
 }
 

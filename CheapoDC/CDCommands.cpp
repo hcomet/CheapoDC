@@ -48,7 +48,9 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"ATPX", {CDC_CMD_ATPX, 0, CDC_UNITS_DEGREES_C }},  // Local Temperature input by external app
     {"CTP", {CDC_CMD_CTP, 0, CDC_UNITS_DEGREES_C }},     // Current Track Point Temperature
     {"WUL", {CDC_CMD_WUL, 0, CDC_UNITS_NONE}},           // Location of Weather station reported in query
-    {"CLC", {CDC_CMD_CLC, 0, CDC_UNITS_PERCENT }}       // Cloud Coverage in percent
+    {"CLC", {CDC_CMD_CLC, 0, CDC_UNITS_PERCENT }},       // Cloud Coverage in percent
+    {"LWUT", {CDC_CMD_LWUT, 0, CDC_UNITS_NONE }},      // Cloud Coverage in percent
+    {"LWUD", {CDC_CMD_LWUD, 0, CDC_UNITS_NONE }}       // Cloud Coverage in percent
 };
 
 bool configUpdated = false;
@@ -369,6 +371,16 @@ case CDC_CMD_CDT:
     char buf[16] = "";
     sprintf(buf, "%d", theSetup->getCloudCoverage());
     newResponse.response = String(buf);
+    break;
+  }
+  case CDC_CMD_LWUD:
+  {
+    newResponse.response = String(theSetup->getLastWeatherUpdateDate());
+    break;
+  }
+  case CDC_CMD_LWUT:
+  {
+    newResponse.response = String(theSetup->getLastWeatherUpdateTime());
     break;
   }
   default:

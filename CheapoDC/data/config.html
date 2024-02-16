@@ -54,12 +54,8 @@
                 <configItem>Temperature Mode:</configItem>
                 <configValue>
                     <div class="cReading"><select name="DCTM" id="DCTMS" ><option id="Weather Query" value="0">Weather Query</option><option id="External Input" value="1">External Input</option></select></div>
-            <!--        <script>document.getElementById("DCTMS").getElementsByTagName('option')["%DCTM%"].selected = 'selected';
-                            document.getElementById("DCTMS").getElementsByTagName('option')["Local Temperature"].disabled = true;
-                            </script> -->
                 </configValue>
                 <configAction><button type="button" class="cButton" id="DCTM">Update</button></configAction>
-            <!--    <script>document.getElementById("DCTM").className = document.getElementById("DCTM").className + " hidden";</script> -->
             </div>
             <div class="configline">
                 <configItem>Weather Query:</configItem>
@@ -173,6 +169,14 @@
                 </configValue>
                 <configAction><button type="button" class="cButton" id="WKEY">Update</button></configAction>
             </div>
+            <div class="configline">
+                <configItem>Last Weather Update:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="CDT" id="LWUTI" readonly/></div>
+                </configValue>
+                <configComment><div class="cReading">Query Location Time</div></configComment>
+                <configAction><button type="button" class="cButton hidden" id="LWUT">Update</button></configAction>
+            </div>
             <h2>Location and Time Configuration</h2>
             <div class="configline">
                 <configItem>My Location Name:</configItem>
@@ -202,7 +206,7 @@
                 <configValue>
                     <div class="cReading"><input type="text" name="CDT" id="CDTI" readonly/></div>
                 </configValue>
-                <configAction><configAction><button type="button" class="cButton hidden" id="CDT">Update</button></configAction></configAction>
+                <configAction><button type="button" class="cButton hidden" id="CDT">Update</button></configAction>
             </div>
             <div class="configline">
                 <configItem>Timezone Offset:</configItem>

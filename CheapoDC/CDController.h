@@ -46,6 +46,8 @@ class   dewController {
     
     void    setMinOutput(int output);
     void    setMaxOutput(int output);
+    void    setEnabled() { this->_controllerEnabled = true;};
+    void    setDisabled() { this->_controllerEnabled = false;};
 
     int     getOutput() {return this->_currentOutput;};
     int     getMinOutput() {return this->_minimumOutputSetting;};
@@ -70,6 +72,7 @@ class   dewController {
         float _currentTrackPoint;
         int _minimumOutputSetting;
         int _maximumOutputSetting;
+        bool _controllerEnabled;
         
         int _calculateOutput( float currentTemperature, float setPoint, float range, float offset);
 

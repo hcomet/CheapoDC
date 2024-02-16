@@ -6,7 +6,7 @@
 #include <EasyLogger.h>
 #include <ESP32Time.h>
 #include <arduino-timer.h>
-//#include "otaUpdater.h"
+#include <ArduinoTrace.h>
 #include "CDCWebSrvr.h"
 
 #include "CDCvars.h"
@@ -147,6 +147,8 @@ void setup()
   {
     LOG_ERROR("Main-setup", "Load Configuration Failure. Will continue on defaults.");
   }
+
+  theDController->setEnabled();
 
   if (theSetup->getInWiFiAPMode())
   {

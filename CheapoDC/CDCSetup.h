@@ -41,6 +41,8 @@ struct          weatherData
                 char  weatherUpdateLocation[32];
                 char  lastWeatherQueryTime[32];
                 char  lastWeatherQueryDate[32];
+                char  lastWeatherUpdateTime[32];
+                char  lastWeatherUpdateDate[32];
                 float ambientTemperature;
                 float humidity;
                 float dewPoint;
@@ -53,9 +55,8 @@ struct          weatherData
                 int cloudCoverage;
                 char weatherDescription[32];
                 char weatherIcon[4];
-                long weatherUpdated;
-                long sunrise;
-                long sunset;
+                char sunrise[32];
+                char sunset[32];
 };
 
 // weatherData currentWeatherData[2];
@@ -89,6 +90,8 @@ class CDCSetup
         int             getWeatherQueryEvery() { return this->_queryWeatherEvery;};
         const char*     getLastWeatherQueryTime() {return this->_currentWeather.lastWeatherQueryTime;};
         const char*     getLastWeatherQueryDate() {return this->_currentWeather.lastWeatherQueryDate;};
+        const char*     getLastWeatherUpdateTime() {return this->_currentWeather.lastWeatherUpdateTime;};
+        const char*     getLastWeatherUpdateDate() {return this->_currentWeather.lastWeatherUpdateDate;};
         const char*     getLastWeatherUpdateLocation() {return this->_currentWeather.weatherUpdateLocation;};
         const char*     getCurrentWeatherIcon() {return this->_currentWeather.weatherIcon;};
         const char*     getCurrentWeatherDescription() {return this->_currentWeather.weatherDescription;};

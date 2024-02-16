@@ -12,6 +12,8 @@
 #include "CDCSetup.h"
 #include "CDController.h"
 
+#define ArduinoTrace_ENABLE 1
+
 dewController::dewController(void)
 {
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
@@ -22,6 +24,7 @@ dewController::dewController(void)
     LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUPUT_PIN2);
 //    ledcAttachPin( CDC_PWM_OUPUT_PIN2, CDC_PWM_CHANNEL);
 #endif
+//    ledcWrite( CDC_PWM_CHANNEL, PWMDutyCycle);
     
     this->_currentControllerMode = CDC_DEFAULT_CONTROLLER_MODE;
     this->_currentTemperatureMode = CDC_DEFAULT_TEMPERATURE_MODE;
@@ -33,6 +36,7 @@ dewController::dewController(void)
     this->_currentTrackPoint = 0.0;
     this->_minimumOutputSetting = CDC_MINIMUM_CONTROLLER_OUTPUT;
     this->_maximumOutputSetting = CDC_MAXIMUM_CONTROLLER_OUTPUT;
+    this->_controllerEnabled = false;
     return;
 }
 
@@ -57,78 +61,95 @@ void    dewController::updateOutput( int output ) {
     int newOutput;
     int PWMDutyCycle;
     int previousOutput = this->_currentOutput;
-    float currentTemperature;
+    float referenceTemperature;
     float setPoint;
 
-    switch (this->_currentControllerMode) {
+    if (this->_controllerEnabled)
+    {
+        switch (this->_currentControllerMode)
+        {
 
         case AUTOMATIC:
-            if (this->_currentTemperatureMode == EXTERNAL_INPUT) {
-                currentTemperature = theSetup->getAmbientTemperatureExternal();
-            } else {
-                currentTemperature = theSetup->getAmbientTemperatureWQ();
+            if (this->_currentTemperatureMode == EXTERNAL_INPUT)
+            {
+                referenceTemperature = theSetup->getAmbientTemperatureExternal();
+            }
+            else
+            {
+                referenceTemperature = theSetup->getAmbientTemperatureWQ();
             }
 
-            switch (this->_currentSetPointMode){
-                case DEWPOINT:
+            switch (this->_currentSetPointMode)
+            {
+            case DEWPOINT:
+                setPoint = theSetup->getDewPoint();
+                break;
+            case TEMPERATURE:
+                setPoint = this->_currentTemperatureSetPoint;
+                break;
+            case MIDPOINT:
+                if (referenceTemperature <= theSetup->getDewPoint())
                     setPoint = theSetup->getDewPoint();
-                    break;
-                case TEMPERATURE:
-                    setPoint = this->_currentTemperatureSetPoint;
-                    break;
-                case MIDPOINT:
-                    setPoint = (currentTemperature + theSetup->getDewPoint())/2;
-                    break;
-                default:
-                    setPoint = theSetup->getDewPoint();
-                    break;
+                else
+                    setPoint = (referenceTemperature + theSetup->getDewPoint()) / 2;
+                break;
+            default:
+                setPoint = theSetup->getDewPoint();
+                break;
             }
 
-            newOutput = this->_calculateOutput(currentTemperature, setPoint, this->_currentTrackingRange, this->_currentTrackPointOffset );
+            newOutput = this->_calculateOutput(referenceTemperature, setPoint, this->_currentTrackingRange, this->_currentTrackPointOffset);
             break;
 
         case MANUAL:
-            if (output < 0) 
+            if (output < 0)
                 newOutput = previousOutput;
             else
                 newOutput = output;
             break;
 
         case OFF:
-            if (output > 0) 
-                LOG_ALERT("updateOutput", "Controller mode must be set to AUTOMATIC or MANUAL before outputs can be set." );
+            if (output > 0)
+                LOG_ALERT("updateOutput", "Controller mode must be set to AUTOMATIC or MANUAL before outputs can be set.");
             newOutput = 0;
             break;
 
         default:
             newOutput = previousOutput;
-        break;
+            break;
+        }
+
+        if (((newOutput < CDC_MINIMUM_CONTROLLER_OUTPUT) || (newOutput > CDC_MAXIMUM_CONTROLLER_OUTPUT)) && (this->_currentControllerMode != OFF))
+        {
+            LOG_ERROR("updateOutput", "Output value must be >=" << CDC_MINIMUM_CONTROLLER_OUTPUT << " and  <=" << CDC_MAXIMUM_CONTROLLER_OUTPUT << ". Out of range value: " << newOutput);
+            newOutput = previousOutput;
+        }
+
+        if ((newOutput < this->_minimumOutputSetting) && (this->_currentControllerMode != OFF))
+        {
+            this->_currentOutput = this->_minimumOutputSetting;
+        }
+        else if (newOutput > this->_maximumOutputSetting)
+        {
+            this->_currentOutput = this->_maximumOutputSetting;
+        }
+        else
+        {
+            this->_currentOutput = newOutput;
+        }
+
+        if (this->_currentOutput != previousOutput)
+        {
+
+            PWMDutyCycle = (this->_currentOutput * (pow(2, CDC_PWM_RESOLUTION) - 1)) / 100;
+            LOG_DEBUG("updateOutput", "Output set to: " << PWMDutyCycle << " of " << (pow(2, CDC_PWM_RESOLUTION) - 1));
+
+            //    ledcWrite( CDC_PWM_CHANNEL, PWMDutyCycle);
+            LOG_ALERT("updateOutput", "Power output changed to: " << this->_currentOutput);
+        }
+
+        LOG_DEBUG("updateOutput", "Output set to: " << this->_currentOutput << "%");
     }
-
-    if (((newOutput < CDC_MINIMUM_CONTROLLER_OUTPUT) || (newOutput > CDC_MAXIMUM_CONTROLLER_OUTPUT)) && (this->_currentControllerMode != OFF))  {
-        LOG_ERROR("updateOutput", "Output value must be >=" << CDC_MINIMUM_CONTROLLER_OUTPUT << " and  <=" << CDC_MAXIMUM_CONTROLLER_OUTPUT << ". Out of range value: " << newOutput);
-        newOutput = previousOutput;
-    }
-
-    if ((newOutput < this->_minimumOutputSetting) && (this->_currentControllerMode != OFF))  {
-        this->_currentOutput = this->_minimumOutputSetting;
-    } else if (newOutput > this->_maximumOutputSetting) {
-        this->_currentOutput = this->_maximumOutputSetting;
-    } else {
-        this->_currentOutput = newOutput;
-    }
-
-    if (this->_currentOutput != previousOutput) {
-
-        PWMDutyCycle = (this->_currentOutput * (pow(2, CDC_PWM_RESOLUTION)-1))/100;
-        LOG_DEBUG("updateOutput", "Output set to: " << PWMDutyCycle << " of " << (pow(2, CDC_PWM_RESOLUTION)-1));
-
-        //    ledcWrite( CDC_PWM_CHANNEL, PWMDutyCycle);
-        LOG_ALERT("updateOutput", "Power output changed to: " << this->_currentOutput);
-    }
-    
-    LOG_DEBUG("updateOutput", "Output set to: " << this->_currentOutput << "%");
-      
     return;
 }
 

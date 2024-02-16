@@ -66,6 +66,7 @@
     transform: translateY(4px);
   }
 
+  input[type=button]:disabled,
   button.bfooterDisabled {
     background-color: var(--color-grey);
     color: var(--color-darkGrey);

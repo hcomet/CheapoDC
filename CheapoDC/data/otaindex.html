@@ -9,7 +9,7 @@
    <main>
    <h2>Web OTA Firmware Update</h2>
    <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
-      <input type="file" name="file1" id="file1" value="Choose FW" /><input type="button" name="upload" value="Update" title="Upload File" onclick="uploadFile()"/>
+      <input type="file" name="file1" id="file1" value="Choose FW" /><input type="button" name="upload"  id="iupload" value="Update" title="Upload File" onclick="uploadFile()" disabled/>
       <h3 id="status">Completed: 0&percnt;</h3> <p id="loaded_n_total"><span id="filename"></span><span id="filesize"></span></p>
   </form> 
   <hr class="footerThr">
@@ -34,6 +34,7 @@
 <div class="atribution">Cheapo Dew Controller - &copy; 2024 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
 </footer></div>
 <script>
+   document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
  function uploadFile() {
   var file = document.getElementById("file1").files[0];
   document.getElementById("filename").innerHTML =  document.getElementById("file1").value.replace(/.*[\/\\]/, '') + ": ";
@@ -49,7 +50,12 @@ function progressHandler(event) {
   var percent = (event.loaded / event.total) * 100;
   document.getElementById("status").innerHTML = "Completed: " + Math.round(percent) + "&percnt;";
   if (percent >= 100) {
-    document.getElementById("status").innerHTML = "Completed: 100%";
+      document.getElementById("status").innerHTML = "Completed: 100&percnt; Wait for Reload."; 
+      document.getElementById("iupload").disabled = true;
+      setTimeout(function() {location.reload();}, 5000);
+      //document.getElementById("file1").addEventListener('change', function() {
+        //       document.getElementById('iupload').disabled = false;
+         //      document.getElementById("status").innerHTML = "Completed: 0&percnt;";});
   }
 }
 function rebootDevice() {

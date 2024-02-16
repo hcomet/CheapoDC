@@ -12,10 +12,6 @@
 #define CDC_STATUS_LED 8
 #define CDC_DEFAULT_STATUS_BLINK 500 // every x millisec, 0 disables, max 999
 
-//#define CDCTIMEZONE -18000
-//#define CDCDLOFFSET 3600
-//#define CDCNTPSERVER "0.ca.pool.ntp.org"
-
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625 
 #define CDC_MC_B 243.04
@@ -109,6 +105,12 @@
 #define CDC_UNITS_MINUTE "min"
 #define CDC_UNITS_NONE ""
 
+// Date Time format string
+#define CDC_DATE_TIME "%s, %s %02d %4d %02d:%02d:%02d" // DDD, MMM dd yyyy hh:mm:ss
+#define CDC_TIME "%02d:%02d:%02d" // hh:mm:ss
+#define CDC_DATE "%s, %s %02d %4d" // DDD, MMM dd yyyy
+#define CDC_NA   "--"
+
 // CDC Commands
 #define CDC_CMD_TMFL 0   // Filelist
 #define CDC_CMD_WICON 1  // Weather Icon
@@ -149,5 +151,7 @@
 #define CDC_CMD_CTP 36  // Current temperature track point based on DC settings 
 #define CDC_CMD_WUL 37 // Name or location of weather station from last weather query
 #define CDC_CMD_CLC 38 // Cloud Coverage in percent
+#define CDC_CMD_LWUT 39 // Last weather update time taken from query result
+#define CDC_CMD_LWUD 40 // Last weather update date taken from query result
 
 #endif 
