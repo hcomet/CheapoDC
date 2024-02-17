@@ -40,30 +40,33 @@ $`IF`$ $`(RT <(TP + TR))`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - (RT - TP
 
 ### Examples
 
-1. Reference image to illustrate the definitions above.
+1. Exampe 1 is primarily a reference image to illustrate the variables defined above.
    * Power Output curve is shown relative to the Track Point and the Tracking Range. While the Reference Temperature is greater than the high end of the Tracking Range the Power Output is set to Minimum Output. The Power Output ramps up linearly through the Tracking Range from the Minimum Output to the Maximum Output as the Reference Temperature drops.
-   * This example shows the Reference Temperature at 8°C, which is greater than the upper end of the Tracking Range, causing Power Output to be set to Minimum Output. In this case Minimum Output is set to 10%.
+   * This example shows a Reference Temperature, RT = 8°C, which is greater than the upper end of the Tracking Range, causing Power Output to be set to Minimum Output. In this case Minimum Output is set to 10%.
    * The upper end of the Tracking Range, at 7°C, is determined from the Set Point (SP = -2°C) plus the Track Point Offset (TPO = 4°C), creating a Tack Point, TP = 2°C, plus the Tracking Range (TR = 5°C).
  
 ![Example 1](images/example1.jpg)
 
-2. Example 2
+2. Example 2 shows changing the values of the controller variables can affect the Power Output calculation.
+   * The Set Point, SP = -2°C, and the Reference Temperature, RT = 8°C, the same as in Example 1. However changing the Track Point Offset, now TPO = 2°C, and the Tracking Range, now TR = 10°C, has change the Power Output as well as flattening  the Power Output curve.
+   * 
+
 ![Example 1](images/example2.jpg)
 
 ## Dew Controller Settings
 The following modes of operation are used in the algorithm that calculates controller output. The first item under each 
 mode is the default.
 
-### Controller Modes:
+### Controller Mode:
 The Controller Mode selects the overall operating mode of the dew controller.
 * #### Automatic  
-  * Uses the **Set Point Mode** and **Temperature Mode** settings to calculate the controller output based on the algorithm below.
+  * Uses the **Set Point Mode** and **Temperature Mode** settings to calculate the controller output based on the Power Output calculations above. In Automatic mode the Power Output calculation will be run periodically based on the Update Output Every setting. This may be set to a value from 1 to 20 minutes. The default is 1 minute. Automatic mode may be used with or without internet access.
 * #### Manual
-  * Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the API.
+  * Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the API. When in Manual mode the the periodic Power Output calculation is suspended. Using Manual control is an option if internet access for OpenWeather API queries is not available.
 * #### Off
-  * Controller output is set to Zero.
+  * Controller output is set to Zero. 
 
-## Set Point Modes:
+### Set Point Mode:
 The Set Point Mode selects what will be used as the SetPoint for calculating Power Output.
 * #### Dew Point
   * Uses the **Dew Point** as the Set Point used for calculating output. This is the default selection.
@@ -72,7 +75,7 @@ The Set Point Mode selects what will be used as the SetPoint for calculating Pow
 * #### Midpoint
   * Uses the midpoint between the current **Temperature Mode** temperature value and the Dew Point value as the Set Point for calculating output. The impact of selecting this mode is to effectively double the Tracking Range and further flatten the ramp of the Power Output curve.
 
-## Temperature Modes:
+### Temperature Mode:
 The Temperature Mode selects how the Reference Temperature will be determined for calculating the Power Output.
 * #### Weather Query
   * Uses the Ambient Temperature returned by the OpenWeather API weather query as the Reference Temperature for calculating the controller output. This requires that the CheapoDC have internet access.

@@ -31,7 +31,7 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"DCTM", {CDC_CMD_DCTM, 1, CDC_TEMPERATUREMODE_JSONARRAY }},   // dew controller temperature mode
     {"SPM", {CDC_CMD_SPM, 1, CDC_SETPOINTMODE_JSONARRAY }},     // dew controller set point mode
     {"WQE", {CDC_CMD_WQE, 1, CDC_UNITS_MINUTE }},     // Weather query every
-    {"UOE", {CDC_CMD_UOE, 1, CDC_UNITS_MINUTE }},      // update outputs every
+    {"UOE", {CDC_CMD_UOE, 1, CDC_UNITS_MINUTE }},      // update output every
     {"WAPI", {CDC_CMD_WAPI, 1, CDC_UNITS_NONE }},   // Weather API URL
     {"WIURL", {CDC_CMD_WIURL, 1, CDC_UNITS_NONE }}, // Weather Icon URL
     {"WKEY", {CDC_CMD_WKEY, 1, CDC_UNITS_NONE }},   // Weather API Key
