@@ -172,7 +172,7 @@
             <div class="configline">
                 <configItem>Last Weather Update:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="text" name="CDT" id="LWUTI" readonly/></div>
+                    <div class="cReading"><input type="text" name="LWUT" id="LWUTI" readonly/></div>
                 </configValue>
                 <configComment><div class="cReading">Query Location Time</div></configComment>
                 <configAction><button type="button" class="cButton hidden" id="LWUT">Update</button></configAction>
@@ -253,13 +253,5 @@
      <hr class="footerBhr">
      <div class="atribution">Cheapo Dew Controller - &copy; 2024 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
     </footer></div>
-    <script>
-        function logoutCDC() {
-          var xhr = new XMLHttpRequest();
-          xhr.open("GET", "/logout", true);
-          xhr.send();
-          setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
-        }
-        </script>
         </body>
     <script src="CDCjs.js"></script>

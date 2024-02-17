@@ -7,33 +7,7 @@ A primary goal was to keep the build simple with minimal parts. This is done by 
 
 # How the Controller Works
 
-The following modes of operation are used in the algorithm that calculates controller output. The first item under each 
-mode is the default.
-
-## Controller Modes
-* ### Automatic  
-  * Uses the **Set Point Mode** and **Temperature Mode** settings to calculate the controller output based on the algorithm below.
-* ### Manual
-  * Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the API.
-* ### Off
-  * Controller output is set to Zero.
-
-## Set Point Modes:
-* ### Dew Point
-  * Uses the **Dew Point** as the Set Point used for calculating output.
-* ### Temperature
-  * Uses a **Temperature Set Point** value input via the Web UI or API as the Set Point for calculating output.
-* ### Midpoint
-  * Use the midpoint between the current **Temperature Mode** temperature value and the Dew Point value as the Set Point for calculating output.
-
-## Temperature Modes:
-* ### Weather Query
-  * Use the Ambient Temperature returned by the OpenWeather weather query as the reference temperature for calculating the controller output.
-* ### External Input
-  * Use the **External Input** temperature set through the Web UI or API as the reference temperature for calculating the controller output. This may be the preferred mode when using the controller with KStars/Indi. The CheapoDC Indilib driver can use a temperature probe attached to a focuser as the external input. 
-
-
-## Controller Power Output Model
+## Controller Power Output Calculation
 ### Variables:
 * **Set Point** = ***SP***
   - as set using the **Set Point** selection.
@@ -60,26 +34,52 @@ $`TP = SP + TPO`$
 
 $`IF`$ $`(RT <= TP )`$ $`THEN`$ $`PO= MaxO`$
 
-$`IF`$ $`(( RT - TP ) >= TR)`$ $`THEN`$ $`PO = MinO`$
+$`IF`$ $`(RT >= (TP + TR))`$ $`THEN`$ $`PO = MinO`$
 
-$`IF`$ $`(( RT - TP) < TR)`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - (RT - TP)/(TR))`$
+$`IF`$ $`(RT <(TP + TR))`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - (RT - TP)/(TR))`$
 
 ### Examples
 
 1. Reference image to illustrate the definitions above.
-   * SP = -1, TPO = 3 creating a TP = 2
-   * TPR = 5, but RT = 8 which is greater than TP + TPR = 7
-   * PO is set to MinO, which is 0%
+   * Power Output curve is shown relative to the Track Point and the Tracking Range. While the Reference Temperature is greater than the high end of the Tracking Range the Power Output is set to Minimum Output. The Power Output ramps up linearly through the Tracking Range from the Minimum Output to the Maximum Output as the Reference Temperature drops.
+   * This example shows the Reference Temperature at 8°C, which is greater than the upper end of the Tracking Range, causing Power Output to be set to Minimum Output. In this case Minimum Output is set to 10%.
+   * The upper end of the Tracking Range, at 7°C, is determined from the Set Point (SP = -2°C) plus the Track Point Offset (TPO = 4°C), creating a Tack Point, TP = 2°C, plus the Tracking Range (TR = 5°C).
  
 ![Example 1](images/example1.jpg)
 
-3. Example 2
-![Example 1](images/example2.png)
+2. Example 2
+![Example 1](images/example2.jpg)
 
-4. Example 3
-![Example 1](images/example3.png)
-        
-        
+## Dew Controller Settings
+The following modes of operation are used in the algorithm that calculates controller output. The first item under each 
+mode is the default.
+
+### Controller Modes:
+The Controller Mode selects the overall operating mode of the dew controller.
+* #### Automatic  
+  * Uses the **Set Point Mode** and **Temperature Mode** settings to calculate the controller output based on the algorithm below.
+* #### Manual
+  * Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the API.
+* #### Off
+  * Controller output is set to Zero.
+
+## Set Point Modes:
+The Set Point Mode selects what will be used as the SetPoint for calculating Power Output.
+* #### Dew Point
+  * Uses the **Dew Point** as the Set Point used for calculating output. This is the default selection.
+* #### Temperature
+  * Uses a **Temperature Set Point** value input via the Web UI or API as the Set Point for calculating output. If the CheapoDC is being used without internet access then this mode allows a Set Point to be defined when a the DeW Point cannot be determined through the OpenWeather API.
+* #### Midpoint
+  * Uses the midpoint between the current **Temperature Mode** temperature value and the Dew Point value as the Set Point for calculating output. The impact of selecting this mode is to effectively double the Tracking Range and further flatten the ramp of the Power Output curve.
+
+## Temperature Modes:
+The Temperature Mode selects how the Reference Temperature will be determined for calculating the Power Output.
+* #### Weather Query
+  * Uses the Ambient Temperature returned by the OpenWeather API weather query as the Reference Temperature for calculating the controller output. This requires that the CheapoDC have internet access.
+* #### External Input
+  * Use the **External Input** temperature set through the Web UI or API as the reference temperature for calculating the controller output. This may be the preferred mode when using the controller with KStars/Indi. The CheapoDC Indilib driver can use a temperature probe attached to a focuser as the external input. This is also the mode that should be used when the CheapoDC does not have access to the internat and the OpenWeather API.
+
+
 
         
 

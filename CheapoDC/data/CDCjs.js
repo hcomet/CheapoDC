@@ -238,3 +238,11 @@ function loadAllItems() {
 // console.log(allcButtons);
     allcButtons.forEach( function(element){sendGetCommand( element.id );} );
 }
+
+function logoutCDC() {
+    var xhr = new XMLHttpRequest();
+    websocket.close();
+    xhr.open("GET", "/logout", true);
+    xhr.send();
+    setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
+  }
