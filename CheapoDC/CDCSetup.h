@@ -1,6 +1,8 @@
 // ******************************************************************
 // CheapoDC Setup and configuration
+// Also provides configuration load and save
 // Cheap and easy Dew Controller
+// Details at https://github.com/hcomet/CheapoDC
 // (c) Copyright Stephen Hillier 2024. All Rights Reserved.
 // ******************************************************************
 #ifndef MY_CDCSETUP_H
@@ -98,6 +100,7 @@ class CDCSetup
         int             getControllerUpdateEvery() {return this->_controllerUpdateEvery;};
         const char*     getNTPServerURL() {return this->_NTPServer;};
         bool            getInWiFiAPMode() {return this->_inWiFiAPMode;};
+        const char*     getWiFiHostname() {return this->_wifiConfig.hostname;};
 
         // setters
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};

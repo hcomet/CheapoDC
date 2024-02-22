@@ -1,3 +1,10 @@
+// ******************************************************************
+// CheapoDC Web Server, Web Sockets and TCP API 
+// Cheap and easy Dew Controller
+// Details at https://github.com/hcomet/CheapoDC
+// (c) Copyright Stephen Hillier 2024. All Rights Reserved.
+// ******************************************************************
+
 #include <Arduino.h>
 #include "CDCdefines.h"
 #include <AsyncTCP.h>
@@ -14,7 +21,13 @@
 
 size_t content_len;
 AsyncWebServer * CDCWebServer;
+
+#ifdef CDC_ENABLE_WEB_SOCKETS
+#if (WS_MAX_QUEUED_MESSAGES < 64)
+#error "WS_MAX_QUEUED_MESSAGES in AsyncWebSocket.h must be set to 64 or higher to handle web socket queue properly!"
+#endif
 AsyncWebSocket * CDCWebSocket;
+#endif
 AsyncServer * CDCTCPServer;
 
 #ifdef CDC_ENABLE_WEB_AUTH
@@ -151,6 +164,7 @@ String htmlEscape(const char* inputString) {
   escapeString.replace( "'", "&#39;");
   escapeString.replace( "<", "&lt;");
   escapeString.replace( ">", "&gt;");
+  escapeString.replace( "@", "&commat;");
 
   return escapeString;
 }
@@ -199,10 +213,12 @@ String processor(const String &var) {
       break;
     }
     
-    case CDC_CMD_WIURL:
+    case CDC_CMD_WICON:
       {
         if (theSetup->getInWiFiAPMode()){
           response = String("/WiFiAPmode.png");
+        } else  {
+          response = getResponse.response.c_str();
         }
       }
       break;
@@ -217,6 +233,7 @@ String processor(const String &var) {
   return response;
 }
 
+#ifdef CDC_ENABLE_WEB_SOCKETS
 // Websocket based command processor
 void handleWebsocketMessage( AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len ) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
@@ -298,7 +315,7 @@ void handleWebsocketEvent( AsyncWebSocket *server, AsyncWebSocketClient *client,
         break;
   }
 }
-
+#endif
 String processClientRequest(uint8_t *data, size_t len) {
   String response = "";
   const uint8_t size = JSON_OBJECT_SIZE(6);
@@ -411,6 +428,39 @@ void handleTCPClient(void *arg, AsyncClient *client)
 	client->onTimeout(&handleTCPTimeOut, NULL);
 }
 
+String handleSetValuePost(AsyncWebServerRequest *request)
+{
+  String response = String();
+  int args = request->args();
+  char strBuf[512] = {};
+  for (int i = 0; i < args; i++)
+  {
+    if (!setCmdProcessor(request->argName(i).c_str(), String(request->arg(i).c_str())))
+    {
+      LOG_ERROR("handleSetValuePost", "SET command failure: " << request->argName(i).c_str() << " value: " << request->arg(i).c_str());
+      return response;
+    }
+    sprintf(strBuf, "{\"%s\":\"%s\"}", request->argName(i).c_str(), request->arg(i).c_str());
+    
+    response += String(strBuf);
+  }
+  LOG_DEBUG("handleSetValuePost", "Response: " << response.c_str());
+  return response;
+}
+
+String handleGetValue(AsyncWebServerRequest *request)
+{
+  String response = String();
+  int args = request->args();
+  char strBuf[512] = {};
+  for (int i = 0; i < args; i++)
+  {
+    sprintf(strBuf, "{\"%s\":\"%s\"}", request->arg(i).c_str(), processor( request->arg(i) ).c_str());
+    response += String(strBuf);
+  }
+  LOG_DEBUG("handleGetValue", "Response: " << response);
+  return response;
+}
 
 /*
  * setup function
@@ -419,27 +469,73 @@ void setupServers(void) {
 
   // Create Server objects
   CDCWebServer = new AsyncWebServer(CDC_DEFAULT_WEBSRVR_PORT);
+  #ifdef CDC_ENABLE_WEB_SOCKETS
+  // Enable Webseckets on the web server for Websocket API
   CDCWebSocket = new AsyncWebSocket( CDC_DEFAULT_WEBSOCKET_URL);
+  
+  // Websocket handlers
+  CDCWebSocket->onEvent(&handleWebsocketEvent);
+  CDCWebServer->addHandler(CDCWebSocket);
+  #endif
+
+  // Enable TCP Server for TCP API
   CDCTCPServer = new AsyncServer(CDC_DEFAULT_TCP_SERVER_PORT);
 
   // TCP Server Handlers
   CDCTCPServer->onClient(&handleTCPClient, CDCTCPServer);
   CDCTCPServer->begin();
   
-  // Websocket handlers
-  CDCWebSocket->onEvent(&handleWebsocketEvent);
-  CDCWebServer->addHandler(CDCWebSocket);
+   #ifdef CDC_ENABLE_WEB_SOCKETS
+  #endif
 
   // Webserver Handlers
   CDCWebServer->on("/CDCStyle.css", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(LittleFS, "/CDCStyle.css", "text/css");
   });
 
-    CDCWebServer->on("/CDCjs.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+  // If Websockets enabled then set up the web socket based config page as default.
+  #ifdef CDC_ENABLE_WEB_SOCKETS
+
+  CDCWebServer->on("/CDCws.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+   request->send(LittleFS, "/CDCws.js", "text/javascript");
+  });
+
+  CDCWebServer->on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
+  #ifdef CDC_ENABLE_WEB_AUTH
+    if(!request->authenticate(http_username, http_password))
+    return request->requestAuthentication();
+  #endif
+    request->send(LittleFS, "/configws.html", "text/html", false, processor);
+  });
+
+  // Allow non-web socket config page to be served but it will need an explicit reference by a browser
+  CDCWebServer->on("/hiddenconfig", HTTP_GET, [](AsyncWebServerRequest *request) {
+  #ifdef CDC_ENABLE_WEB_AUTH
+    if(!request->authenticate(http_username, http_password))
+    return request->requestAuthentication();
+  #endif
+    request->send(LittleFS, "/config.html", "text/html", false, processor);
+  });
+
+  #else
+
+  // No websockets so only enable the non-websocket config
+  CDCWebServer->on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
+  #ifdef CDC_ENABLE_WEB_AUTH
+    if(!request->authenticate(http_username, http_password))
+    return request->requestAuthentication();
+  #endif
+    request->send(LittleFS, "/config.html", "text/html", false, processor);
+  });
+
+  #endif
+
+  // non-webseocket javascript can always be served
+  CDCWebServer->on("/CDCjs.js", HTTP_GET, [](AsyncWebServerRequest *request) {
    request->send(LittleFS, "/CDCjs.js", "text/javascript");
   });
-  
-  /*return index page which is stored in otaIndex */
+
+  // dashboard is default page
   CDCWebServer->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
   #ifdef CDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
@@ -448,6 +544,15 @@ void setupServers(void) {
    request->send(LittleFS, "/dashboard.html", "text/html");
   });
 
+  CDCWebServer->on("/dashboard", HTTP_GET, [](AsyncWebServerRequest *request) {
+  #ifdef CDC_ENABLE_WEB_AUTH
+    if(!request->authenticate(http_username, http_password))
+    return request->requestAuthentication();
+  #endif
+    request->send(LittleFS, "/dashboard.html", "text/html", false, processor);
+  });
+
+  // Device management
   CDCWebServer->on("/otaIndex", HTTP_GET, [](AsyncWebServerRequest *request) {
   #ifdef CDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
@@ -456,6 +561,7 @@ void setupServers(void) {
     request->send(LittleFS, "/otaindex.html",  "text/html", false, processor);
   });
 
+  // File management
   CDCWebServer->on("/listFiles", HTTP_GET, [](AsyncWebServerRequest *request) {
   #ifdef CDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
@@ -472,22 +578,7 @@ void setupServers(void) {
     request->send_P(200, "text/html", filelist, processor);
   });
 
-  CDCWebServer->on("/dashboard", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
-    request->send(LittleFS, "/dashboard.html", "text/html", false, processor);
-  });
-
-  CDCWebServer->on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
-    request->send(LittleFS, "/config.html", "text/html", false, processor);
-  });
-
+  // Assorted special function pages and images
   CDCWebServer->on("/WiFiAPmode.png", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(LittleFS, "/WiFiAPmode.png", "image/png");
   });
@@ -534,8 +625,7 @@ void setupServers(void) {
   });
   #endif
 
-  /*handling uploading and updating firmware file */
-
+  // Handling the Firmware Web OTA Update
   CDCWebServer->on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
   #ifdef CDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
@@ -547,6 +637,11 @@ void setupServers(void) {
     }
   );
 
+   #ifdef ESP32
+  Update.onProgress(printProgress);
+  #endif
+
+  // Handle file uploads
   CDCWebServer->on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) {
   #ifdef CDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
@@ -558,11 +653,27 @@ void setupServers(void) {
     }
   );
 
+  // Handle SET commands sent via HTTP_POST
+  CDCWebServer->on("/setvalue", HTTP_POST, [](AsyncWebServerRequest *request) {
+  #ifdef CDC_ENABLE_WEB_AUTH
+    if(!request->authenticate(http_username, http_password))
+    return request->requestAuthentication();
+  #endif
+    request->send(200, "text/plain", handleSetValuePost(request));
+    } 
+  );
+
+  // Handle GET commands sent via HTTP_GET
+  CDCWebServer->on("/getvalue", HTTP_POST, [](AsyncWebServerRequest *request) {
+  #ifdef CDC_ENABLE_WEB_AUTH
+    if(!request->authenticate(http_username, http_password))
+    return request->requestAuthentication();
+  #endif
+    request->send(200, "text/plain", handleGetValue(request));
+    } 
+  );
+
   CDCWebServer->onNotFound([](AsyncWebServerRequest *request){request->send(404);});
   CDCWebServer->begin();
-
-#ifdef ESP32
-  Update.onProgress(printProgress);
-#endif
 
 }

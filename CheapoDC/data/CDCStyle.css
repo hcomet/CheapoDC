@@ -142,7 +142,7 @@
     place-self: center;
     display: grid;
     grid-gap: 5px;
-    grid-template-columns: 1fr 3fr;
+    grid-template-columns: 2fr 5fr;
     grid-template-areas:
       "header  header"
       "sidebar content"
@@ -166,21 +166,22 @@
   hIcon {
     grid-area: hIcon;
     float: left;
-    vertical-align: middle;
+    margin: 5px;
   }
   hTitle {
     grid-area: hTitle;
     text-align: center;
     font-size: xx-large;
-    vertical-align: middle;
+    margin: auto;
   }
   logoutIcon{
     grid-area: logoutIcon;
     float: right;
-    margin: 0;
+    margin: auto;
     padding: 0;
   }
-  logoutIcon > img:hover{
+  logoutIcon > img:hover,
+  hIcon > img:hover {
     cursor: pointer;
   }
 
@@ -318,7 +319,7 @@
     margin-top: 2px;
     margin-bottom: 2px;
     grid-gap: 5px;
-    grid-template-columns: 3fr 2fr 2fr;
+    grid-template-columns: 6fr 4fr 1fr;
     grid-template-areas:
       "dbItem  dbValue dbAction"; 
   }
@@ -535,7 +536,7 @@
     margin-top: 2px;
     margin-bottom: 2px;
     grid-gap: 5px;
-    grid-template-columns: 3fr 1fr 1fr 2fr;
+    grid-template-columns: 4fr 2fr 2fr 1fr;
     grid-template-areas:
       "fileItem fileAction1 fileAction2 ."; 
   }

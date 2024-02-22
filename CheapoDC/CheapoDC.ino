@@ -1,48 +1,57 @@
-// CheapoDC - Cheap Dew Controller from ESP32, MOSFET board
-// Basic control
-
+// ******************************************************************
+// CheapoDC main
+// Cheap and easy Dew Controller
+// Details at https://github.com/hcomet/CheapoDC
+// (c) Copyright Stephen Hillier 2024. All Rights Reserved.
+// ******************************************************************
+//
+// Look at CDCdefines.h to configure ESP32 and WiF before building
+//
+// ******************************************************************
 #include <Arduino.h>
 #include "CDCdefines.h"
 #include <EasyLogger.h>
 #include <ESP32Time.h>
-#include <arduino-timer.h>
-#include <ArduinoTrace.h>
 #include "CDCWebSrvr.h"
 
 #include "CDCvars.h"
 #include "CDCSetup.h"
 
+char programName[] = "CheapoDC"; // Program name
+char programVersion[] = "1.01";  // program version
 
-char        programName[]       =   "CheapoDC";     // Program name
-char        programVersion[]    =   "1.01";          // program version
-
-CDCSetup    *theSetup;                               // main setup class
+CDCSetup *theSetup; // main setup class
 dewController *theDController;
-ESP32Time   *theTime;
+ESP32Time *theTime;
 
-auto CDCTimer = timer_create_default();
-
-int milliCount  = 0; 
-unsigned long milliLast  = 0;
+// Counters used for time based scheduler in main loop
+int milliCount = 0;
+unsigned long milliLast = 0;
 unsigned long milliDelta = 0;
 int secCount = 0;
-unsigned int secLast  = 0;
+unsigned int secLast = 0;
 unsigned int secDelta = 0;
 int minCount = 0;
-unsigned int minLast  = 0;
+unsigned int minLast = 0;
 unsigned int minDelta = 0;
 
+// Counters for items scheduled
+//
+// Status LED blink in milliseconds
 int statusLEDDelta = 0;
 int statusLEDLast = 0;
 
+// Weather query timer in minutes
 int weatherQueryDelta = 0;
 int weatherQueryLast = 0;
+// Controller Output update timer in minutes
 int controllerUpdateDelta = 0;
 int controllerUpdateLast = 0;
+// Save configuration check in seconds
 int saveConfigDelta = 0;
 int saveConfigLast = 0;
-// int lastMinute = 0;
 
+// Timer functions for scheduled services
 void ledTimer(int timeCheck)
 {
 
@@ -134,6 +143,7 @@ void saveConfigTimer(int timeCheck)
   }
 }
 
+// Main setup
 void setup()
 {
 
@@ -176,6 +186,7 @@ void setup()
   }
 }
 
+// Main loop
 void loop()
 {
   // put your main code here, to run repeatedly:

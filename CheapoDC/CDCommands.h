@@ -1,6 +1,7 @@
 // ******************************************************************
 // CheapoDC Command processor
 // Cheap and easy Dew Controller
+// Details at https://github.com/hcomet/CheapoDC
 // (c) Copyright Stephen Hillier 2024. All Rights Reserved.
 // ******************************************************************
 #ifndef MY_CDCCMDS_H
@@ -19,10 +20,9 @@ struct CDCommand
 
 struct cmdResponse
 {
-    String  response;
-    String  units;
+    String response;
+    String units;
 };
-
 
 extern std::map<std::string, CDCommand> CDCCommands;
 

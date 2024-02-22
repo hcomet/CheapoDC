@@ -1,6 +1,7 @@
 // ******************************************************************
-// CheapoDC Setup and configuration
+// CheapoDC Dew Controller configuration and management
 // Cheap and easy Dew Controller
+// Details at https://github.com/hcomet/CheapoDC
 // (c) Copyright Stephen Hillier 2024. All Rights Reserved.
 // ******************************************************************
 
@@ -12,20 +13,20 @@
 #include "CDCSetup.h"
 #include "CDController.h"
 
-#define ArduinoTrace_ENABLE 1
-
 dewController::dewController(void)
 {
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
-//    ledcSetup( CDC_PWM_CHANNEL, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION);
+#ifdef CDC_ENABLE_PWM_OUTPUT
+    ledcSetup(CDC_PWM_CHANNEL, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION);
     LOG_DEBUG("dewController", "Output 1: " << CDC_PWM_OUPUT_PIN1);
-//    ledcAttachPin( CDC_PWM_OUPUT_PIN1, CDC_PWM_CHANNEL);
+    ledcAttachPin(CDC_PWM_OUPUT_PIN1, CDC_PWM_CHANNEL);
 #ifdef CDC_PWM_OUPUT_PIN2
     LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUPUT_PIN2);
-//    ledcAttachPin( CDC_PWM_OUPUT_PIN2, CDC_PWM_CHANNEL);
+    ledcAttachPin(CDC_PWM_OUPUT_PIN2, CDC_PWM_CHANNEL);
 #endif
-//    ledcWrite( CDC_PWM_CHANNEL, PWMDutyCycle);
-    
+    ledcWrite(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+#endif
+
     this->_currentControllerMode = CDC_DEFAULT_CONTROLLER_MODE;
     this->_currentTemperatureMode = CDC_DEFAULT_TEMPERATURE_MODE;
     this->_currentSetPointMode = CDC_DEFAULT_SET_POINT_MODE;
@@ -40,24 +41,29 @@ dewController::dewController(void)
     return;
 }
 
-int dewController::_calculateOutput( float currentTemperature, float setPoint, float range, float offset) {
+int dewController::_calculateOutput(float currentTemperature, float setPoint, float range, float offset)
+{
     float delta;
-    
+
     this->_currentTrackPoint = setPoint + offset;
     delta = currentTemperature - this->_currentTrackPoint;
 
-    if (delta <= 0 ) {
+    if (delta <= 0)
+    {
         return this->_maximumOutputSetting;
-    } else if (delta <= range) {
+    }
+    else if (delta <= range)
+    {
         float powerMax = this->_maximumOutputSetting;
         float powerRange = this->_maximumOutputSetting - this->_minimumOutputSetting;
-        return int(roundf(powerMax - ((delta*powerRange)/range)));
+        return int(roundf(powerMax - ((delta * powerRange) / range)));
     }
 
     return this->_minimumOutputSetting;
 }
 
-void    dewController::updateOutput( int output ) {
+void dewController::updateOutput(int output)
+{
     int newOutput;
     int PWMDutyCycle;
     int previousOutput = this->_currentOutput;
@@ -143,8 +149,9 @@ void    dewController::updateOutput( int output ) {
 
             PWMDutyCycle = (this->_currentOutput * (pow(2, CDC_PWM_RESOLUTION) - 1)) / 100;
             LOG_DEBUG("updateOutput", "Output set to: " << PWMDutyCycle << " of " << (pow(2, CDC_PWM_RESOLUTION) - 1));
-
-            //    ledcWrite( CDC_PWM_CHANNEL, PWMDutyCycle);
+#ifdef CDC_ENABLE_PWM_OUTPUT
+            ledcWrite(CDC_PWM_CHANNEL, PWMDutyCycle);
+#endif
             LOG_ALERT("updateOutput", "Power output changed to: " << this->_currentOutput);
         }
 
@@ -153,63 +160,83 @@ void    dewController::updateOutput( int output ) {
     return;
 }
 
-void    dewController::setControllerMode( controllerMode mode ) {
+void dewController::setControllerMode(controllerMode mode)
+{
 
-    if ((mode < AUTOMATIC) || (mode > OFF)) {
+    if ((mode < AUTOMATIC) || (mode > OFF))
+    {
         LOG_ALERT("setControllerMode", "Invalid controller mode: " << mode << " set to default " << (controllerMode)CDC_DEFAULT_CONTROLLER_MODE);
         this->_currentControllerMode = (controllerMode)CDC_DEFAULT_CONTROLLER_MODE;
-    } else {
+    }
+    else
+    {
         this->_currentControllerMode = mode;
     }
 
-    if (this->_currentControllerMode == OFF ) {
+    if (this->_currentControllerMode == OFF)
+    {
         this->updateOutput(0);
-    } else {
+    }
+    else
+    {
         this->updateOutput();
     }
 
     LOG_DEBUG("setControllerMode", "Controller mode set to: " << this->_currentControllerMode);
-    
+
     return;
 }
 
-void    dewController::setTemperatureMode( temperatureMode mode ){
-    if ((mode < WEATHER_QUERY) || (mode > EXTERNAL_INPUT)) {
+void dewController::setTemperatureMode(temperatureMode mode)
+{
+    if ((mode < WEATHER_QUERY) || (mode > EXTERNAL_INPUT))
+    {
         LOG_ALERT("setTemperatureMode", "Invalid temperature mode: " << mode << " set to default " << (temperatureMode)CDC_DEFAULT_TEMPERATURE_MODE);
         this->_currentTemperatureMode = (temperatureMode)CDC_DEFAULT_TEMPERATURE_MODE;
-    } else {
-        
+    }
+    else
+    {
+
         this->_currentTemperatureMode = mode;
     }
     LOG_DEBUG("setTemperatureMode", "Temperature mode set to: " << this->_currentTemperatureMode);
     this->updateOutput();
     return;
 }
-void    dewController::setSetPoint( float setPointTemperature ) {
+void dewController::setSetPoint(float setPointTemperature)
+{
     this->_currentTemperatureSetPoint = setPointTemperature;
     LOG_DEBUG("setSetPoint", "Set point set to: " << this->_currentTemperatureSetPoint);
     this->updateOutput();
     return;
 }
 
-void    dewController::setTrackPointOffset( float trackPointOffset ) {
-    if ((trackPointOffset < CDC_MINIMUM_TRACK_POINT_OFFSET) || (trackPointOffset > CDC_MAXIMUM_TRACK_POINT_OFFSET)) {
+void dewController::setTrackPointOffset(float trackPointOffset)
+{
+    if ((trackPointOffset < CDC_MINIMUM_TRACK_POINT_OFFSET) || (trackPointOffset > CDC_MAXIMUM_TRACK_POINT_OFFSET))
+    {
         LOG_ALERT("setTrackPointOffset", "Track point offset out of range: " << trackPointOffset);
         this->_currentTrackPointOffset = 0;
-    } else {
+    }
+    else
+    {
         this->_currentTrackPointOffset = trackPointOffset;
     }
-    
+
     LOG_DEBUG("setTrackPointOffset", "Track point offset set to: " << this->_currentTrackPointOffset);
     this->updateOutput();
     return;
 }
 
-void    dewController::setSetPointMode( setPointMode mode ) {
-    if ((mode < DEWPOINT) || (mode > MIDPOINT)) {
+void dewController::setSetPointMode(setPointMode mode)
+{
+    if ((mode < DEWPOINT) || (mode > MIDPOINT))
+    {
         LOG_ALERT("setSetPointMode", "Invalid set point mode: " << mode << " set to default " << (setPointMode)CDC_DEFAULT_SET_POINT_MODE);
         this->_currentSetPointMode = (setPointMode)CDC_DEFAULT_SET_POINT_MODE;
-    } else {
+    }
+    else
+    {
         this->_currentSetPointMode = mode;
     }
     LOG_DEBUG("setSetPointMode", "Set point mode set to: " << this->_currentSetPointMode);
@@ -217,10 +244,14 @@ void    dewController::setSetPointMode( setPointMode mode ) {
     return;
 }
 
-void    dewController::setTrackingRange( float trackingRange ){ 
-    if ((trackingRange >= CDC_MINIMUM_TRACKING_RANGE ) & (trackingRange <= CDC_MAXIMUM_TRACKING_RANGE)) {
+void dewController::setTrackingRange(float trackingRange)
+{
+    if ((trackingRange >= CDC_MINIMUM_TRACKING_RANGE) & (trackingRange <= CDC_MAXIMUM_TRACKING_RANGE))
+    {
         this->_currentTrackingRange = trackingRange;
-    } else {
+    }
+    else
+    {
         LOG_ERROR("setTrackingRange", "Invalid Controller Range value: " << trackingRange);
     }
     LOG_DEBUG("setTrackingRange", "Set controller range to: " << this->_currentTrackingRange);
@@ -228,10 +259,14 @@ void    dewController::setTrackingRange( float trackingRange ){
     return;
 }
 
-void    dewController::setMinOutput(int output) {
-    if ((output >= CDC_MINIMUM_CONTROLLER_OUTPUT) & (output < this->_maximumOutputSetting)) {
+void dewController::setMinOutput(int output)
+{
+    if ((output >= CDC_MINIMUM_CONTROLLER_OUTPUT) & (output < this->_maximumOutputSetting))
+    {
         this->_minimumOutputSetting = output;
-    } else {
+    }
+    else
+    {
         LOG_ERROR("setMinOutput", "Invalid Minimum Output value: " << output);
     }
     LOG_DEBUG("setMinOutput", "Set controller minimum output to: " << this->_minimumOutputSetting);
@@ -239,10 +274,14 @@ void    dewController::setMinOutput(int output) {
     return;
 }
 
-void    dewController::setMaxOutput(int output) {
-    if ((output > this->_minimumOutputSetting) & (output <= CDC_MAXIMUM_CONTROLLER_OUTPUT)) {
+void dewController::setMaxOutput(int output)
+{
+    if ((output > this->_minimumOutputSetting) & (output <= CDC_MAXIMUM_CONTROLLER_OUTPUT))
+    {
         this->_maximumOutputSetting = output;
-    } else {
+    }
+    else
+    {
         LOG_ERROR("setMaxOutput", "Invalid Maximum Output value: " << output);
     }
     LOG_DEBUG("setMaxOutput", "Set controller maximum output to: " << this->_maximumOutputSetting);
