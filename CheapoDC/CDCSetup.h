@@ -101,6 +101,7 @@ class CDCSetup
         const char*     getNTPServerURL() {return this->_NTPServer;};
         bool            getInWiFiAPMode() {return this->_inWiFiAPMode;};
         const char*     getWiFiHostname() {return this->_wifiConfig.hostname;};
+        const char*     getIPAddress() {return this->_IPAddress;};
 
         // setters
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};
@@ -135,6 +136,7 @@ class CDCSetup
         int             _controllerUpdateEvery; // in minutes
         int             _statusBlinkEvery;
         char            _NTPServer[64];
+        char            _IPAddress[16];
         weatherData     _currentWeather;
                         
 };

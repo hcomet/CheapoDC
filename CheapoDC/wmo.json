@@ -1,0 +1,508 @@
+{
+	case 0: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+if (descOrIcon) {
+description = "Sunny";
+			} else {
+} else {
+image = "http://openweathermap.org/img/wn/01d@2x.png";
+}
+}
+		} else {
+					if (descOrIcon) {
+description = "Clear";
+			} else {
+image = "http://openweathermap.org/img/wn/01n@2x.png";
+}
+		}
+	break;
+}
+case 1: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Mainly Sunny";
+			} else {
+image = "http://openweathermap.org/img/wn/01d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Mainly Clear";
+			} else {
+image = "http://openweathermap.org/img/wn/01n@2x.png";
+}
+		}
+	break;
+}
+case 2: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Partly Cloudy";
+			} else {
+image = "http://openweathermap.org/img/wn/02d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Partly Cloudy";
+			} else {
+image = "http://openweathermap.org/img/wn/02n@2x.png";
+}
+		}
+	break;
+}
+case 3: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Cloudy";
+			} else {
+image = "http://openweathermap.org/img/wn/03d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Cloudy";
+			} else {
+image = "http://openweathermap.org/img/wn/03n@2x.png";
+}
+		}
+	break;
+}
+case 45: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Foggy";
+			} else {
+image = "http://openweathermap.org/img/wn/50d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Foggy";
+			} else {
+image = "http://openweathermap.org/img/wn/50n@2x.png";
+}
+		}
+	break;
+}
+case 48: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Rime Fog";
+			} else {
+image = "http://openweathermap.org/img/wn/50d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Rime Fog";
+			} else {
+image = "http://openweathermap.org/img/wn/50n@2x.png";
+}
+		}
+	break;
+}
+case 51: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 53: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 55: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Heavy Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Heavy Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 56: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Freezing Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Freezing Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 57: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Freezing Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Freezing Drizzle";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 61: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10n@2x.png";
+}
+		}
+	break;
+}
+case 63: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10n@2x.png";
+}
+		}
+	break;
+}
+case 65: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Heavy Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Heavy Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10n@2x.png";
+}
+		}
+	break;
+}
+case 66: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Freezing Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Freezing Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10n@2x.png";
+}
+		}
+	break;
+}
+case 67: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Freezing Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Freezing Rain";
+			} else {
+image = "http://openweathermap.org/img/wn/10n@2x.png";
+}
+		}
+	break;
+}
+case 71: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Snow";
+			} else {
+image = "http://openweathermap.org/img/wn/13d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Snow";
+			} else {
+image = "http://openweathermap.org/img/wn/13n@2x.png";
+}
+		}
+	break;
+}
+case 73: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Snow";
+			} else {
+image = "http://openweathermap.org/img/wn/13d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Snow";
+			} else {
+image = "http://openweathermap.org/img/wn/13n@2x.png";
+}
+		}
+	break;
+}
+case 75: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Heavy Snow";
+			} else {
+image = "http://openweathermap.org/img/wn/13d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Heavy Snow";
+			} else {
+image = "http://openweathermap.org/img/wn/13n@2x.png";
+}
+		}
+	break;
+}
+case 77: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Snow Grains";
+			} else {
+image = "http://openweathermap.org/img/wn/13d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Snow Grains";
+			} else {
+image = "http://openweathermap.org/img/wn/13n@2x.png";
+}
+		}
+	break;
+}
+case 80: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 81: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 82: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Heavy Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/09d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Heavy Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/09n@2x.png";
+}
+		}
+	break;
+}
+case 85: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Snow Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/13d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Snow Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/13n@2x.png";
+}
+		}
+	break;
+}
+case 86: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Snow Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/13d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Snow Showers";
+			} else {
+image = "http://openweathermap.org/img/wn/13n@2x.png";
+}
+		}
+	break;
+}
+case 95: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Thunderstorm";
+			} else {
+image = "http://openweathermap.org/img/wn/11d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Thunderstorm";
+			} else {
+image = "http://openweathermap.org/img/wn/11n@2x.png";
+}
+		}
+	break;
+}
+case 96: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Light Thunderstorms With Hail";
+			} else {
+image = "http://openweathermap.org/img/wn/11d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Light Thunderstorms With Hail";
+			} else {
+image = "http://openweathermap.org/img/wn/11n@2x.png";
+}
+		}
+	break;
+}
+case 99: 
+{
+		if (dayTime)
+{
+			if (descOrIcon) {
+description = "Thunderstorm With Hail";
+			} else {
+image = "http://openweathermap.org/img/wn/11d@2x.png";
+}
+		} else {
+					if (descOrIcon) {
+description = "Thunderstorm With Hail";
+			} else {
+image = "http://openweathermap.org/img/wn/11n@2x.png";
+}
+		}
+	}
+}

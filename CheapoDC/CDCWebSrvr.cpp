@@ -380,7 +380,7 @@ void handleTCPData(void *arg, AsyncClient *client, void *data, size_t len)
 {
   String response = String();
   LOG_DEBUG("handleTCPData", "Data received from client: " << client->remoteIP().toString().c_str());
-	LOG_DEBUG("handleTCPData", "<<" << String(*(uint8_t *)data) << ">>");
+	LOG_DEBUG("handleTCPData", "<<" << String((uint8_t *)data, len) << ">>");
   
   if (( *(uint8_t *)data == '\003') || ( *(uint8_t *)data == '\004')) {
     LOG_ALERT("handleTCPData","Close connection request from client: " << client->remoteIP().toString());
@@ -589,6 +589,10 @@ void setupServers(void) {
 
   CDCWebServer->on("/cheapo.png", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(LittleFS, "/cheapo.png", "image/png");
+  });
+
+  CDCWebServer->on("/favicon.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(LittleFS, "/favicon.png", "image/png");
   });
 
   CDCWebServer->on("/download", HTTP_GET, [](AsyncWebServerRequest *request) {

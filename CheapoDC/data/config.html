@@ -1,5 +1,6 @@
 <head>
     <title>CheapoDC Configuration</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <!--    <meta http-equiv="refresh" content="30"> -->
     <link rel="stylesheet" href="./CDCStyle.css">
 </head>
@@ -249,7 +250,7 @@
                     <div class="cReading"><input type="text" name="LWUT" id="LWUTI" readonly data-cdc="%LWUT%" /></div>
                 </configValue>
                 <configComment>
-                    <div class="cReading">Query Location Time</div>
+                    <div class="cReading"></div>
                 </configComment>
                 <configAction><button type="button" class="cButton hidden" id="LWUT">Update</button></configAction>
             </div>
@@ -336,6 +337,51 @@
                     <div class="cReading">0 to 1000 msec</div>
                 </configComment>
                 <configAction><button type="button" class="cButton" id="LED">Update</button></configAction>
+            </div>
+            <h2>Dew Controller Information</h2>
+            <div class="configline">
+                <configItem>Up Time:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="UPT" class="cInput" id="UPTI" disabled
+                            data-cdc="%UPT%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading">HHH:MM:SS:MSec</div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="UPT">Update</button></configAction>
+            </div>
+            <div class="configline">
+                <configItem>Host Name:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="HN" class="cInput" id="HNI" disabled
+                            data-cdc="%HN%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading"></div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="HN">Update</button></configAction>
+            </div>
+            <div class="configline">
+                <configItem>IP Address:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="IP" class="cInput" id="IPI" disabled
+                            data-cdc="%IP%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading"></div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="IP">Update</button></configAction>
+            </div>
+            <div class="configline">
+                <configItem>WiFi Mode:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="WIFI" class="cInput" id="WIFII" disabled
+                            data-cdc="%WIFI%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading">AP or STA</div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="WIFI">Update</button></configAction>
             </div>
         </main>
         <footer>

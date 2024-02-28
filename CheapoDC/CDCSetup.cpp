@@ -22,6 +22,9 @@
 #include "CDCSetup.h"
 #include "CDController.h"
 #include "CDCommands.h"
+#ifdef CDC_USE_OPEN_METEO
+#include "CDCwmoTools.h"
+#endif
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 
@@ -72,8 +75,6 @@ String httpGETRequest(const char *serverName, int retryCount = 0)
 //********************************************************************************************
 bool CDCSetup::queryWeather(void)
 {
-  time_t tempTime = 0;
-  time_t tempTZ = 0;
   char httpRequestURL[256];
   DynamicJsonDocument doc(1024);
   float alphaDP;
@@ -83,7 +84,8 @@ bool CDCSetup::queryWeather(void)
     LOG_ERROR("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
     return false;
   }
-
+  #ifdef CDC_USE_OPEN_WEATHER
+  // Using Open Weather API
   sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude, this->_weatherAPIKey, CDC_DEFAULT_WEATHERUNITS);
 
   DeserializationError error = deserializeJson(doc, httpGETRequest(httpRequestURL));
@@ -107,8 +109,8 @@ bool CDCSetup::queryWeather(void)
   LOG_DEBUG("queryWeather", "New query date: " << this->getLastWeatherQueryDate());
 
   // Do Date-Time items which are in LINUX UTC Time
-  tempTime = doc["dt"] | 0;
-  tempTZ = doc["timezone"] | 0;
+  time_t tempTime = doc["dt"] | 0;
+  time_t tempTZ = doc["timezone"] | 0;
   tempTime = tempTime + tempTZ;
 
   if (tempTime != 0)
@@ -165,6 +167,78 @@ bool CDCSetup::queryWeather(void)
   tempDescription += String(" - ") + String(doc["weather"][0]["description"] | CDC_NA);
   tempDescription.toCharArray(this->_currentWeather.weatherDescription, sizeof(this->_currentWeather.weatherDescription));
   strlcpy(this->_currentWeather.weatherIcon, doc["weather"][0]["icon"] | CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+  #endif
+
+
+  #ifdef CDC_USE_OPEN_METEO
+  // Using Open Meteo API
+  sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude );
+
+  DeserializationError error = deserializeJson(doc, httpGETRequest(httpRequestURL));
+  if (error)
+  {
+    LOG_ERROR("queryWeather", "Deserialization failed: " << error.c_str());
+    return false;
+  }
+
+  JsonObject main = doc["current"];
+  LOG_DEBUG("queryWeather", "Last query time: " << this->getLastWeatherQueryTime());
+  LOG_DEBUG("queryWeather", "Last query date: " << this->getLastWeatherQueryDate());
+  String date = theTime->getDate();
+  String time = theTime->getTime();
+
+  date.toCharArray(this->_currentWeather.lastWeatherQueryDate, sizeof(this->_currentWeather.lastWeatherQueryDate));
+  time.toCharArray(this->_currentWeather.lastWeatherQueryTime, sizeof(this->_currentWeather.lastWeatherQueryTime));
+
+  LOG_DEBUG("queryWeather", "New query time: " << this->getLastWeatherQueryTime());
+  LOG_DEBUG("queryWeather", "ESP32 date: <" << theTime->getDateTime() << ">");
+  LOG_DEBUG("queryWeather", "New query date: " << this->getLastWeatherQueryDate());
+
+  String tempTime = main["time"] | String(CDC_BLANK);
+
+  if (tempTime.length() != 0)
+  {
+    sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, tempTime.substring(11,13).toInt(), tempTime.substring(14,16).toInt() );
+    sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, monthShortStr(tempTime.substring(5,7).toInt()), tempTime.substring(8,10).toInt(), tempTime.substring(0,4).toInt());
+  }
+  else
+  {
+    strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+    strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+  }
+
+  LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
+
+
+  strlcpy(this->_currentWeather.sunrise, CDC_NA, sizeof(this->_currentWeather.sunrise));
+
+  strlcpy(this->_currentWeather.sunset, CDC_NA, sizeof(this->_currentWeather.sunset));
+
+  // Get temperature, Humidity and Dew point
+
+  this->_currentWeather.ambientTemperature = main["temperature_2m"] | 0.0;
+  this->_currentWeather.humidity = main["relative_humidity_2m"] | 0.0;
+  this->_currentWeather.dewPoint = main["dew_point_2m"] | 0.0;
+  
+  //this->_currentWeather.minTemperature = main["temp_min"] | 0.0;
+  //this->_currentWeather.maxTemperature = main["temp_max"] | 0.0;
+  //this->_currentWeather.pressure = main["pressure"] | 0;
+  //this->_currentWeather.visibility = doc["visibility"] | 0;
+  this->_currentWeather.windSpeed = main["wind_speed_10m"] | 0.0;
+  this->_currentWeather.windDirection = main["wind_direction_10m"] | 0;
+  this->_currentWeather.cloudCoverage = main["cloud_cover"] | 0;
+
+  strlcpy(this->_currentWeather.weatherUpdateLocation, this->_location.name, sizeof(this->_currentWeather.weatherUpdateLocation));
+  unsigned int wmoCode = main["weather_code"] | 0;
+  unsigned int isDay = main["is_day"] | 1;
+
+  String tempDescription = mapWMOCode(wmoCode,(isDay==1),true);
+  String tempIcon = mapWMOCode(wmoCode,(isDay==1),false);
+
+  strlcpy(this->_currentWeather.weatherDescription,tempDescription.c_str(), sizeof(this->_currentWeather.weatherDescription));
+  strlcpy(this->_currentWeather.weatherIcon, tempIcon.c_str(), sizeof(this->_currentWeather.weatherIcon));
+  #endif
+
 
   LOG_DEBUG("queryWeather", "Current Weather: " << this->_currentWeather.lastWeatherQueryDate << " " << this->_currentWeather.lastWeatherQueryTime << " From: " << this->_currentWeather.weatherUpdateLocation);
   LOG_DEBUG("queryWeather", "    temperature: " << this->_currentWeather.ambientTemperature);
@@ -286,6 +360,10 @@ void CDCSetup::_loadDefaults(void)
 
   memset(this->_wifiConfig.hostname, '\0', sizeof(this->_wifiConfig.hostname));
   strlcpy(this->_wifiConfig.hostname, CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
+
+  memset(this->_IPAddress, '\0', sizeof(this->_IPAddress));
+
+  this->_inWiFiAPMode = false;
 
   this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
 
@@ -412,6 +490,7 @@ bool CDCSetup::_connectWiFi(void)
   this->blinkStatusLEDEvery(0);
   this->statusLEDOn();
   WiFi.setHostname(this->_wifiConfig.hostname);
+  WiFi.setSleep(false); // Disable sleep since there were reports it may affect mDNS
   WiFi.begin(this->_wifiConfig.ssid, this->_wifiConfig.password);
   LOG_DEBUG("_connectWiFi", "Connect to WiFi:" << this->_wifiConfig.ssid);
 
@@ -432,7 +511,8 @@ bool CDCSetup::_connectWiFi(void)
     return false;
   }
 
-  LOG_ALERT("_connectWiFi", this->_wifiConfig.hostname << ".local connected to: " << this->_wifiConfig.ssid << " with IP address: " << WiFi.localIP());
+  strlcpy(this->_IPAddress, WiFi.localIP().toString().c_str(), sizeof(this->_IPAddress));
+  LOG_ALERT("_connectWiFi", this->_wifiConfig.hostname << ".local connected to: " << this->_wifiConfig.ssid << " with IP address: " << this->_IPAddress);
 
   /*use mdns for host name resolution*/
   if (!MDNS.begin(this->_wifiConfig.hostname))
@@ -527,10 +607,11 @@ bool CDCSetup::_setupWiFi(void)
 
   // Could not connect to WiFi. Set up in AP mode
   WiFi.mode(WIFI_MODE_NULL);
-  WiFi.setHostname(CDC_DEFAULT_HOSTNAME);
+  WiFi.setHostname(this->_wifiConfig.hostname);
   WiFi.softAP(CDC_DEFAULT_WIFI_AP_SSID, CDC_DEFAULT_WIFI_AP_PASSWORD);
   this->_inWiFiAPMode = true;
-  LOG_ALERT("_setupWiFi", "WiFi in AP mode SSID " << CDC_DEFAULT_WIFI_AP_SSID << " with IP address: " << WiFi.softAPIP());
+  strlcpy(this->_IPAddress, WiFi.softAPIP().toString().c_str(), sizeof(this->_IPAddress));
+  LOG_ALERT("_setupWiFi", "WiFi in AP mode SSID " << CDC_DEFAULT_WIFI_AP_SSID << " with IP address: " << this->_IPAddress);
 
   /*use mdns for host name resolution*/
   if (!MDNS.begin(this->_wifiConfig.hostname))

@@ -19,36 +19,31 @@
 #include <Arduino.h>
 
 // ESP32 C3 Board configuration
-//#define CDC_ENABLE_PWM_OUTPUT // uncomment to enable output pins
+#define CDC_ENABLE_PWM_OUTPUT // uncomment to enable output pins
 #define CDC_PWM_OUPUT_PIN1 0
-#define CDC_PWM_OUPUT_PIN2 1  // Uncomment to enable second channel
-#define CDC_PWM_CHANNEL 0  // Currently both output Pin 1 an 2 share a channel
-#define CDC_PWM_FREQUENCY 1000
-#define CDC_PWM_RESOLUTION 8  // (0 to 255)
-#define CDC_PWM_DUTY_MINIMUM 0
-#define CDC_PWM_DUTY_MAXIMUM (2^CDC_PWM_RESOLUTION) - 1
-// Builtin LED or other oin to use for Status LED. 
+#define CDC_PWM_OUPUT_PIN2 1 // Uncomment to enable second channel
+#define CDC_PWM_CHANNEL 0    // Currently both output Pin 1 an 2 share a channel
+
+// Builtin LED or other oin to use for Status LED.
 #define CDC_STATUS_LED 8
 #define CDC_DEFAULT_STATUS_BLINK 500 // every x millisec, 0 disables, max 999
 
-
 // Configure Web services
-//#define CDC_ENABLE_WEB_SOCKETS  // Uncomment this line to enable Web Sockets
-#define CDC_ENABLE_WEB_AUTH   // Uncomment this line to enable Basic Web Authentication
-#define CDC_DEFAULT_WEB_ID "admin" // Change to change logon ID
-#define CDC_DEFAULT_WEB_PASSWORD "admin"  // Change to change logon password
+#define CDC_ENABLE_WEB_AUTH              // Uncomment this line to enable Basic Web Authentication
+#define CDC_DEFAULT_WEB_ID "admin"       // Change to change logon ID
+#define CDC_DEFAULT_WEB_PASSWORD "admin" // Change to change logon password
+
+// Web Socket support
+// #define CDC_ENABLE_WEB_SOCKETS  // Uncomment this line to enable Web Sockets
 
 // Network configuration
-#define CDC_DEFAULT_HOSTNAME "cheapodc"
-#define CDC_DEFAULT_WIFI_SSID "defaultSSID"
-#define CDC_DEFAULT_WIFI_PASSWORD "defaultPassword"
-#define CDC_DEFAULT_WIFI_AP_SSID "cheapodc"
-#define CDC_DEFAULT_WIFI_AP_PASSWORD "cheapodc"
-#define CDC_DEFAULT_WIFI_CONNECTATTEMPTS 15
-#define CDC_DEFAULT_WIFI_TRYAPS 1
-#define CDC_DEFAULT_WEBSRVR_PORT 80
-#define CDC_DEFAULT_WEBSOCKET_URL "/ws"
-#define CDC_DEFAULT_TCP_SERVER_PORT 8000
+#define CDC_DEFAULT_HOSTNAME "cheapodc"             // default hostname. Can also be set in CDCWiFi.json
+#define CDC_DEFAULT_WIFI_SSID "defaultSSID"         // default SSID for STA mode. Can also be set in CDCWiFi.json
+#define CDC_DEFAULT_WIFI_PASSWORD "defaultPassword" // default WiFi Password. Can also be set in CDCWiFi.json
+#define CDC_DEFAULT_WIFI_AP_SSID "cheapodc"         // Name used for SSID of AP mode if STA mode fails
+#define CDC_DEFAULT_WIFI_AP_PASSWORD "cheapodc"     // WiFi password for AP mode
+#define CDC_DEFAULT_WIFI_CONNECTATTEMPTS 15         // Number of times to try to connect to an AP when in STA mode
+#define CDC_DEFAULT_WIFI_TRYAPS 1                   // Number of times to cycle through APs when in STA mode
 
 // Default Location and time settings
 #define CDC_DEFAULT_LOCATION_NAME "Greenwich"
@@ -58,14 +53,27 @@
 #define CDC_DEFAULT_DSTOFFSET 0
 #define CDC_DEFAULT_NTPSERVER "north-america.pool.ntp.org"
 
-// Open WeatherMap API configuration. 
-// Register with OpenWeather for a free account to get your API Key 
+#define CDC_USE_OPEN_WEATHER  // Comment out to use Open Meteo
+#ifdef CDC_USE_OPEN_WEATHER
+// Open WeatherMap API configuration.
+// Register with OpenWeather for a free account to get your API Key
 // https://home.openweathermap.org/users/sign_up
 #define CDC_DEFAULT_WEATHERAPIKEY ""
-#define CDC_DEFAULT_WEATHERSOURCE "OpenWeatherMap"
+#define CDC_DEFAULT_WEATHERSOURCE "OpenWeather"
 #define CDC_DEFAULT_WEATHERAPIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s"
-#define CDC_DEFAULT_WEATHERUNITS "metric" // Need metric for temperature calculations to work 
+#define CDC_DEFAULT_WEATHERUNITS "metric" // Need metric for temperature calculations to work
 #define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png"
+#else
+// Open Meteo API configuration
+// no registration is required so no API key is required
+#define CDC_USE_OPEN_METEO
+#define CDC_DEFAULT_WEATHERAPIKEY "Not Required"
+#define CDC_DEFAULT_WEATHERSOURCE "Open-Meteo"
+#define CDC_DEFAULT_WEATHERAPIURL "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,is_day,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,dew_point_2m"
+#define CDC_DEFAULT_WEATHERUNITS "metric"                                        // Need metric for temperature calculations to work
+#define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
+#endif
+
 #define CDC_DEFAULT_WEATHER_QUERY 5
 #define CDC_DEFAULT_HTTP_REQ_RETRY 1 
 
@@ -88,9 +96,22 @@
 //*************************************************************//
 //** Don't change anything below here.                       **//
 //*************************************************************//
-// Configuration files 
+
+// PWM Configuration
+#define CDC_PWM_FREQUENCY 1000
+#define CDC_PWM_RESOLUTION 8 // (0 to 255)
+#define CDC_PWM_DUTY_MINIMUM 0
+#define CDC_PWM_DUTY_MAXIMUM (2 ^ CDC_PWM_RESOLUTION) - 1
+
+// LIttleFS Configuration files 
 #define CDC_CONFIG_FILE "/CDCConfig.json"
 #define CDC_WIFI_CONFIG "/CDCWiFi.json"
+
+// Server configuration
+
+#define CDC_DEFAULT_WEBSRVR_PORT 80
+#define CDC_DEFAULT_WEBSOCKET_URL "/ws"
+#define CDC_DEFAULT_TCP_SERVER_PORT 8000 // Port used for the TCP based API
 
 // units - HTML Escaped
 #define CDC_UNITS_DEGREES "&deg;"
@@ -103,15 +124,22 @@
 
 // Date Time format string
 #define CDC_DATE_TIME "%s, %s %02d %4d %02d:%02d:%02d" // DDD, MMM dd yyyy hh:mm:ss
+// Used for tracking weather update times
+#ifdef CDC_USE_OPEN_WEATHER
 #define CDC_TIME "%02d:%02d:%02d" // hh:mm:ss
 #define CDC_DATE "%s, %s %02d %4d" // DDD, MMM dd yyyy
+#else
+#define CDC_TIME "%02d:%02d GMT" // hh:mm GMT
+#define CDC_DATE "%s %02d, %4d" // MMM dd, yyyy
+#endif
 #define CDC_NA   "--"
+#define CDC_BLANK ""
 
 // CDC Commands
 #define CDC_CMD_TMFL 0   // Filelist
 #define CDC_CMD_WICON 1  // Weather Icon
 #define CDC_CMD_WDESC 2  // Weather description
-#define CDC_CMD_ATPQ 3     // ambient temperature
+#define CDC_CMD_ATPQ 3   // ambient temperature
 #define CDC_CMD_HU 4     // humidity
 #define CDC_CMD_DP 5     // Dew point
 #define CDC_CMD_SP 6     // set point
@@ -140,15 +168,19 @@
 #define CDC_CMD_DST 29   // Location DST offset (seconds)
 #define CDC_CMD_LED 30   // Status LED Blink rate (x/1000 msec)
 #define CDC_CMD_NTP 31   // NTP serverName
-#define CDC_CMD_OMIN 32   // DC Min output
-#define CDC_CMD_OMAX 33   // DC Max output
-#define CDC_CMD_CDT 34  // Current Date Time
-#define CDC_CMD_ATPX 35  // Local Temperature (Usually set by outside call to API)
-#define CDC_CMD_CTP 36  // Current temperature track point based on DC settings 
-#define CDC_CMD_WUL 37 // Name or location of weather station from last weather query
-#define CDC_CMD_CLC 38 // Cloud Coverage in percent
-#define CDC_CMD_LWUT 39 // Last weather update time taken from query result
-#define CDC_CMD_LWUD 40 // Last weather update date taken from query result
+#define CDC_CMD_OMIN 32  // DC Min output
+#define CDC_CMD_OMAX 33  // DC Max output
+#define CDC_CMD_CDT 34   // Current Date Time
+#define CDC_CMD_ATPX 35  // External Temperature (Usually set by outside call to API)
+#define CDC_CMD_CTP 36   // Current temperature track point based on DC settings
+#define CDC_CMD_WUL 37   // Name or location of weather station from last weather query
+#define CDC_CMD_CLC 38   // Cloud Coverage in percent
+#define CDC_CMD_LWUT 39  // Last weather update time taken from query result
+#define CDC_CMD_LWUD 40  // Last weather update date taken from query result
+#define CDC_CMD_UPT 41   // return uptime in hh:mm:ss:msec
+#define CDC_CMD_WIFI 42  // WIFI mode AP (Access Point) or STA (Station Mode)
+#define CDC_CMD_IP 43    // IP Address
+#define CDC_CMD_HN 44    // Host name
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625 
@@ -163,8 +195,8 @@
 */
 
 #define LOG_LEVEL LOG_LEVEL_ERROR
-// #define LOG_FILTER "handleWebsocketMessage,queryWeather,processor,getCmdProcessor,SaveConfig,processClientRequest"
-// #define LOG_FILTER_EXCLUDE
+//#define LOG_FILTER "handleWebsocketMessage,processor,getCmdProcessor,SaveConfig,processClientRequest"
+//#define LOG_FILTER_EXCLUDE
 
 /* LOG_FORMATTING can be set to LOG_FORMATTING_HMS, LOG_FORMATTING_MILLIS or LOG_FORMATTING_NOTIME
    If not defined, the standard will be LOG_FORMAT_HMS */

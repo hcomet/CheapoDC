@@ -54,12 +54,16 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"OMIN", {CDC_CMD_OMIN, 1, CDC_UNITS_PERCENT}},             // DC Min output
     {"OMAX", {CDC_CMD_OMAX, 1, CDC_UNITS_PERCENT}},             // DC Max output
     {"CDT", {CDC_CMD_CDT, 0, CDC_UNITS_NONE}},                  // Current Date Time
-    {"ATPX", {CDC_CMD_ATPX, 0, CDC_UNITS_DEGREES_C}},           // Local Temperature input by external app
+    {"ATPX", {CDC_CMD_ATPX, 0, CDC_UNITS_DEGREES_C}},           // External Temperature input by external app
     {"CTP", {CDC_CMD_CTP, 0, CDC_UNITS_DEGREES_C}},             // Current Track Point Temperature
     {"WUL", {CDC_CMD_WUL, 0, CDC_UNITS_NONE}},                  // Location of Weather station reported in query
     {"CLC", {CDC_CMD_CLC, 0, CDC_UNITS_PERCENT}},               // Cloud Coverage in percent
     {"LWUT", {CDC_CMD_LWUT, 0, CDC_UNITS_NONE}},                // Cloud Coverage in percent
-    {"LWUD", {CDC_CMD_LWUD, 0, CDC_UNITS_NONE}}                 // Cloud Coverage in percent
+    {"LWUD", {CDC_CMD_LWUD, 0, CDC_UNITS_NONE}},                // Cloud Coverage in percent
+    {"UPT", {CDC_CMD_UPT, 0, CDC_UNITS_NONE}},                     // return uptime in hhh:mm:ss:msec
+    {"WIFI", {CDC_CMD_WIFI, 0, CDC_UNITS_NONE}},                // WIFI mode AP (Access Point) or STA (Station Mode)
+    {"IP", {CDC_CMD_IP, 0, CDC_UNITS_NONE}},                    // IP Address
+    {"HN", {CDC_CMD_HN, 0, CDC_UNITS_NONE}}                     // Host name
 };
 
 bool configUpdated = false;
@@ -386,6 +390,37 @@ cmdResponse getCmdProcessor(const String &var)
   case CDC_CMD_LWUT:
   {
     newResponse.response = String(theSetup->getLastWeatherUpdateTime());
+    break;
+  }
+  case CDC_CMD_UPT:
+  {
+    char buf[16] = "";
+    unsigned long upTime = millis();
+    unsigned long hours = upTime/3600000;
+    unsigned long mins = (upTime - (hours*3600000))/60000;
+    unsigned long secs = (upTime - (hours*3600000)-(mins*60000))/1000;
+    unsigned long msecs = upTime%1000;
+
+    sprintf(buf, "%03d:%02d:%02d:%03d", hours, mins, secs, msecs);
+    newResponse.response = String(buf);
+    break;
+  }
+  case CDC_CMD_WIFI:
+  {
+    if (theSetup->getInWiFiAPMode())
+      newResponse.response = String("AP");
+    else
+      newResponse.response = String("STA");
+    break;
+  }
+  case CDC_CMD_IP:
+  {
+    newResponse.response = String(theSetup->getIPAddress());
+    break;
+  }
+  case CDC_CMD_HN:
+  {
+    newResponse.response = String(theSetup->getWiFiHostname());
     break;
   }
   default:

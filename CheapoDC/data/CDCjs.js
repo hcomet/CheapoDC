@@ -150,7 +150,7 @@ function sendValue( itemId ) {
         }
       };
     xhr.send(itemId + "=" + encodeForHTTP(value));
-    console.log("Sendin: " + itemId + "=" + encodeForHTTP(value));
+    console.log("Sending: " + itemId + "=" + encodeForHTTP(value));
     document.getElementById(itemId).disabled = true;
 
     return;
