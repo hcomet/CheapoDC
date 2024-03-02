@@ -152,6 +152,9 @@ void dewController::updateOutput(int output)
 #ifdef CDC_ENABLE_PWM_OUTPUT
             ledcWrite(CDC_PWM_CHANNEL, PWMDutyCycle);
 #endif
+#ifdef CDC_STATUS_LED_BLINK_ON_POWER_CHANGE
+            theSetup->statusLEDOn();
+#endif
             LOG_ALERT("updateOutput", "Power output changed to: " << this->_currentOutput);
         }
 

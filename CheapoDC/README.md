@@ -19,14 +19,27 @@ CheapoDC is intended for use on ESP32 devices. The current version has been veri
   * EasyLogger by Alex Skov Jensen Version 1.1.4 
 
 * Download the latest release from <https://github.com/hcomet/CheapoDC/releases>
-
+## Configure CDCDefines.h
 * go to CDCdefines.h to configure the firmware before building:
   * Pick which ESP32 pins will be used for PWM output. Default 0 & 1
   * Pick PWM channel to use. Default of 0 should be fine.
   * Set the pin for the status LED on you ESP32. Default 8.
   * Enable/Disable Basic Web Authentication. Default Enabled.
     * change ID and Password. Default is Admin, Admin.
-  * Enable/Disable Web Socket API support. Default is Disabled.
+  * Enable/Disable Web Socket API support. Default is Disabled.  
+    ***NOTE:*** If the Web Socket API support is enabled then **two** changes are required to increase both the Web Sockets message queue and the AsyncTCP async queue or refreshing the 
+    Web UI config page will cause random crashes due to AsyncTCP locking up on a full queue.
+    1. In the AsyncTCP.cpp file in your Arduino Libraries folder:  
+    Change  
+    ```_async_queue = xQueueCreate(32, sizeof(lwip_event_packet_t *));```  
+    to  
+    ```_async_queue = xQueueCreate(64, sizeof(lwip_event_packet_t *));```
+    2. In the AsyncWebSocket.h file in your Arduino Libraries folder,  
+    Change  
+    ```#define WS_MAX_QUEUED_MESSAGES 32```  
+    to  
+    ```#define WS_MAX_QUEUED_MESSAGES 64```  
+
   * Set up WiFi configuration (most can also be configured in CDCWiFi.json)
     * set host name. Default cheapodc.
     * set SSID and Password for your access point. Needed for Station Mode.
@@ -36,7 +49,7 @@ CheapoDC is intended for use on ESP32 devices. The current version has been veri
     * if you use [OpenWeather](https://openweathermap.org/) then you will need to register at OpenWeather for a free account and API key. <https://home.openweathermap.org/users/sign_up>
     * if you use [Open-Meteo](https://open-meteo.com/) then no registration is required and no API key is needed.
     * DO NOT modify the URLs for API or Icon calls.
-  
+## Build  
 * Now build and upload the firmware to your ESP32.
 * Prepare to upload the Sketch data.
     * these files are needed for the Web UI as well as configuration of the CheapoDC.

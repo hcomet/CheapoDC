@@ -89,7 +89,7 @@
             <div class="configline">
                 <configItem>Weather Query:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="ATPQ" class="cInput" id="ATPQI" disabled
+                    <div class="cReading"><input type="number" name="ATPQ" step="0.1" class="cInput" id="ATPQI" disabled
                             data-cdc="%ATPQ%" /></div>
                 </configValue>
                 <configComment>
@@ -100,7 +100,7 @@
             <div class="configline">
                 <configItem>External Input:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="ATPX" step="0.5" class="cInput" id="ATPXI"
+                    <div class="cReading"><input type="number" name="ATPX" step="0.1" class="cInput" id="ATPXI"
                             data-cdc="%ATPX%" /></div>
                 </configValue>
                 <configComment>
@@ -136,7 +136,7 @@
             <div class="configline">
                 <configItem>Dew Point:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="DP" class="cInput" id="DPI" disabled
+                    <div class="cReading"><input type="number" name="DP" step="0.1" class="cInput" id="DPI" disabled
                             data-cdc="%DP%" /></div>
                 </configValue>
                 <configComment>
@@ -147,7 +147,7 @@
             <div class="configline">
                 <configItem>Temperature Set Point:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="SP" step="0.5" class="cInput" id="SPI"
+                    <div class="cReading"><input type="number" name="SP" step="0.1" class="cInput" id="SPI"
                             data-cdc="%SP%" /></div>
                 </configValue>
                 <configComment>
@@ -160,7 +160,7 @@
             <div class="configline">
                 <configItem>Track Point Offset:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="TPO" step="0.5" min="-5.0" max="5.0" class="cInput"
+                    <div class="cReading"><input type="number" name="TPO" step="0.1" min="-5.0" max="5.0" class="cInput"
                             id="TPOI" data-cdc="%TPO%" />
                     </div>
                 </configValue>
@@ -172,7 +172,7 @@
             <div class="configline">
                 <configItem>Tracking Range:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="TKR" step="0.5" min="4" max="10" class="cInput"
+                    <div class="cReading"><input type="number" name="TKR" step="0.1" min="4" max="10" class="cInput"
                             id="TKRI" data-cdc="%TKR%" /></div>
                 </configValue>
                 <configComment>
@@ -183,7 +183,7 @@
             <div class="configline">
                 <configItem>Calculated Track Point:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="CTP" class="cInput" id="CTPI" disabled
+                    <div class="cReading"><input type="number" step="0.1" name="CTP" class="cInput" id="CTPI" disabled
                             data-cdc="%CTP%" /></div>
                 </configValue>
                 <configComment>
@@ -265,8 +265,7 @@
             <div class="configline">
                 <configItem>Location Latitude:</configItem>
                 <configValue>
-                    <!-- <div class="cReading"><input type="text" inputmode="numeric" name="LAT" id="LATI" data-cdc="%LAT%"/></div> -->
-                    <div class="cReading"><input type="number" name="LAT" id="LATI" data-cdc="%LAT%" /></div>
+                    <div class="cReading"><input type="number" name="LAT" id="LATI" step="0.01" data-cdc="%LAT%" /></div>
                 </configValue>
                 <configComment>
                     <div class="cReading">digital degrees</div>
@@ -277,7 +276,7 @@
                 <configItem>Location Longitude:</configItem>
                 <configValue>
                     <!-- <div class="cReading"><input type="text" inputmode="numeric" name="LON" id="LONI" data-cdc="%LON%"/></div> -->
-                    <div class="cReading"><input type="number" name="LON" id="LONI" data-cdc="%LON%" /></div>
+                    <div class="cReading"><input type="number" name="LON" id="LONI" step="0.01" data-cdc="%LON%" /></div>
                 </configValue>
                 <configComment>
                     <div class="cReading">digital degrees</div>
@@ -294,7 +293,7 @@
             <div class="configline">
                 <configItem>Timezone Offset:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="TMZ" step="1800" min="-43000" max="50400" id="TMZI"
+                    <div class="cReading"><input type="number" name="TMZ" step="1" min="-43000" max="50400" id="TMZI"
                             data-cdc="%TMZ%" />
                     </div>
                 </configValue>
@@ -325,18 +324,6 @@
                     <div class="cReading">server name</div>
                 </configComment>
                 <configAction><button type="button" class="cButton" id="NTP">Update</button></configAction>
-            </div>
-            <div class="configline">
-                <configItem>Status Blink Every:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="LED" step="50" min="0" max="1000" class="cInput"
-                            id="LEDI" data-cdc="%LED%" />
-                    </div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">0 to 1000 msec</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="LED">Update</button></configAction>
             </div>
             <h2>Dew Controller Information</h2>
             <div class="configline">

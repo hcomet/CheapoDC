@@ -98,10 +98,14 @@ Component list:
 ### Basic Wiring Diagram:
 
 ![Wiring Diagram](images/wiring.jpg)
-        
+
+### Working Implementation
+Assembled in a 6 inch long piece of 2"x1" aluminum channel. This also has Pin 8, which is the status LED, connected to an extra LED on the left side for external visibility. The ESP32-C3 is also mounted in some protoboard to make the wiring easier. If you plan to use a small case like this, use silicone hookup wire. The extra flexibility of silicone wire will save a lot of frustration. I used 22 awg wire for the 5V and 3.3V ESP32 connections and 18 awg wire for the 12V connections. 
+
+![Working Prototype](images/prototype.jpg)
 
 # Firmware
-How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md).
+How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md). One of the pre-build configuration items is to pick and configure a weather service.
 
 ## Weather Service
 CheapoDC can leverage one of two open weather service APIs to retrieve current temperature, humidity and dew point for your location. The service to use is specified in the CDCDefines.h file and only one service may be support at a time. The selected service is built into the firmware.
@@ -129,6 +133,10 @@ The Device Management page provides the ability to do Over-The-Air (OTA) firmwar
 ![CheapoDC Device Management](images/filemgmt.jpg)
 The CheapoDC uses LittleFS for file storage on the ESP32. Although LittleFS supports directories as well as files CheapoDC uses a flat structure and all files are managed at the root. The file management page supports upload, download and delete functions.
 
+## CheapoDC Status LED
+The Status LED is used to provide information about the current status of the CheapoDC. Status blinking lasts for 10 seconds. It will blink as WiFi access attempts are made. If a Station mode connection is successfully made to an access point then the status LED will slow blink (1 second cycle). If no connection is made then the CheapoDC will go into Access Point mode. The status LED will then fast blink (200ms cycle).
+
+The status LED will also blink for 10 seconds after a power output changes and after a controller configuration change.
 ## CheapoDC API
 
 The CheapoDC provides API access to all configuration and data items available through the [Web UI](/README.md#web-ui). There is no authentication support in the API but the API also does not support firmware OTA updates or file management. These can only be done through the Web UI.
@@ -181,6 +189,8 @@ success has HTTP status code of 200.
 
 ### Web Sockets API
 The Web Sockets API uses the same JSON formatted Send/Response strings as the TCP API. Strings do not need to be terminated with a newline character.
+
+**NOTE:** Read the information about modifying the message queue size in AsyncTCP.cpp and AsyncWebSocket.h. 
 
 ## [INDI Driver](#indi-driver)
 An INDI driver is in development and should be available shortly. The design of CheapoDC took the capabilities of [INDI Library](https://indilib.org/) into account and will support getting location information from the INDI geographic information as well as getting Temperature from a focuser with a temperature probe.

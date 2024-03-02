@@ -13,12 +13,14 @@
 #include <EasyLogger.h>
 #include <ESP32Time.h>
 #include "CDCWebSrvr.h"
+#include "soc/timer_group_struct.h"
+#include "soc/timer_group_reg.h"
 
 #include "CDCvars.h"
 #include "CDCSetup.h"
 
 char programName[] = "CheapoDC"; // Program name
-char programVersion[] = "1.01";  // program version
+char programVersion[] = "1.0.0";  // program version
 
 CDCSetup *theSetup; // main setup class
 dewController *theDController;
@@ -37,9 +39,10 @@ unsigned int minDelta = 0;
 
 // Counters for items scheduled
 //
-// Status LED blink in milliseconds
+// Status LED timer in milliseconds
 int statusLEDDelta = 0;
 int statusLEDLast = 0;
+int statusLEDCountDown = CDC_STATUS_LED_DELAY;
 
 // Weather query timer in minutes
 int weatherQueryDelta = 0;
@@ -149,8 +152,8 @@ void setup()
 
   Serial.begin(115200);
 
-  theSetup = new CDCSetup();
   theDController = new dewController();
+  theSetup = new CDCSetup();
 
   LOG_DEBUG("Main-setup", "Load CheapoDC configuration");
   if (!theSetup->LoadConfig())
@@ -177,13 +180,14 @@ void setup()
   minCount = theTime->getMinute();
   // lastMinute = theTime->getMinute();
 
-  // theSetup->statusLEDOff();
+  theSetup->statusLEDDelay( RESET_DELAY );
   LOG_DEBUG("CDCSETUP", "Weather query every: " << theSetup->getWeatherQueryEvery());
   if (theSetup->getWeatherQueryEvery() != 0)
   {
     theSetup->queryWeather();
     weatherQueryLast = minCount;
   }
+
 }
 
 // Main loop
@@ -218,6 +222,8 @@ void loop()
     if ((secCount - secLast) != 0)
     {
       secLast = secCount;
+      
+      theSetup->statusLEDDelay( DEC_DELAY );
 
       // call save config file timer
       saveConfigTimer(secCount);

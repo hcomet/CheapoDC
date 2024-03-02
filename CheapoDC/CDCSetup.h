@@ -61,7 +61,14 @@ struct          weatherData
                 char sunset[32];
 };
 
-// weatherData currentWeatherData[2];
+enum statusLEDDelayCmd
+{
+        INC_DELAY,
+        DEC_DELAY,
+        RESET_DELAY,
+        DISABLE_DELAY,
+        ZERO_DELAY
+};
 
 class CDCSetup
 {
@@ -76,6 +83,9 @@ class CDCSetup
         void    statusLEDOn();
         void    statusLEDOff();
         void    blinkStatusLEDEvery( int blinkEvery );
+        void    statusLEDDelay( statusLEDDelayCmd cmd );
+        int     getStatusLEDDelay() { return this->_statusLEDDelay;};
+        bool    statusLEDDelayComplete();
         int     getStatusBlinkEvery();
 
         // getters
@@ -135,6 +145,9 @@ class CDCSetup
         int             _queryWeatherEvery;
         int             _controllerUpdateEvery; // in minutes
         int             _statusBlinkEvery;
+        bool            _statusLEDEnabled;
+        int             _statusLEDDelay;
+        bool            _statusLEDDelayEnabled;
         char            _NTPServer[64];
         char            _IPAddress[16];
         weatherData     _currentWeather;

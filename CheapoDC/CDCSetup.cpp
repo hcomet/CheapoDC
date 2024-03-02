@@ -267,8 +267,8 @@ CDCSetup::CDCSetup(void)
 
   // initialize status LED as an output.
   pinMode(CDC_STATUS_LED, OUTPUT);
-  this->blinkStatusLEDEvery(0);
-  this->statusLEDOff();
+  this->blinkStatusLEDEvery(CDC_DEFAULT_STATUS_BLINK);
+  this->statusLEDOn();
 
   // Filesystem first
   LOG_DEBUG("CDCSETUP", "Setup LittleFS");
@@ -569,14 +569,13 @@ bool CDCSetup::_setupWiFi(void)
     while (count < this->_wifiConfig.tryAPs)
     {
       if (this->_connectWiFi())
+      {
+        this->blinkStatusLEDEvery(CDC_DEFAULT_STATUS_BLINK);
+        this->statusLEDOn();
         return true;
+      }
       count++;
     }
-
-    this->blinkStatusLEDEvery(0);
-    this->statusLEDOn();
-
-    return false;
   }
   else
   {
@@ -599,7 +598,11 @@ bool CDCSetup::_setupWiFi(void)
         LOG_DEBUG("_setupWiFi", "WiFi " << count << "password " << this->_wifiConfig.password);
 
         if (this->_connectWiFi())
+        {
+          this->blinkStatusLEDEvery(CDC_DEFAULT_STATUS_BLINK);
+          this->statusLEDOn();
           return true;
+        }
       }
       count++;
     }
@@ -623,21 +626,44 @@ bool CDCSetup::_setupWiFi(void)
     LOG_ALERT("_setupWiFi", "mDNS responder started");
   }
 
-  this->blinkStatusLEDEvery(0);
+  this->blinkStatusLEDEvery(CDC_WIFI_AP_STATUS_BLINK);
   this->statusLEDOn();
 
   return false;
 }
 
 // status LED
-void CDCSetup::blinkStatusLED() { digitalWrite(CDC_STATUS_LED, !digitalRead(CDC_STATUS_LED)); };
-void CDCSetup::statusLEDOn() { digitalWrite(CDC_STATUS_LED, 1); };
-void CDCSetup::statusLEDOff() { digitalWrite(CDC_STATUS_LED, 0); };
+void CDCSetup::blinkStatusLED() 
+{ 
+  if (this->_statusLEDEnabled)
+    digitalWrite(CDC_STATUS_LED, !digitalRead(CDC_STATUS_LED)); 
+}
+
+void CDCSetup::statusLEDOn() 
+{ 
+  this->_statusLEDEnabled = true;
+  digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_HIGH);
+  this->statusLEDDelay( RESET_DELAY );
+}
+
+void CDCSetup::statusLEDOff() 
+{ 
+  this->_statusLEDEnabled = false;
+  digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_LOW); 
+}
+
 void CDCSetup::blinkStatusLEDEvery(int blinkEvery)
 {
-  if ((blinkEvery >= 0) && (blinkEvery <= 999))
+  if ((blinkEvery >= 0) && (blinkEvery <= 1000))
+  {
     this->_statusBlinkEvery = blinkEvery;
+    if (blinkEvery == 0)
+      this->statusLEDOff();
+    else
+      this->statusLEDOn();
+  }
 };
+
 int CDCSetup::getStatusBlinkEvery() { return this->_statusBlinkEvery; };
 
 void CDCSetup::setWeatherQueryEvery(int queryEvery)
@@ -738,4 +764,42 @@ void CDCSetup::setAmbientTemperatureExternal(float temperature)
     theDController->updateOutput();
   }
   return;
+}
+
+void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
+{
+  switch (cmd)
+  {
+  case INC_DELAY:
+    if ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay < CDC_STATUS_LED_DELAY))
+      this->_statusLEDDelay = this->_statusLEDDelay + 1;
+    break;
+  case DEC_DELAY:
+    if ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay > 0))
+    {
+      this->_statusLEDDelay = this->_statusLEDDelay - 1;
+      if (this->_statusLEDDelay <= 0)
+        this->statusLEDOff();
+    }
+    break;
+  case RESET_DELAY:
+    this->_statusLEDDelay = CDC_STATUS_LED_DELAY;
+    this->_statusLEDDelayEnabled = true;
+    break;
+  case DISABLE_DELAY:
+    this->_statusLEDDelay = CDC_STATUS_LED_DELAY;
+    this->_statusLEDDelayEnabled = false;
+    break;
+  case ZERO_DELAY:
+    this->_statusLEDDelay = 0;
+    break;
+  default:
+    break;
+  }
+  return;
+}
+
+bool CDCSetup::statusLEDDelayComplete()
+{
+  return ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay <= 0));
 }

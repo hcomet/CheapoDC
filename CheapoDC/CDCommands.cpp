@@ -49,7 +49,7 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"LNM", {CDC_CMD_LNM, 1, CDC_UNITS_NONE}},                  // Location name
     {"TMZ", {CDC_CMD_TMZ, 1, CDC_UNITS_SECOND}},                // Location time zone (seconds)
     {"DST", {CDC_CMD_DST, 1, CDC_UNITS_SECOND}},                // Location DST offset (seconds)
-    {"LED", {CDC_CMD_LED, 1, CDC_UNITS_MILLISEC}},              // Status LED Blink every (msec)
+    {"LED", {CDC_CMD_LED, 0, CDC_UNITS_MILLISEC}},              // Status LED Blink every (msec)
     {"NTP", {CDC_CMD_NTP, 1, CDC_UNITS_NONE}},                  // NTP serverName
     {"OMIN", {CDC_CMD_OMIN, 1, CDC_UNITS_PERCENT}},             // DC Min output
     {"OMAX", {CDC_CMD_OMAX, 1, CDC_UNITS_PERCENT}},             // DC Max output
@@ -69,7 +69,13 @@ std::map<std::string, CDCommand> CDCCommands = {
 bool configUpdated = false;
 
 void resetConfigUpdated() { configUpdated = false; };
-void setConfigUpdated() { configUpdated = true; };
+void setConfigUpdated() 
+{ 
+  configUpdated = true;
+  #ifdef CDC_STATUS_LED_BLINK_ON_CONFIG_CHANGE
+  theSetup->statusLEDOn();
+  #endif
+};
 bool getConfigUpdated() { return configUpdated; };
 
 // Process CDC get commands and return results

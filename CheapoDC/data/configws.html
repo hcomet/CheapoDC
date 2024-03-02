@@ -61,7 +61,7 @@
             <div class="configline">
                 <configItem>Weather Query:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" class="cInput" id="ATPQI" disabled /></div>
+                    <div class="cReading"><input type="number" step="0.1" class="cInput" id="ATPQI" disabled /></div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton hidden" id="ATPQ">Update</button></configAction>
@@ -69,7 +69,7 @@
             <div class="configline">
                 <configItem>External Input:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" step="0.5" class="cInput" id="ATPXI" /></div>
+                    <div class="cReading"><input type="number" step="0.1" class="cInput" id="ATPXI" /></div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton" id="ATPX">Update</button></configAction>
@@ -84,14 +84,14 @@
             </div><div class="configline">
                 <configItem>Humidity:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" class="cInput" id="HUI" disabled /></div>
+                    <div class="cReading"><input type="number" step="1" class="cInput" id="HUI" disabled /></div>
                 </configValue>
                 <configComment><div class="cReading">&percnt;</div></configComment>
                 <configAction><button type="button" class="cButton hidden" id="HU">Update</button></configAction>
             </div><div class="configline">
                 <configItem>Dew Point:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" class="cInput" id="DPI" disabled /></div>
+                    <div class="cReading"><input type="number" step="0.1" class="cInput" id="DPI" disabled /></div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton hidden" id="DP">Update</button></configAction>
@@ -99,7 +99,7 @@
             <div class="configline">
                 <configItem>Temperature Set Point:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" step="0.5" class="cInput" id="SPI"/></div>
+                    <div class="cReading"><input type="number" step="0.1" class="cInput" id="SPI"/></div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton" id="SP">Update</button></configAction>
@@ -109,7 +109,7 @@
             <div class="configline">
                 <configItem>Track Point Offset:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" step="0.5" min="-5.0" max="5.0" class="cInput" id="TPOI"/> </div>
+                    <div class="cReading"><input type="number" step="0.1" min="-5.0" max="5.0" class="cInput" id="TPOI"/> </div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton" id="TPO">Update</button></configAction>
@@ -117,7 +117,7 @@
             <div class="configline">
                 <configItem>Tracking Range:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" step="0.5" min="4" max="10" class="cInput" id="TKRI"  /></div>
+                    <div class="cReading"><input type="number" step="0.1" min="4" max="10" class="cInput" id="TKRI"  /></div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton" id="TKR">Update</button></configAction>
@@ -125,7 +125,7 @@
             <div class="configline">
                 <configItem>Calculated Track Point:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" class="cInput" id="CTPI" disabled /></div>
+                    <div class="cReading"><input type="number" step="0.1" class="cInput" id="CTPI" disabled /></div>
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton hidden" id="CTP">Update</button></configAction>
@@ -212,7 +212,7 @@
             <div class="configline">
                 <configItem>Timezone Offset:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" step="1800" min="-43000" max="50400" name="TMZ" id="TMZI" /></div>
+                    <div class="cReading"><input type="number" step="1" min="-43000" max="50400" name="TMZ" id="TMZI" /></div>
                 </configValue>
                 <configComment><div class="cReading">seconds</div></configComment>
                 <configAction><button type="button" class="cButton" id="TMZ">Update</button></configAction>
@@ -234,13 +234,50 @@
                 <configComment><div class="cReading">server name</div></configComment>
                 <configAction><button type="button" class="cButton" id="NTP">Update</button></configAction>
             </div>
+            <h2>Dew Controller Information</h2>
             <div class="configline">
-                <configItem>Status Blink Every:</configItem>
+                <configItem>Up Time:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" step="50" min="0" max="1000" class="cInput" id="LEDI"/></div>
+                    <div class="cReading"><input type="text" name="UPT" class="cInput" id="UPTI" disabled
+                            data-cdc="%UPT%" /></div>
                 </configValue>
-                <configComment><div class="cReading">0 to 1000 msec</div></configComment>
-                <configAction><button type="button" class="cButton" id="LED">Update</button></configAction>
+                <configComment>
+                    <div class="cReading">HHH:MM:SS:MSec</div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="UPT">Update</button></configAction>
+            </div>
+            <div class="configline">
+                <configItem>Host Name:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="HN" class="cInput" id="HNI" disabled
+                            data-cdc="%HN%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading"></div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="HN">Update</button></configAction>
+            </div>
+            <div class="configline">
+                <configItem>IP Address:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="IP" class="cInput" id="IPI" disabled
+                            data-cdc="%IP%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading"></div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="IP">Update</button></configAction>
+            </div>
+            <div class="configline">
+                <configItem>WiFi Mode:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="WIFI" class="cInput" id="WIFII" disabled
+                            data-cdc="%WIFI%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading">AP or STA</div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="WIFI">Update</button></configAction>
             </div>
         </main>
     
