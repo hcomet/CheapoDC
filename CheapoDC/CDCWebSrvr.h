@@ -7,9 +7,9 @@
 #ifndef MY_CDCWEBSRVR
 #define MY_CDCWEBSRVR
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <AsyncTCP.h>
 #include "ESPAsyncWebSrv.h"
+#include "CDCdefines.h"
 
 // AsyncWebServer CDCserver(CDC_DEFAULT_WEBSRVR_PORT);
 class CDCWebServer;

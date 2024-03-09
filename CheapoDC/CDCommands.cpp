@@ -5,10 +5,10 @@
 // (c) Copyright Stephen Hillier 2024. All Rights Reserved.
 // ******************************************************************
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include "FS.h"
 #include <LittleFS.h>
 #include <map>
+#include "CDCdefines.h"
 #include <EasyLogger.h>
 #include "CDCvars.h"
 #include "CDCSetup.h"
@@ -28,15 +28,15 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"SP", {CDC_CMD_SP, 1, CDC_UNITS_DEGREES_C}},               // set point
     {"TPO", {CDC_CMD_TPO, 1, CDC_UNITS_DEGREES_C}},             // Track Point offset
     {"TKR", {CDC_CMD_TKR, 1, CDC_UNITS_DEGREES_C}},             // Tracking range
+    {"DCM", {CDC_CMD_DCM, 1, CDC_CONTROLLERMODE_JSONARRAY}},    // dew controller mode (DCM must be before DCO for Save/Load)
     {"DCO", {CDC_CMD_DCO, 1, CDC_UNITS_PERCENT}},               // Dew Controller Output
     {"WS", {CDC_CMD_WS, 0, CDC_UNITS_NONE}},                    // Weather source
     {"LQT", {CDC_CMD_LQT, 0, CDC_UNITS_NONE}},                  // last weather query time
     {"LQD", {CDC_CMD_LQD, 0, CDC_UNITS_NONE}},                  // last weather query date
-    {"WRD", {CDC_CMD_WRD, 0, CDC_UNITS_NONE}},                  // weather report date time
+    {"QN", {CDC_CMD_QN, 0, CDC_UNITS_NONE}},                    // Query Weather Now (Set only command)
     {"FW", {CDC_CMD_FW, 0, CDC_UNITS_NONE}},                    // firmware version
     {"HP", {CDC_CMD_HP, 0, CDC_UNITS_NONE}},                    // Heap size
     {"LFS", {CDC_CMD_LFS, 0, CDC_UNITS_NONE}},                  // LittleFS remaining space
-    {"DCM", {CDC_CMD_DCM, 1, CDC_CONTROLLERMODE_JSONARRAY}},    // dew controller mode
     {"DCTM", {CDC_CMD_DCTM, 1, CDC_TEMPERATUREMODE_JSONARRAY}}, // dew controller temperature mode
     {"SPM", {CDC_CMD_SPM, 1, CDC_SETPOINTMODE_JSONARRAY}},      // dew controller set point mode
     {"WQE", {CDC_CMD_WQE, 1, CDC_UNITS_MINUTE}},                // Weather query every
@@ -58,9 +58,9 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"CTP", {CDC_CMD_CTP, 0, CDC_UNITS_DEGREES_C}},             // Current Track Point Temperature
     {"WUL", {CDC_CMD_WUL, 0, CDC_UNITS_NONE}},                  // Location of Weather station reported in query
     {"CLC", {CDC_CMD_CLC, 0, CDC_UNITS_PERCENT}},               // Cloud Coverage in percent
-    {"LWUT", {CDC_CMD_LWUT, 0, CDC_UNITS_NONE}},                // Cloud Coverage in percent
-    {"LWUD", {CDC_CMD_LWUD, 0, CDC_UNITS_NONE}},                // Cloud Coverage in percent
-    {"UPT", {CDC_CMD_UPT, 0, CDC_UNITS_NONE}},                     // return uptime in hhh:mm:ss:msec
+    {"LWUT", {CDC_CMD_LWUT, 0, CDC_UNITS_NONE}},                // Last weather update time taken from query result
+    {"LWUD", {CDC_CMD_LWUD, 0, CDC_UNITS_NONE}},                // Last weather update date taken from query result
+    {"UPT", {CDC_CMD_UPT, 0, CDC_UNITS_NONE}},                  // return uptime in hhh:mm:ss:msec
     {"WIFI", {CDC_CMD_WIFI, 0, CDC_UNITS_NONE}},                // WIFI mode AP (Access Point) or STA (Station Mode)
     {"IP", {CDC_CMD_IP, 0, CDC_UNITS_NONE}},                    // IP Address
     {"HN", {CDC_CMD_HN, 0, CDC_UNITS_NONE}}                     // Host name
@@ -216,12 +216,6 @@ cmdResponse getCmdProcessor(const String &var)
   case CDC_CMD_LQD:
   {
     newResponse.response = String(theSetup->getLastWeatherQueryDate());
-
-    break;
-  }
-  case CDC_CMD_WRD:
-  {
-    newResponse.response = String("Command NOT implemented");
 
     break;
   }
@@ -444,7 +438,6 @@ cmdResponse getCmdProcessor(const String &var)
 bool setCmdProcessor(const String &var, String newValue)
 {
   int command;
-  // std::unordered_map<std::string, int>::const_iterator found = CDCCommands.find(var.c_str());
 
   if (CDCCommands.count(var.c_str()) == 0)
   {
@@ -481,6 +474,11 @@ bool setCmdProcessor(const String &var, String newValue)
   {
     theDController->updateOutput(newValue.toInt());
 
+    break;
+  }
+  case CDC_CMD_QN:
+  {
+    bool dontCare = theSetup->queryWeather();
     break;
   }
   case CDC_CMD_DCM:

@@ -21,7 +21,7 @@
 // *************************************************************************************
 // ESP32 C3 Board configuration
 // *************************************************************************************
-#define CDC_ENABLE_PWM_OUTPUT // uncomment to enable output pins
+#define CDC_ENABLE_PWM_OUTPUT // comment to disable output pins (mainly for debugging)
 #define CDC_PWM_OUPUT_PIN1 0  // set first Output channel Pin
 #define CDC_PWM_OUPUT_PIN2 1  // Uncomment and set Pin value to enable second channel
 #define CDC_PWM_CHANNEL 0     // Currently both output Pin 1 an 2 share a channel
@@ -39,7 +39,7 @@
 #define CDC_STATUS_LED_DELAY 10               // time until status LED is turned off in seconds (0 = infinite delay)
 #define CDC_STATUS_LED_BLINK_ON_CONFIG_CHANGE // Blink for delay time when config item changed
 #define CDC_STATUS_LED_BLINK_ON_POWER_CHANGE  // Blink for delay time when Power Output changes
-// #define CDC_REVERSE_HIGH_LOW               // Some ESP32-C3 seem to have Status Pin High/Low reversed. Uncomment to reverse.
+//#define CDC_REVERSE_HIGH_LOW               // Some ESP32-C3 seem to have Status Pin High/Low reversed. Uncomment to reverse.
 #ifdef CDC_REVERSE_HIGH_LOW
 #define CDC_STATUS_LED_HIGH LOW
 #define CDC_STATUS_LED_LOW HIGH
@@ -134,7 +134,7 @@
 
 // *************************************************************************************
 // *************************************************************************************
-//***********         Don't change anything below here.                      ***********
+// ***********         Don't change anything below here.                      ***********
 // *************************************************************************************
 // *************************************************************************************
 
@@ -152,7 +152,7 @@
 
 #define CDC_DEFAULT_WEBSRVR_PORT 80
 #define CDC_DEFAULT_WEBSOCKET_URL "/ws"
-#define CDC_DEFAULT_TCP_SERVER_PORT 8000 // Port used for the TCP based API
+#define CDC_DEFAULT_TCP_SERVER_PORT 58000 // Port used for the TCP based API
 
 // units - HTML Escaped
 #define CDC_UNITS_DEGREES "&deg;"
@@ -190,7 +190,7 @@
 #define CDC_CMD_WS 10    // Weather source
 #define CDC_CMD_LQT 11   // last weather query time
 #define CDC_CMD_LQD 12   // last weather query date
-#define CDC_CMD_WRD 13   // weather report date time
+#define CDC_CMD_QN 13    // Query Weather Now (Set only command)
 #define CDC_CMD_FW 14    // firmware version
 #define CDC_CMD_HP 15    // Heap size
 #define CDC_CMD_LFS 16   // LittleFS remaining space

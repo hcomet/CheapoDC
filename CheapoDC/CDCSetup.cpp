@@ -6,9 +6,7 @@
 // ******************************************************************
 
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <ArduinoJson.h>
-#include <EasyLogger.h>
 #include "FS.h"
 #include <LittleFS.h>
 #include <TimeLib.h>
@@ -17,7 +15,8 @@
 #include <WiFiClient.h>
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
-
+#include "CDCdefines.h"
+#include <EasyLogger.h>
 #include "CDCvars.h"
 #include "CDCSetup.h"
 #include "CDController.h"
@@ -84,7 +83,7 @@ bool CDCSetup::queryWeather(void)
     LOG_ERROR("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
     return false;
   }
-  #ifdef CDC_USE_OPEN_WEATHER
+#ifdef CDC_USE_OPEN_WEATHER
   // Using Open Weather API
   sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude, this->_weatherAPIKey, CDC_DEFAULT_WEATHERUNITS);
 
@@ -167,12 +166,11 @@ bool CDCSetup::queryWeather(void)
   tempDescription += String(" - ") + String(doc["weather"][0]["description"] | CDC_NA);
   tempDescription.toCharArray(this->_currentWeather.weatherDescription, sizeof(this->_currentWeather.weatherDescription));
   strlcpy(this->_currentWeather.weatherIcon, doc["weather"][0]["icon"] | CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-  #endif
+#endif
 
-
-  #ifdef CDC_USE_OPEN_METEO
+#ifdef CDC_USE_OPEN_METEO
   // Using Open Meteo API
-  sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude );
+  sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude);
 
   DeserializationError error = deserializeJson(doc, httpGETRequest(httpRequestURL));
   if (error)
@@ -198,8 +196,8 @@ bool CDCSetup::queryWeather(void)
 
   if (tempTime.length() != 0)
   {
-    sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, tempTime.substring(11,13).toInt(), tempTime.substring(14,16).toInt() );
-    sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, monthShortStr(tempTime.substring(5,7).toInt()), tempTime.substring(8,10).toInt(), tempTime.substring(0,4).toInt());
+    sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, tempTime.substring(11, 13).toInt(), tempTime.substring(14, 16).toInt());
+    sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, monthShortStr(tempTime.substring(5, 7).toInt()), tempTime.substring(8, 10).toInt(), tempTime.substring(0, 4).toInt());
   }
   else
   {
@@ -208,7 +206,6 @@ bool CDCSetup::queryWeather(void)
   }
 
   LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
-
 
   strlcpy(this->_currentWeather.sunrise, CDC_NA, sizeof(this->_currentWeather.sunrise));
 
@@ -219,11 +216,11 @@ bool CDCSetup::queryWeather(void)
   this->_currentWeather.ambientTemperature = main["temperature_2m"] | 0.0;
   this->_currentWeather.humidity = main["relative_humidity_2m"] | 0.0;
   this->_currentWeather.dewPoint = main["dew_point_2m"] | 0.0;
-  
-  //this->_currentWeather.minTemperature = main["temp_min"] | 0.0;
-  //this->_currentWeather.maxTemperature = main["temp_max"] | 0.0;
-  //this->_currentWeather.pressure = main["pressure"] | 0;
-  //this->_currentWeather.visibility = doc["visibility"] | 0;
+
+  // this->_currentWeather.minTemperature = main["temp_min"] | 0.0;
+  // this->_currentWeather.maxTemperature = main["temp_max"] | 0.0;
+  // this->_currentWeather.pressure = main["pressure"] | 0;
+  // this->_currentWeather.visibility = doc["visibility"] | 0;
   this->_currentWeather.windSpeed = main["wind_speed_10m"] | 0.0;
   this->_currentWeather.windDirection = main["wind_direction_10m"] | 0;
   this->_currentWeather.cloudCoverage = main["cloud_cover"] | 0;
@@ -232,13 +229,12 @@ bool CDCSetup::queryWeather(void)
   unsigned int wmoCode = main["weather_code"] | 0;
   unsigned int isDay = main["is_day"] | 1;
 
-  String tempDescription = mapWMOCode(wmoCode,(isDay==1),true);
-  String tempIcon = mapWMOCode(wmoCode,(isDay==1),false);
+  String tempDescription = mapWMOCode(wmoCode, (isDay == 1), true);
+  String tempIcon = mapWMOCode(wmoCode, (isDay == 1), false);
 
-  strlcpy(this->_currentWeather.weatherDescription,tempDescription.c_str(), sizeof(this->_currentWeather.weatherDescription));
+  strlcpy(this->_currentWeather.weatherDescription, tempDescription.c_str(), sizeof(this->_currentWeather.weatherDescription));
   strlcpy(this->_currentWeather.weatherIcon, tempIcon.c_str(), sizeof(this->_currentWeather.weatherIcon));
-  #endif
-
+#endif
 
   LOG_DEBUG("queryWeather", "Current Weather: " << this->_currentWeather.lastWeatherQueryDate << " " << this->_currentWeather.lastWeatherQueryTime << " From: " << this->_currentWeather.weatherUpdateLocation);
   LOG_DEBUG("queryWeather", "    temperature: " << this->_currentWeather.ambientTemperature);
@@ -291,8 +287,6 @@ CDCSetup::CDCSetup(void)
 
   strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
   strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
-
-  return;
 }
 
 //********************************************************************************************
@@ -633,23 +627,23 @@ bool CDCSetup::_setupWiFi(void)
 }
 
 // status LED
-void CDCSetup::blinkStatusLED() 
-{ 
+void CDCSetup::blinkStatusLED()
+{
   if (this->_statusLEDEnabled)
-    digitalWrite(CDC_STATUS_LED, !digitalRead(CDC_STATUS_LED)); 
+    digitalWrite(CDC_STATUS_LED, !digitalRead(CDC_STATUS_LED));
 }
 
-void CDCSetup::statusLEDOn() 
-{ 
+void CDCSetup::statusLEDOn()
+{
   this->_statusLEDEnabled = true;
   digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_HIGH);
-  this->statusLEDDelay( RESET_DELAY );
+  this->statusLEDDelay(RESET_DELAY);
 }
 
-void CDCSetup::statusLEDOff() 
-{ 
+void CDCSetup::statusLEDOff()
+{
   this->_statusLEDEnabled = false;
-  digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_LOW); 
+  digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_LOW);
 }
 
 void CDCSetup::blinkStatusLEDEvery(int blinkEvery)
@@ -703,7 +697,6 @@ void CDCSetup::setLocationLatitude(float latitude)
       LOG_ERROR("setLocationLatitude", "New latitude out of range -90 to 90: " << latitude);
     }
   }
-  return;
 }
 
 void CDCSetup::setLocationLongitude(float longitude)
@@ -723,7 +716,6 @@ void CDCSetup::setLocationLongitude(float longitude)
       LOG_ERROR("setLocationLongitude", "New longitude out of range -90 to 90: " << longitude);
     }
   }
-  return;
 }
 
 void CDCSetup::setLocationTimeZone(int timezone)
@@ -738,7 +730,6 @@ void CDCSetup::setLocationTimeZone(int timezone)
   {
     LOG_ERROR("setLocationTimeZone", "New Time Zone out of range GMT-12 to GNT+14 in seconds: " << timezone);
   }
-  return;
 }
 
 void CDCSetup::setLocationDST(int DSTOffset)
@@ -753,7 +744,6 @@ void CDCSetup::setLocationDST(int DSTOffset)
   {
     LOG_ERROR("setLocationTimeZone", "New DST offset out of range -3600 to +3600 seconds: " << DSTOffset);
   }
-  return;
 }
 
 void CDCSetup::setAmbientTemperatureExternal(float temperature)
@@ -763,7 +753,6 @@ void CDCSetup::setAmbientTemperatureExternal(float temperature)
     this->_ambientTemperatureExternal = temperature;
     theDController->updateOutput();
   }
-  return;
 }
 
 void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
@@ -796,7 +785,6 @@ void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
   default:
     break;
   }
-  return;
 }
 
 bool CDCSetup::statusLEDDelayComplete()

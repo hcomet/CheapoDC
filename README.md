@@ -1,27 +1,28 @@
 ![CheapoDC Logo](images/logo.png)
 
-The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini. Parts required include the ESP32-C3 mini, one or two MOSFET modules, a 12V to 5V buck converter, some proto board, a couple of RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that controls 2 dew heater straps. More harware details can be found in the [Hardware](/README.md#hardware) section.
+The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini. Parts required include the ESP32-C3 mini, one or two MOSFET modules, a 12V to 5V buck converter, some protoboard, a couple of RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that controls 2 dew heater straps. More hardware details can be found in the [Hardware](/README.md#hardware) section.
 
-A primary goal was to keep the build simple with minimal parts. This is done by leveraging the ESP32 WiFi capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API or the [Open-Meteo](https://open-meteo.com/) API may be used for ambient temperature, humidity and dew point. This is then used for calculating CheapoDC's power output. No additional components are requied suchc as temperature or humidity probes. The responsiveness or aggressiveness of the controller can be adjusted through several settings. CheapoDC works best with Internet connectivity supporting the weather queries to OpenWeather but it can also be used in a limited way without Internet access. 
+A primary goal was to keep the build simple with minimal components. This is done by leveraging the ESP32 WiFi capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API or the [Open-Meteo](https://open-meteo.com/) API may be used to retrieve ambient temperature, humidity and dew point for the controller's geographic location. This is then used to calculate CheapoDC's power output. No additional components, such as temperature or humidity probes, are required. The responsiveness and aggressiveness of the controller can be adjusted through several configuration settings. CheapoDC works best with internet connectivity to support the weather service queries but it can also be used in a limited way without internet access. 
 
+Although the CheapoDC supports two dew strap outputs, the output levels are not individually controlled. Two separate MOSFET modules are used but the PWM output for the two ESP32 pins driving the MOSFETs are tied to the same PWM channel.
 
 # How the Controller Works
-
+When working in Automated mode, the controller will periodically calculate the power output to the dew straps using the calculations below. The default output calculation or update period is 1 minute.
 ## Controller Power Output Calculation
 ### Variables:
 * **Set Point** = ***SP***
-  - as set using the **Set Point** selection.
+  - as set using the **Set Point Mode** selection.
 * **Reference Temperature** = ***RT***
   - as set using the **Temperature Mode** selection.
 * **Track Point** = ***TP***
-  - the temperature point where the **Tracking Range** starts. A **Reference Temperature** less than or equal 
+  - the calculated temperature point where the **Tracking Range** starts. A **Reference Temperature** less than or equal 
 to the **Track Point** will cause the controller to use **Maximum Output**. 
 * **Track Point Offset** = ***TPO***
-  - an offset applied to the **Set Point** when determining the **Track Point** relative to the **Set Point**. 
-The **Track Point Offset** may be set from -5.0 to 5.0 degrees Celsius. The default is 0.0 degrees Celsius.
+  - a temperature offset applied to the **Set Point** when calculating the **Track Point** relative to the **Set Point**. 
+The **Track Point Offset** may be set from -5.0&deg;C to 5.0&deg;C. The default is 0.0&deg;C.
 * **Tracking Range** = ***TR***
   - the temperature range starting at the **Track Point** where the controller output ramps up from **Minimum Output** at the high end of the range to **Maximum Output** at the low end of the range. The range may be set to values from 
-4.0 to 10.0 degrees Celsius. The default is 4.0 degrees celsius.
+4.0&deg;C to 10.0&deg;C. The default is 4.0&deg;C.
 * **Power Output** = ***PO***
   - the percentage of power the controller is outputting to the dew straps. It varies from the **Minimum Output** setting to the **Maximum Output** setting.
 * **Minimum Output** = ***MinO***
@@ -36,26 +37,28 @@ $`IF`$ $`(RT <= TP )`$ $`THEN`$ $`PO= MaxO`$
 
 $`IF`$ $`(RT >= (TP + TR))`$ $`THEN`$ $`PO = MinO`$
 
-$`IF`$ $`(RT <(TP + TR))`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - (RT - TP)/(TR))`$
+$`IF`$ $`(RT <(TP + TR))`$ $`THEN`$ $`PO = MinO + (MaxO - MinO) * ( 1 - ((RT - TP)/TR))`$
 
 ### Examples
 
-1. Exampe 1 is primarily a reference image to illustrate the variables defined above.
+Example 1 is primarily a reference image to illustrate the variables defined above.
    * Power Output curve is shown relative to the Track Point and the Tracking Range. While the Reference Temperature is greater than the high end of the Tracking Range the Power Output is set to Minimum Output. The Power Output ramps up linearly through the Tracking Range from the Minimum Output to the Maximum Output as the Reference Temperature drops.
    * This example shows a Reference Temperature, RT = 8°C, which is greater than the upper end of the Tracking Range, causing Power Output to be set to Minimum Output. In this case Minimum Output is set to 10%.
-   * The upper end of the Tracking Range, at 7°C, is determined from the Set Point (SP = -2°C) plus the Track Point Offset (TPO = 4°C), creating a Tack Point, TP = 2°C, plus the Tracking Range (TR = 5°C).
+   * The upper end of the Tracking Range, at 7°C, is determined from the Set Point (SP = -2°C) plus the Track Point Offset (TPO = 4°C), creating a Tack Point, TP = 2°C, plus the Tracking Range (TR = 5°C).  
+
+   **NOTE:** The Set Point and the Reference Temperature values may vary from one output calculation to the next with 
+	each weather update.
  
 ![Example 1](images/example1.jpg)
 
-2. Example 2 shows changing the values of the controller variables can affect the Power Output calculation.
-   * The Set Point, SP = -2°C, and the Reference Temperature, RT = 8°C, the same as in Example 1. However changing the Track Point Offset, now TPO = 2°C, and the Tracking Range, now TR = 10°C, has change the Power Output as well as flattening  the Power Output curve.
-   * 
+Example 2 shows changing the values of the controller configuration variables can affect the Power Output calculation.
+   * The Set Point, SP = -2°C, and the Reference Temperature, RT = 8°C, the same as in Example 1. However changing the Track Point Offset, now TPO = 2°C, and the Tracking Range, now TR = 10°C, has changed the Power Output as well as flattening the Power Output curve.
+   * The Maximum Output has been increased, MaxO = 100%, to allow full power output to be reached at 0&deg;C.
 
-![Example 1](images/example2.jpg)
+![Example 2](images/example2.jpg)
 
-## Dew Controller Settings
-The following modes of operation are used in the algorithm that calculates controller output. The first item under each 
-mode is the default.
+## Dew Controller Configuration Settings
+The following modes of operation are used by CheapoDC to determine overall controller operation as well as which values to assign to the Set Point and Reference Temperature when calculating output.
 
 ### Controller Mode:
 The Controller Mode selects the overall operating mode of the dew controller.
@@ -87,7 +90,7 @@ One of the goals with the CheapoDC is to for it to be relatively easy to assembl
 
 Component list:
 * ESP32-C3 SuperMini (Other ESP32 modules should work but this one is very small and low priced) Example: [https://www.aliexpress.com/item/1005005967641936.html?spm=a2g0o.order_list.order_list_main.10.3b2c1802dRy3Tw]
-* Buck converter to take 12V to 5V. I used an [LM2596 Module](https://www.amazon.ca/dp/B08Q2YKJ6Q?psc=1&ref=ppx_yo2ov_dt_b_product_details). You could also use an [MP1584EN Module](https://www.amazon.ca/eBoot-MP1584EN-Converter-Adjustable-Module/dp/B01MQGMOKI/ref=pd_sbs_d_sccl_2_3/141-9725081-7037101?pd_rd_w=UMd8F&content-id=amzn1.sym.ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_p=ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_r=4WWMQ6QG50JQ2BTYP273&pd_rd_wg=OCFjo&pd_rd_r=381f4abb-88a8-4856-a51f-39d3190099fa&pd_rd_i=B01MQGMOKI&th=1). These modules often have an adjustable output. You'll need to use an Volt meter to adjust the output to 5 volts before hooking it up.
+* Buck converter to reduce 12V to 5V. I used an [LM2596 Module](https://www.amazon.ca/dp/B08Q2YKJ6Q?psc=1&ref=ppx_yo2ov_dt_b_product_details). You could also use an [MP1584EN Module](https://www.amazon.ca/eBoot-MP1584EN-Converter-Adjustable-Module/dp/B01MQGMOKI/ref=pd_sbs_d_sccl_2_3/141-9725081-7037101?pd_rd_w=UMd8F&content-id=amzn1.sym.ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_p=ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_r=4WWMQ6QG50JQ2BTYP273&pd_rd_wg=OCFjo&pd_rd_r=381f4abb-88a8-4856-a51f-39d3190099fa&pd_rd_i=B01MQGMOKI&th=1). These modules often have an adjustable output. You'll need to use an Volt meter to adjust the output to 5 volts before hooking it up.
 * Two [dual-MOSFET Modules](https://www.amazon.ca/dp/B08ZNDG6RY?psc=1&ref=ppx_yo2ov_dt_b_product_details) to handle output to the dew straps while being able to be triggered by the 3.3V levels from the ESP32 PWM pins.
 * A resettable fuse that can handle 5A. An example [5A PPTC](https://www.amazon.ca/10pcs-5000MA-Resettable-RGEF500-GF500/dp/B092T9Q3QR/ref=sr_1_4?crid=3KNZXWN5ZIERR&dib=eyJ2IjoiMSJ9.y5Pp17w_i-KzaprejYOYzM_8u_S5MY_jz1z932C2gBBmx5zcGFKHMHtP6qYXScM_-6ii9W8lDuEq5tbkCUQdYOFESDzjnASBHIusx7zAFOkhc6SNPrOH4O8ExB9WzAI-XgtIUvz-EvjfyOzjX4IN8iGl2GSffYGCb1BvIzldhIbrwCyyvNRyEfUCehiFknfJ5Uz1PSdPnC0BJjzSZp7Frh_EDLOF4CjpyeUQckj0FTQ347ehfh3jy3kHSu3I2iTOEaQZMRdqjpkW_NBOUMMsZsbeRdkMtzq0cIrGcsbUdhk.8jKyynsByh2dYlS0gLu9IdNbxiIm4iDIQv6g0ucFzCc&dib_tag=se&keywords=5a+pptc&qid=1709138849&sprefix=5a+pptc%2Caps%2C80&sr=8-4)
 * Some assorted hardware:
@@ -110,7 +113,7 @@ How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md). One
 ## Weather Service
 CheapoDC can leverage one of two open weather service APIs to retrieve current temperature, humidity and dew point for your location. The service to use is specified in the CDCDefines.h file and only one service may be support at a time. The selected service is built into the firmware.
 ### [OpenWeather](https://openweathermap.org/)
-The OpenWeather API is the default configuration. In order to use the OpenWeather API a registered account and API key is required. The account is free and allows for up to 60 querries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up).
+The OpenWeather API is the default configuration. In order to use the OpenWeather API a registered account and API key is required. The account is free and allows for up to 60 queries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up).
 ### [Open-Meteo](https://open-meteo.com/)
 Use of the Open-Meteo API does not require any registration for current weather queries. The free level allows for 10,000 API calls per day. Weather updates seem to be regular at a 15 minute interval. AT a 5 minute query interval several CHeapoDCs can be running at the same time without issue.
 ### Which to use?
@@ -118,7 +121,7 @@ Both services require a location using Latitude and Longitude which you can set 
 
 As indicated the defaults service is OpenWeather API. But if you do not want to share information with yet another internet data collector then configure Open-Meteo.
 ## Web UI
-CheapoDC comes with a Web UI that supports basic web authentication. The ID and password for the web authentication is set in the CDCdefines.h file as part of the build configuration. Default is "admin" for both. TLS (or HTTPS) is not supported so the security is minimal. The intention is to priovde a deterent to someone on your network from easily doing a Web OTA upgrade to the firmware or uploading files to the LittleFS partition.
+CheapoDC comes with a Web UI that supports basic web authentication. The ID and password for the web authentication is set in the CDCdefines.h file as part of the build configuration. Default is "admin" for both. TLS (or HTTPS) is not supported so the security is minimal. The intention is to provide a deterrent to someone on your network from easily doing a Web OTA upgrade to the firmware or uploading files to the LittleFS partition.
 
 The Web UI has 4 main pages, a dashboard, a configuration page, a device management page and a file management page.
 ### CheapoDC Dashboard
@@ -136,7 +139,7 @@ The CheapoDC uses LittleFS for file storage on the ESP32. Although LittleFS supp
 ## CheapoDC Status LED
 The Status LED is used to provide information about the current status of the CheapoDC. Status blinking lasts for 10 seconds. It will blink as WiFi access attempts are made. If a Station mode connection is successfully made to an access point then the status LED will slow blink (1 second cycle). If no connection is made then the CheapoDC will go into Access Point mode. The status LED will then fast blink (200ms cycle).
 
-The status LED will also blink for 10 seconds after a power output changes and after a controller configuration change.
+The status LED will also blink for 10 seconds after a power output changes and after a controller configuration change. The 10 second blink period may be modified by changing **CDC_STATUS_LED_DELAY** in [CDCdefines.h](/CheapoDC/CDCdefines.h).
 ## CheapoDC API
 
 The CheapoDC provides API access to all configuration and data items available through the [Web UI](/README.md#web-ui). There is no authentication support in the API but the API also does not support firmware OTA updates or file management. These can only be done through the Web UI.
@@ -149,7 +152,7 @@ CheapoDC supports three API mechanisms:
 The APIs use the same commands which are listed in the top of [CDCommands.cpp](/CheapoDC/CDCommands.cpp). Commands are 2 to 4 character strings. For each command there is a map indicating:
 * the number of the command,
 * whether or not the value associated with the command is to be saved or loaded using the CDCConfig.json file,
-* units used for the value. Units are HTML or JSON formated and may be:
+* units used for the value. Units are HTML or JSON formatted and may be:
   * None: empty string.
   * Degrees Celsius: "\&deg;C"
   * Decimal Degrees: "\&deg;"
@@ -160,10 +163,65 @@ The APIs use the same commands which are listed in the top of [CDCommands.cpp](/
   * JSON ENUM, for enumerated values like Controller Mode.
     * ie: "{"Mode":["Automatic","Manual","Off"]}"
 
-All commands support getter API methods but not all support a setter method. Using an invalid command or trying a setter on a command not supporing a setter will return an error.
+The table below provides a list of the commands but the code is the final correct source of truth here.
+* String maximum lengths are identified in the table.
+* Floats are truncated to 2 decimal places.
+* All commands support getter API methods.
+* Commands supporting a setter method are identified. 
+* The **QN** command is a setter only command. It requires a value that is not Null. "NA" works.
+* Using an invalid command or trying a setter on a command not supporting a setter will return an error.
+* Strictly speaking command values are always treated as Strings since the values are always enclosed in quotes in the JSON. Conversion to appropriate type is handled internally.
+#### CheapoDC Commands
+|Command|Setter|Units|Type|Description|
+|:------:|:---:|-----|----|-----------|
+|   TMFL   |&cross;|  HTML    | String [*] |   File list in HTML for use in Web UI |
+|   WICON  |&cross;|  None    | String [4] |   Weather Icon for use with OpenWeather |
+|   WDESC  |&cross;|  None    | String [32]|   Weather description |
+|   ATPQ   |&cross;|  &deg;C    | Float |   Ambient temperature from weather query |
+|    HU    |&cross;|  &percnt;    | Integer |   Relative humidity (0 to 100)|
+|    DP    |&cross;|  &deg;C    | Float |   Dew point|
+|    SP    |&check;|  &deg;C    | Float |   Temperature set point|
+|    TPO   |&check;|  &deg;C    | Float |   Track Point offset (-5.0 to 5.0)|
+|    TKR   |&check;|  &deg;C    | Float |   Tracking range (4.0 to 10.0)|
+|    DCO   |&check;|  &percnt;    | Float |   Dew Controller Output (0 to 100)|
+|    WS    |&cross;|  None    | String [32] |   Weather source (OpenWeather or Open-Meteo)|
+|    LQT   |&cross;|  None    | String [32] |   Last weather query time|
+|    LQD   |&cross;|  None    | String [32] |   Last weather query date|
+|    QN    |&check;|  None    | String [4] |   Query weather now (Set only command)|
+|    FW    |&cross;|  None    | String [16] |   firmware version|
+|    HP    |&cross;|  Bytes    | Integer |   Heap size|
+|    LFS   |&cross;|  Bytes    | Integer |   LittleFS remaining space|
+|    DCM   |&check;| Enum    | Enum |   Dew controller mode|
+|   DCTM   |&check;| Enum    | Float |   Dew controller temperature mode|
+|    SPM   |&check;| Enum    | Float |   Dew controller set point mode|
+|    WQE   |&check;|  Minutes    | Integer |   Weather query every|
+|    UOE   |&check;|  Minutes    | Integer |   update output every|
+|   WAPI   |&check;|  None    | String [256] |   Weather API URL|
+|   WIURL  |&check;|  None    | String [256] |   Weather Icon URL|
+|   WKEY   |&check;|  None    | String [64] |   Weather API Key|
+|    LAT   |&check;|  &deg; (Digital)    | Float |   Location latitude (-90.00 to 90.00)|
+|    LON   |&check;|  &deg; (Digital)    | Float |   Location longitude (-180.00 to 180.00)|
+|    LNM   |&check;|  None    | String [32] |   Location name|
+|    TMZ   |&check;|  Seconds    | Integer |   Location time zone (seconds)|
+|    DST   |&check;|  Seconds    | Integer |   Location DST offset (seconds)|
+|    LED   |&check;|  mSeconds    | Integer |   Status LED Blink every|
+|    NTP   |&check;|  None    | String [64] |   NTP serverName|
+|   OMIN   |&check;|  &percnt;    | Integer |   DC Min output (0 to Max-1)|
+|   OMAX   |&check;|  &percnt;    | Integer |   DC Max output (Min+1 to 100)|
+|    CDT   |&cross;|  None    | String [64] |   Current Date Time|
+|   ATPX   |&check;|  &deg;C    | Float |   External Temperature input by external app|
+|    CTP   |&cross;|  &deg;C    | Float |   Current Track Point Temperature|
+|    WUL   |&cross;|  None    | String [32] |   Weather station reported in query|
+|    CLC   |&cross;|  &percnt;    | Integer |   Cloud Coverage in percent|
+|   LWUT   |&cross;|  None    | String [32] |   Last weather update time|
+|   LWUD   |&cross;|  None    | String [32] |   Last weather update date|
+|    UPT   |&cross;|  None    | Integer |   Device uptime in hhh:mm:ss:msec|
+|   WIFI   |&cross;|  None    | String [4] |   WIFI mode AP (Access Point) or STA (Station Mode)|
+|    IP    |&cross;|  None    | String [16] |   IP Address|
+|    HN    |&cross;|  None | String [16] |   Host name |
 
 ### TCP API
-The TCP API uses JSON formated commands over TCP on port 8000. JSON strings must always be terminated with a newline character "\n". "cmd" in the following formats is the 2 to 4 character command identitified in [CDCommands.cpp](/CheapoDC/CDCommands.cpp).
+The TCP API uses JSON formatted commands over TCP on port 58000. JSON strings must always be terminated with a newline character "\n". "cmd" in the following formats is the 2 to 4 character command identified in [CDCommands.cpp](/CheapoDC/CDCommands.cpp).
 
 #### Setter format:
 * Send: **{"SET":{"cmd":"value"}}**
@@ -192,5 +250,8 @@ The Web Sockets API uses the same JSON formatted Send/Response strings as the TC
 
 **NOTE:** Read the information about modifying the message queue size in AsyncTCP.cpp and AsyncWebSocket.h. 
 
+## Configuration Files
+
 ## [INDI Driver](#indi-driver)
 An INDI driver is in development and should be available shortly. The design of CheapoDC took the capabilities of [INDI Library](https://indilib.org/) into account and will support getting location information from the INDI geographic information as well as getting Temperature from a focuser with a temperature probe.
+

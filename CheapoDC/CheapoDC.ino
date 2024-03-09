@@ -9,13 +9,10 @@
 //
 // ******************************************************************
 #include <Arduino.h>
+#include <ESP32Time.h>
 #include "CDCdefines.h"
 #include <EasyLogger.h>
-#include <ESP32Time.h>
 #include "CDCWebSrvr.h"
-#include "soc/timer_group_struct.h"
-#include "soc/timer_group_reg.h"
-
 #include "CDCvars.h"
 #include "CDCSetup.h"
 
@@ -153,6 +150,7 @@ void setup()
   Serial.begin(115200);
 
   theDController = new dewController();
+  theDController->setEnabled();
   theSetup = new CDCSetup();
 
   LOG_DEBUG("Main-setup", "Load CheapoDC configuration");
@@ -160,8 +158,6 @@ void setup()
   {
     LOG_ERROR("Main-setup", "Load Configuration Failure. Will continue on defaults.");
   }
-
-  theDController->setEnabled();
 
   if (theSetup->getInWiFiAPMode())
   {

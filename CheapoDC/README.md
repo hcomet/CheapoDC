@@ -20,7 +20,7 @@ CheapoDC is intended for use on ESP32 devices. The current version has been veri
 
 * Download the latest release from <https://github.com/hcomet/CheapoDC/releases>
 ## Configure CDCDefines.h
-* go to CDCdefines.h to configure the firmware before building:
+* go to [CDCdefines.h](CDCdefines.h) to configure the firmware before building:
   * Pick which ESP32 pins will be used for PWM output. Default 0 & 1
   * Pick PWM channel to use. Default of 0 should be fine.
   * Set the pin for the status LED on you ESP32. Default 8.
@@ -49,20 +49,23 @@ CheapoDC is intended for use on ESP32 devices. The current version has been veri
     * if you use [OpenWeather](https://openweathermap.org/) then you will need to register at OpenWeather for a free account and API key. <https://home.openweathermap.org/users/sign_up>
     * if you use [Open-Meteo](https://open-meteo.com/) then no registration is required and no API key is needed.
     * DO NOT modify the URLs for API or Icon calls.
-## Build  
-* Now build and upload the firmware to your ESP32.
-* Prepare to upload the Sketch data.
+## Build and Run
+1. After configuring values in the CDCdefines.h, build and upload the firmware to your ESP32.
+2. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool.
     * these files are needed for the Web UI as well as configuration of the CheapoDC.
+    * Modify the CDCWiFi.json file ([see below](#cdcwifijson)) to configure CheapoDC to access your wireless network.
+    * No changes are required to the CDCConfig.json. Adding your OpenWeather API Key may be done through the [Web UI](../README.md/#web-ui).
 
 ## CDCConfig.json
 
-This file contains the dew controller configuration. If not present then it will be created from the defaults and updated every 10 seconds. Configuration can then be set up via the Web UI. This file is used to save configuration of the CheapoDC between power cycles.
+This file contains the dew controller configuration. If not present then it will be created from the defaults and updated every 10 seconds. Configuration can then be set up via the [Web UI](../README.md/#web-ui). This file is used to save configuration of the CheapoDC between power cycles.
 
 ## CDCWiFi.json
 
 This file provides a list of WiFi access points that will be tried by the CheapoDC to establish a network connection. This file must be edited on your PC and uploaded using the Sketch data upload tool.
 
 The file content is json formatted using "name":"value" pairs.
+
 `{"hostname":"cheapodc","connectAttempts":"10","tryAPs":"1","wifi":[{"ssid":"FakeSSID1","password":"Password1"},{"ssid":"FakeSSID2","password":"Password2"}]}`
 
 The example shows settings for two access points in the "wifi" section. This can be 1 or several. The CheapoDC, in station mode (STA), will step through the list until a successful WiFi connection is achieved. Replace "FakeSSID1" and "Password1" with your SSID and password. You can also change the "hostname". Changing "connectAttempts" will change then number of times the CheapoDC will attempt to connect to an access point before moving to the next access point in the list. Changing "tryAPs" will change the number of times the CheapoDC will loop through the list of access points before switching to Access Point mode (AP).

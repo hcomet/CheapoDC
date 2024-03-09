@@ -7,8 +7,8 @@
 #ifndef MY_CDCCMDS_H
 #define MY_CDCCMDS_H
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <map>
+#include "CDCdefines.h"
 #include "CDCvars.h"
 
 struct CDCommand

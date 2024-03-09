@@ -8,9 +8,8 @@
 #define MY_CDCVARS_H
 
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <ESP32Time.h>
-
+#include "CDCdefines.h"
 #include "CDCSetup.h"
 #include "CDController.h"
 

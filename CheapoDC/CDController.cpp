@@ -6,8 +6,8 @@
 // ******************************************************************
 
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <ArduinoJson.h>
+#include "CDCdefines.h"
 #include <EasyLogger.h>
 #include "CDCvars.h"
 #include "CDCSetup.h"
@@ -38,7 +38,6 @@ dewController::dewController(void)
     this->_minimumOutputSetting = CDC_MINIMUM_CONTROLLER_OUTPUT;
     this->_maximumOutputSetting = CDC_MAXIMUM_CONTROLLER_OUTPUT;
     this->_controllerEnabled = false;
-    return;
 }
 
 int dewController::_calculateOutput(float currentTemperature, float setPoint, float range, float offset)
@@ -160,7 +159,6 @@ void dewController::updateOutput(int output)
 
         LOG_DEBUG("updateOutput", "Output set to: " << this->_currentOutput << "%");
     }
-    return;
 }
 
 void dewController::setControllerMode(controllerMode mode)
@@ -186,8 +184,6 @@ void dewController::setControllerMode(controllerMode mode)
     }
 
     LOG_DEBUG("setControllerMode", "Controller mode set to: " << this->_currentControllerMode);
-
-    return;
 }
 
 void dewController::setTemperatureMode(temperatureMode mode)
@@ -204,14 +200,12 @@ void dewController::setTemperatureMode(temperatureMode mode)
     }
     LOG_DEBUG("setTemperatureMode", "Temperature mode set to: " << this->_currentTemperatureMode);
     this->updateOutput();
-    return;
 }
 void dewController::setSetPoint(float setPointTemperature)
 {
     this->_currentTemperatureSetPoint = setPointTemperature;
     LOG_DEBUG("setSetPoint", "Set point set to: " << this->_currentTemperatureSetPoint);
     this->updateOutput();
-    return;
 }
 
 void dewController::setTrackPointOffset(float trackPointOffset)
@@ -228,7 +222,6 @@ void dewController::setTrackPointOffset(float trackPointOffset)
 
     LOG_DEBUG("setTrackPointOffset", "Track point offset set to: " << this->_currentTrackPointOffset);
     this->updateOutput();
-    return;
 }
 
 void dewController::setSetPointMode(setPointMode mode)
@@ -244,7 +237,6 @@ void dewController::setSetPointMode(setPointMode mode)
     }
     LOG_DEBUG("setSetPointMode", "Set point mode set to: " << this->_currentSetPointMode);
     this->updateOutput();
-    return;
 }
 
 void dewController::setTrackingRange(float trackingRange)
@@ -259,7 +251,6 @@ void dewController::setTrackingRange(float trackingRange)
     }
     LOG_DEBUG("setTrackingRange", "Set controller range to: " << this->_currentTrackingRange);
     this->updateOutput();
-    return;
 }
 
 void dewController::setMinOutput(int output)
@@ -274,7 +265,6 @@ void dewController::setMinOutput(int output)
     }
     LOG_DEBUG("setMinOutput", "Set controller minimum output to: " << this->_minimumOutputSetting);
     this->updateOutput();
-    return;
 }
 
 void dewController::setMaxOutput(int output)
@@ -289,5 +279,4 @@ void dewController::setMaxOutput(int output)
     }
     LOG_DEBUG("setMaxOutput", "Set controller maximum output to: " << this->_maximumOutputSetting);
     this->updateOutput();
-    return;
 }

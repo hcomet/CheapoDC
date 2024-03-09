@@ -1,6 +1,19 @@
+// ******************************************************************
+// CheapoDC Open-Meteo WMO code to OpenWeather ICON and description
+// mapper routine. Only included when Open-Meteo is used.
+// Cheap and easy Dew Controller
+// Details at https://github.com/hcomet/CheapoDC
+// (c) Copyright Stephen Hillier 2024. All Rights Reserved.
+// ******************************************************************
+// Information for this mapping routine was derived from the JSON
+// description file from stellasphere provided here:
+// https://gist.github.com/stellasphere/9490c195ed2b53c707087c8c2db4ec0c
+// 
+#ifndef MY_CDCWMO
+#define MY_CDCWMO
 #include <Arduino.h>
-#include <EasyLogger.h>
 #include "CDCdefines.h"
+#include <EasyLogger.h>
 #include "CDCvars.h"
 #include "CDCSetup.h"
 
@@ -242,6 +255,5 @@ default:
         else 
         return String(iconURL)+ String("n");
     }
-
-
 }
+#endif

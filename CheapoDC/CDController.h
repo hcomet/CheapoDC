@@ -9,7 +9,6 @@
 
 #include <Arduino.h>
 #include "CDCdefines.h"
-
 #include "CDCvars.h"
 
 #define CDC_CONTROLLERMODE_JSONARRAY "{\"Mode\":[\"Automatic\",\"Manual\",\"Off\"]}"

@@ -6,7 +6,6 @@
 // ******************************************************************
 
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <AsyncTCP.h>
 #include "ESPAsyncWebSrv.h"
 #include <Update.h>
@@ -14,6 +13,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <map>
+#include "CDCdefines.h"
 #include <EasyLogger.h>
 #include "CDCSetup.h"
 #include "CDCWebSrvr.h"
@@ -43,9 +43,7 @@ const char* reboot =
 
 // Print progress for OTA Update
 void printProgress(size_t prg, size_t sz) {
-  if (((prg*100/content_len)%5) == 0)
     LOG_ALERT("OTA Update", "OTA progress: " << ((prg*100)/content_len));
-  // Serial.printf("Progress: %d%%\n", (prg*100)/content_len);
 }
 
 void notFound(AsyncWebServerRequest *request) {
@@ -399,7 +397,6 @@ void handleTCPData(void *arg, AsyncClient *client, void *data, size_t len)
       }
     }
   }
-  return;
 }
 
 

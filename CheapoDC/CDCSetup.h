@@ -9,9 +9,8 @@
 #define MY_CDCSETUP_H
 
 #include <Arduino.h>
-#include "CDCdefines.h"
 #include <ESP32Time.h>
-
+#include "CDCdefines.h"
 #include "CDCvars.h"
 
 //ESP32Time   *theTime;
