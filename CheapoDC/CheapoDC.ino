@@ -17,7 +17,7 @@
 #include "CDCSetup.h"
 
 char programName[] = "CheapoDC"; // Program name
-char programVersion[] = "1.0.0";  // program version
+char programVersion[] = "1.0.1";  // program version
 
 CDCSetup *theSetup; // main setup class
 dewController *theDController;

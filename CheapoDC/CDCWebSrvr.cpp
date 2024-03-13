@@ -538,7 +538,7 @@ void setupServers(void) {
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
-   request->send(LittleFS, "/dashboard.html", "text/html");
+   request->send(LittleFS, "/dashboard.html", "text/html", false, processor);
   });
 
   CDCWebServer->on("/dashboard", HTTP_GET, [](AsyncWebServerRequest *request) {
