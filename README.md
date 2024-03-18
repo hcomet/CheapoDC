@@ -107,6 +107,10 @@ Assembled in a 6 inch long piece of 2"x1" aluminum channel. This also has Pin 8,
 
 ![Working Prototype](images/prototype.jpg)
 
+Two completed CheapoDCs from the outside.
+
+![Two completed](images/two-completed.jpg)
+
 # Firmware
 How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md). One of the pre-build configuration items is to pick and configure a weather service.
 
