@@ -257,5 +257,5 @@ The Web Sockets API uses the same JSON formatted Send/Response strings as the TC
 ## Configuration Files
 
 ## [INDI Driver](#indi-driver)
-An INDI driver is in development and should be available shortly. The design of CheapoDC took the capabilities of [INDI Library](https://indilib.org/) into account and will support getting location information from the INDI geographic information as well as getting Temperature from a focuser with a temperature probe.
+An INDI driver is now available in the master branch and should be available in the next INDI release (2.0.7 in April 2024). Details should become available on the [INDI drivers site](https://www.indilib.org/individuals/devices/auxiliary/cheapodc-dew-controller.html).
 
