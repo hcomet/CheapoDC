@@ -93,6 +93,8 @@ Component list:
 * Buck converter to reduce 12V to 5V. I used an [LM2596 Module](https://www.amazon.ca/dp/B08Q2YKJ6Q?psc=1&ref=ppx_yo2ov_dt_b_product_details). You could also use an [MP1584EN Module](https://www.amazon.ca/eBoot-MP1584EN-Converter-Adjustable-Module/dp/B01MQGMOKI/ref=pd_sbs_d_sccl_2_3/141-9725081-7037101?pd_rd_w=UMd8F&content-id=amzn1.sym.ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_p=ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_r=4WWMQ6QG50JQ2BTYP273&pd_rd_wg=OCFjo&pd_rd_r=381f4abb-88a8-4856-a51f-39d3190099fa&pd_rd_i=B01MQGMOKI&th=1). These modules often have an adjustable output. You'll need to use an Volt meter to adjust the output to 5 volts before hooking it up.
 * Two [dual-MOSFET Modules](https://www.amazon.ca/dp/B08ZNDG6RY?psc=1&ref=ppx_yo2ov_dt_b_product_details) to handle output to the dew straps while being able to be triggered by the 3.3V levels from the ESP32 PWM pins.
 * A resettable fuse that can handle 5A. An example [5A PPTC](https://www.amazon.ca/10pcs-5000MA-Resettable-RGEF500-GF500/dp/B092T9Q3QR/ref=sr_1_4?crid=3KNZXWN5ZIERR&dib=eyJ2IjoiMSJ9.y5Pp17w_i-KzaprejYOYzM_8u_S5MY_jz1z932C2gBBmx5zcGFKHMHtP6qYXScM_-6ii9W8lDuEq5tbkCUQdYOFESDzjnASBHIusx7zAFOkhc6SNPrOH4O8ExB9WzAI-XgtIUvz-EvjfyOzjX4IN8iGl2GSffYGCb1BvIzldhIbrwCyyvNRyEfUCehiFknfJ5Uz1PSdPnC0BJjzSZp7Frh_EDLOF4CjpyeUQckj0FTQ347ehfh3jy3kHSu3I2iTOEaQZMRdqjpkW_NBOUMMsZsbeRdkMtzq0cIrGcsbUdhk.8jKyynsByh2dYlS0gLu9IdNbxiIm4iDIQv6g0ucFzCc&dib_tag=se&keywords=5a+pptc&qid=1709138849&sprefix=5a+pptc%2Caps%2C80&sr=8-4)
+* Optionally an LED and resistor for the status LED. Many astrophotograpers do not want power LEDs or lights of any sort on their equipment. If you fall into this category then just use the ESP32 onboard LED as the status LED. If you would prefer a visible staus LED on your project case then you may optionally add one. Status LED details may be found inn the [Status LED Section](#cheapodc-status-led).  
+In my implementation I used a red LED connected to the same pin as the onboard LED. I used a 1K resistor to keep the LED fairly dim while still working. 
 * Some assorted hardware:
   * 12VDC 5.5mm x 2.1mm socket. Common socket size used for Astronomy.
   * Switch that will work for 12VDC at 5A.
@@ -129,21 +131,26 @@ CheapoDC comes with a Web UI that supports basic web authentication. The ID and 
 
 The Web UI has 4 main pages, a dashboard, a configuration page, a device management page and a file management page.
 ### CheapoDC Dashboard
-![CheapoDC Dashboard](images/dashboard.jpg)
+![CheapoDC Dashboard](images/dashboard.jpg)  
+
+The Dashboard provides a summary of the current location, weather, contoller output and settings. Internet connectivity is required for current weather information and the weather icon.
 ### CheapoDC Configuration
-![CheapoDC Configuration](images/configuration.jpg)
+![CheapoDC Configuration](images/configuration.jpg)  
+
 CheapoDC can be configured to support Web Sockets for the [CheapoDC API](/README.md#cheapodc-api). By default Web Socket support is Disabled but if it is Enabled then the configuration page will use the [Web Sockets API](/README.md#web-sockets-api) to display and update configuration data. Otherwise, by default the configuration page will use the basic [Web API](/README.md#web-api) utilizing the HTTP POST method.
 ### CheapoDC Device Management
-![CheapoDC Device Management](images/devicemgmt.jpg)
-The Device Management page provides the ability to do Over-The-Air (OTA) firmware updates. It also allows for remote Reboot of the CHeapoDC.
+![CheapoDC Device Management](images/devicemgmt.jpg)  
+
+The Device Management page provides the ability to do Over-The-Air (OTA) firmware updates. It also allows for remote Reboot of the CheapoDC.
 ### CheapoDC File Management
-![CheapoDC Device Management](images/filemgmt.jpg)
+![CheapoDC Device Management](images/filemgmt.jpg)  
+
 The CheapoDC uses LittleFS for file storage on the ESP32. Although LittleFS supports directories as well as files CheapoDC uses a flat structure and all files are managed at the root. The file management page supports upload, download and delete functions.
 
 ## CheapoDC Status LED
 The Status LED is used to provide information about the current status of the CheapoDC. Status blinking lasts for 10 seconds. It will blink as WiFi access attempts are made. If a Station mode connection is successfully made to an access point then the status LED will slow blink (1 second cycle). If no connection is made then the CheapoDC will go into Access Point mode. The status LED will then fast blink (200ms cycle).
 
-The status LED will also blink for 10 seconds after a power output changes and after a controller configuration change. The 10 second blink period may be modified by changing **CDC_STATUS_LED_DELAY** in [CDCdefines.h](/CheapoDC/CDCdefines.h).
+The status LED will also blink for 10 seconds after a power output changes and after a controller configuration change. The 10 second blink period may be modified by changing **#define CDC_STATUS_LED_DELAY 10** in [CDCdefines.h](/CheapoDC/CDCdefines.h). If the status LED is not turning off after 10 seconds then you may need to reverse the High/Low setting. This can also be done in the [CDCdefines.h](/CheapoDC/CDCdefines.h) by uncommenting ***#define CDC_REVERSE_HIGH_LOW***.
 ## CheapoDC API
 
 The CheapoDC provides API access to all configuration and data items available through the [Web UI](/README.md#web-ui). There is no authentication support in the API but the API also does not support firmware OTA updates or file management. These can only be done through the Web UI.
@@ -256,6 +263,8 @@ The Web Sockets API uses the same JSON formatted Send/Response strings as the TC
 
 ## Configuration Files
 
+See the Configuration Files section in [Building and Installing CheapoDC](./CheapoDC/README.md/#configuration-files).
+
 ## [INDI Driver](#indi-driver)
-An INDI driver is now available in the master branch and should be available in the next INDI release (2.0.7 in April 2024). Details should become available on the [INDI drivers site](https://www.indilib.org/individuals/devices/auxiliary/cheapodc-dew-controller.html).
+An INDI driver is now available in the master branch as of INDI release 2.0.7, April 1, 2024. Details should become available on the [INDI website devices list](https://www.indilib.org/devices.html) as well as the [StellarMate website devices list](https://www.stellarmate.com/devices.html).
 
