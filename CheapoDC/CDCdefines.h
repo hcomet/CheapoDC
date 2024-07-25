@@ -39,7 +39,7 @@
 #define CDC_STATUS_LED_DELAY 10               // time until status LED is turned off in seconds (0 = infinite delay)
 #define CDC_STATUS_LED_BLINK_ON_CONFIG_CHANGE // Blink for delay time when config item changed
 #define CDC_STATUS_LED_BLINK_ON_POWER_CHANGE  // Blink for delay time when Power Output changes
-//#define CDC_REVERSE_HIGH_LOW               // Some ESP32-C3 seem to have Status Pin High/Low reversed. Uncomment to reverse.
+//#define CDC_REVERSE_HIGH_LOW                // Some ESP32-C3 seem to have onboard LEDs with High/Low reversed. Uncomment to reverse.
 #ifdef CDC_REVERSE_HIGH_LOW
 #define CDC_STATUS_LED_HIGH LOW
 #define CDC_STATUS_LED_LOW HIGH
@@ -95,8 +95,8 @@
 // *************************************************************************************
 #define CDC_DEFAULT_WEATHERAPIKEY "" // Register to get an API Key
 #define CDC_DEFAULT_WEATHERSOURCE "OpenWeather"
-#define CDC_DEFAULT_WEATHERAPIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s"
-#define CDC_DEFAULT_WEATHERUNITS "metric" // Need metric for temperature calculations to work
+#define CDC_DEFAULT_WEATHERAPIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric"
+#define CDC_DEFAULT_WEATHERUNITS "metric" // Need metric for temperature calculations to work forced to metric in API string
 #define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png"
 #else
 // *************************************************************************************

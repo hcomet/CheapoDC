@@ -118,7 +118,7 @@ If no ***CDCWiFi.json*** file is found then the values for WiFi configuration wi
 
 ## CDCConfig.json
 
-This file is used to save the dew controller configuration between power cycles. If the file is not present then the values defined in the ***CDCdefines.h*** file (the firmware defaults) will be used. The CheapoDC checks for changes to the configuration every 10 seconds and if a change is detected then the full ***CDCdefines.h*** file will be writen to the LittleFS file system on the controller. 
+This file is used to save the dew controller configuration between power cycles. If the file is not present then the values defined in the ***CDCdefines.h*** file (the firmware defaults) will be used. The CheapoDC checks for changes to the configuration every 10 seconds and if a change is detected then the full ***CDCdefines.h*** file will be written to the LittleFS file system on the controller. 
 
 Controller configuration may be modified via the [Web UI](../README.md/#web-ui) or the [CheapoDC API](../README.md/#cheapodc-api). The [CheapoDC commands](../README.md/#cheapodc-commands) which support a ***Setter*** function also represent the values stored in the ***CDCdefines.h***.
 
