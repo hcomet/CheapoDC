@@ -18,10 +18,10 @@ sudo apt-get install libindi1
 	<li>Automated tracking using either <a href="https://openweathermap.org/">OpenWeather</a> or
 		<a href="https://open-meteo.com/">Open-Meteo</a> to retrieve ambient temperature, humidity and dew point.
 	</li>
-	<li>Designed to work with Indilib with the ability to leverage geographic coordinates from your mount and
-		temperature from your focuser temperature probe.</li>
+	<li>Designed to work with Indilib with the ability to leverage geographic coordinates from your mount, 
+		temperature/humidity from a weather device and temperature from your focuser temperature probe.</li>
 	<li>Controller modes supporting both Automated and Manual operation.</li>
-	<li>Flexible tracking modes supporting multiple methods to calculate output power to the two output channels.</li>
+	<li>Flexible dew condition tracking modes supporting multiple methods to calculate output power to the two output channels.</li>
 	<li>Can operate in WiFi Access Point mode in either a semi-Automated or Manual mode if no network or Internet
 		connectivity is available. But the CheapoDC does work best with internet connectivity, </li>
 </ul>
@@ -139,42 +139,30 @@ sudo apt-get install libindi1
 	<li><strong>Update Output</strong>: Period for recalculation of the Output Power in minutes. 1 to 20 (Default
 		1).</li>
 	<li><strong>Query Weather</strong>: Period for weather service API queries in minutes. 1 to 20 (Default 5).</li>
+	<li><strong>Weather Source</strong>:</li> The source used for getting the local weather temperature and humidity
+	which are used by the CheapoDC device to calculate the dew point and output power. The weather source may be:
+	<ul>
+		<li><strong>Open-Meteo</strong>: The CheapoDC will query the Open-Meteo service every Query Weather seconds for weather 
+		updates. Open-Meteo is the default.</li>
+		<li><strong>OpenWeather</strong>: The CheapoDC will query the OpenWeather service every Query Weather seconds for weather 
+		updates. An API Key is required for weather services from OpenWeather.</li>
+		<li><strong>External Source</strong>: The CheapoDC will NOT query a weather service but will use temperature and humidity
+			values pushed to it via it's API. The Weather Snoop must be enabled and the Weather Device properly configured for 
+		this setting to work properly. The weather update period is defined by the weather device and should be settable in the 
+		weather device's configuration tabs.</li>
+	</ul>
 	<li><strong>Weather API Key</strong>: An API key is required to use <a
 			href="https://openweathermap.org/">OpenWeather</a> which can be acquired after registering for a free 
 			OpenWeather account. If <a href="https://open-meteo.com/">Open-Meteo</a> is used then no API key is 
-			needed and this property will not be displayed.
-		<br><strong>Note</strong>: Weather service selection is done as part of the firmware 
-		<a href="https://github.com/hcomet/CheapoDC/blob/main/CheapoDC/README.md">build configuration</a>.</li>
+			required. This property will only be displayed when the Weather Source is set to OpenWeather.
+		</li>
 	<li><strong>Weather Location Name</strong>: If using OpenWeather this is the name of the weather station found
-		closest to the location
-		coordinates provided below. If using Open-Meteo then this is the location name set through the CheapoDC Web UI.
+		closest to the Location coordinates. This property will only be displayed when the Weather Source is set to OpenWeather.
 	</li>
-	<li><strong>Weather Last Updated</strong>: The date and time of the last weather report update from the weather
-		service. OpenWeather is in
-		local time as configured on the CheapoDC. Open-Meteo is in GMT.</li>
-	<li><strong>Latitude</strong>: The Latitude in digital degrees for your location. If Snoop Location is Enabled then
-		this will be Read-only
-		and the value taken from the snooped device. -90.00 to 90.00.</li>
-	<li><strong>Longitude</strong>: The Longitude in digital degrees for your location. If Snoop Location is Enabled
-		then this will be Read-only
-		and the value taken from the snooped device. -180.00 to 180.00</li>
-	<li><strong>Snoop Location</strong>: Enable/Disable getting the Latitude and Longitude automatically from another
-		device. Generally the other device would be a mount. The configuration of the active device to snoop is done
-		with the Location Device settings. (Default Disable).</li>
-	<li><strong>Location Device</strong>: Settings for getting geographic coordinates from another active device:
-		<ul>
-			<li><strong>Device</strong>: Name of device to snoop. Usually the same as the device's tab name in the INDI
-				Control Panel.
-				Info - Name. (Default Telescope Simulator).</li>
-			<li><strong>Property</strong>: The property name used for snoop configuration. The default,
-				GEOGRAPHIC_COORD, is specified by INDI as the
-				standard property name for geographic coordinates.</li>
-			<li><strong>LAT Attribute</strong>: The attribute to use for the Latitude value. The default, LAT, is
-				specified by INDI as the standard attribute name for Latitude in geographic coordinate properties.</li>
-			<li><strong>LONG Attribute</strong>: The attribute to use for the Longitude value. The default, LONG, is
-				specified by INDI as the standard attribute name for Longitude in geographic coordinate properties.</li>
-		</ul>
-	</li>
+	<li><strong>Weather Last Updated</strong>: The date and time of the last weather report update. For Open-Meteo and OpenWeather 
+		the update time is taken from service API response. For External Source the update time is set every time a weather device
+		value is pushed to the CheapoDC. The time is reported using local time.</li>
+	
 	<li><strong>Snoop Temperature</strong>: Enable/Disable getting temperature automatically from another
 		device. This is particularly useful if there is another active device with a temperature probe mounted on the
 		telescope. When Enabled, the temperature detected by the other device's temperature probe will be used to update
@@ -193,8 +181,61 @@ sudo apt-get install libindi1
 				specified by INDI as the standard attribute name for temperature.</li>
 		</ul>
 	</li>
+	<li><strong>Snoop Weather</strong>: Enable/Disable getting temperature and humidity automatically from another
+		device. This is useful if there is an indilib weather device such as a personal weather station co-located with your 
+		observation location. When Enabled, the temperature and  humidity reported by the weather device will be used to update
+		CheapoDC's weather query temperature and humidity values for calculating dew point and power output. 
+		The CheapoDC Weather Source must be set to External Source for these values to be pushed to the CheapoDC device and be used
+		for calculating output power. The configuration of the active weather device to snoop is done with the Weather Device 
+		settings. (Default Disable).</li>
+	<li><strong>Weather Device</strong>: Settings for getting temperature and humidity from an active weather device:
+		<ul>
+			<li><strong>Device</strong>: Name of device to snoop. Usually the same as the device's tab name in the INDI
+				Control Panel.
+				Info - Name. (Default Weather Simulator).</li>
+			<li><strong>Property</strong>: The property name used for snoop configuration. The default,
+				WEATHER_PARAMETERS, is specified by INDI as the
+				standard property name for weather device drivers.</li>
+			<li><strong>Temp Attribute</strong>: The attribute to use for the temperature value. The default, WEATHER_TEMPERATURE, is
+				specified by INDI as the standard attribute name for weather temperature.</li>
+			<li><strong>Humidity Attribute</strong>: The attribute to use for the humidity value. The default, WEATHER_HUMIDITY, is
+				specified by INDI as the standard attribute name for weather humidity.</li>
+		</ul>
+	</li>
 </ul>
-<p>After setting up the Snoop device configuration, save the configuration using the Configuration - Save button.</p>
+<p>After setting up the device Options, save the configuration using the Configuration - Save button.</p>
+<h3>Site Management</h3>
+<p>The site management tab is used to configure the device location used by CheapoDC when making weather queries. By
+	default the CheapoDC drive is configured to get location geographic coordinates from another device such as a 
+	telescope or mount.</p>
+	<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./sitemanagement.jpg" alt="Options" /></p>
+	<ul>
+		<li><strong>Location</strong>:
+		<ul><li><strong>Lat (dd:mm:ss)</strong>: The Latitude in degrees, minutes and seconds.
+			If Snoop Location is enabled then the value is taken from the Location Device. -90:00:00 to 90:00:00</li>
+		<li><strong>Long (dd:mm:ss)</strong>: The Longitude in degrees, minutes and seconds. 
+			If Snoop Location is enabled then the value is taken from the Location Device. 00:00:00 to 360:00:00</li></ul>
+		<li><strong>Snoop Location</strong>: Enable/Disable getting the Latitude and Longitude automatically from another
+			device. Generally the other device would be a mount. The configuration of the active device to snoop is done
+			with the Location Device settings. (Default Enable).</li>
+		<li><strong>Location Device</strong>: Settings for getting geographic coordinates from another active device:
+			<ul>
+				<li><strong>Device</strong>: Name of device to snoop. Usually the same as the device's tab name in the INDI
+					Control Panel.
+					Info - Name. (Default Telescope Simulator).</li>
+				<li><strong>Property</strong>: The property name used for snoop configuration. The default,
+					GEOGRAPHIC_COORD, is specified by INDI as the
+					standard property name for geographic coordinates.</li>
+				<li><strong>LAT Attribute</strong>: The attribute to use for the Latitude value. The default, LAT, is
+					specified by INDI as the standard attribute name for Latitude in geographic coordinate properties.</li>
+				<li><strong>LONG Attribute</strong>: The attribute to use for the Longitude value. The default, LONG, is
+					specified by INDI as the standard attribute name for Longitude in geographic coordinate properties.</li>
+			</ul>
+		</li>
+	</ul>
+
+	<p>After setting up the Site Management options, save the configuration using the Configuration - Save button on the Options tab.</p>
+
 <h3>Main Control</h3>
 <p>The main control tab is where the different CheapoDC operating modes may be set and current controller power output
 	may be monitored.</p>

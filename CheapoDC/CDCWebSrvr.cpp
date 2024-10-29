@@ -14,7 +14,7 @@
 #include <ArduinoJson.h>
 #include <map>
 #include "CDCdefines.h"
-#include <EasyLogger.h>
+#include "CDCEasyLogger.h"
 #include "CDCSetup.h"
 #include "CDCWebSrvr.h"
 #include "CDCommands.h"
@@ -23,9 +23,13 @@ size_t content_len;
 AsyncWebServer * CDCWebServer;
 
 #ifdef CDC_ENABLE_WEB_SOCKETS
+/*
 #if (WS_MAX_QUEUED_MESSAGES < 64)
 #error "WS_MAX_QUEUED_MESSAGES in AsyncWebSocket.h must be set to 64 or higher to handle web socket queue properly!"
 #endif
+#define CONFIG_ESP_INT_WDT_TIMEOUT_MS 600
+#define CONFIG_ESP_TASK_WDT_TIMEOUT_S 10
+*/
 AsyncWebSocket * CDCWebSocket;
 #endif
 AsyncServer * CDCTCPServer;
@@ -194,18 +198,31 @@ String processor(const String &var) {
     case CDC_CMD_DCM:
     case CDC_CMD_DCTM:
     case CDC_CMD_SPM: 
+    case CDC_CMD_WS:
     {
+#if ARDUINOJSON_VERSION_MAJOR>=7
+      JsonDocument doc;
+#else
       StaticJsonDocument<256> doc;
+#endif
       String values = getResponse.units;
-      int mode = getResponse.response.toInt();
+      int unitValue = getResponse.response.toInt();
 
       DeserializationError error = deserializeJson(doc, values);
 
       if (error) {
         LOG_ERROR("processor", "Deserialization error: " << error.c_str());
       } else {
-        JsonArray modeText = doc["Mode"];
-        response = String( modeText[ mode ].as<const char*>());
+        JsonArray unitText;
+        if (command == CDC_CMD_WS)
+        {
+          unitText = doc["Source"];
+        }
+        else
+        {
+          unitText = doc["Mode"];
+        }
+        response = String( unitText[ unitValue ].as<const char*>());
       }
 
       break;
@@ -239,8 +256,12 @@ void handleWebsocketMessage( AsyncWebSocketClient *client, void *arg, uint8_t *d
 
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
 
+#if ARDUINOJSON_VERSION_MAJOR>=7
+      JsonDocument requestJson;
+#else
       const uint8_t size = JSON_OBJECT_SIZE(6);
       StaticJsonDocument<size> requestJson;
+#endif
 
       DeserializationError err = deserializeJson(requestJson, data);
       if (err) {
@@ -249,7 +270,11 @@ void handleWebsocketMessage( AsyncWebSocketClient *client, void *arg, uint8_t *d
       } 
       
       if (requestJson["GET"]) {
+#if ARDUINOJSON_VERSION_MAJOR>=7
+        JsonDocument responseJson;
+#else
         StaticJsonDocument<256> responseJson;
+#endif
         char responseBuffer[256] = "";
         String  getCommand = String(requestJson["GET"].as<String>());
         cmdResponse getResponse;
@@ -316,8 +341,12 @@ void handleWebsocketEvent( AsyncWebSocket *server, AsyncWebSocketClient *client,
 #endif
 String processClientRequest(uint8_t *data, size_t len) {
   String response = "";
+#if ARDUINOJSON_VERSION_MAJOR>=7
+    JsonDocument requestJson;
+#else
   const uint8_t size = JSON_OBJECT_SIZE(6);
   StaticJsonDocument<size> requestJson;
+#endif
 
   DeserializationError err = deserializeJson(requestJson, data);
   if (err) {
@@ -327,7 +356,11 @@ String processClientRequest(uint8_t *data, size_t len) {
   } 
   
   if (requestJson["GET"]) {
+#if ARDUINOJSON_VERSION_MAJOR>=7
+    JsonDocument responseJson;
+#else
     StaticJsonDocument<256> responseJson;
+#endif
     char responseBuffer[256] = "";
     String  getCommand = String(requestJson["GET"].as<String>());
     cmdResponse getResponse;
@@ -361,10 +394,10 @@ String processClientRequest(uint8_t *data, size_t len) {
     JsonObject putCommand = requestJson["SET"];
     response = String("{\"RESULT\":0}");
     for (JsonPair kv : putCommand) {
-      LOG_DEBUG("handleWebsocketMessage", "Processing SET command: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
+      LOG_DEBUG("processClientRequest", "Processing SET command: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
 
       if (!setCmdProcessor(String(kv.key().c_str() ), String(kv.value().as<const char*>() ))) {
-        LOG_ERROR("handleWebsocketMessage", "SET command failure: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
+        LOG_ERROR("processClientRequest", "SET command failure: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
         response = String("{\"RESULT\":-1}");
       }
       
@@ -467,7 +500,7 @@ void setupServers(void) {
   // Create Server objects
   CDCWebServer = new AsyncWebServer(CDC_DEFAULT_WEBSRVR_PORT);
   #ifdef CDC_ENABLE_WEB_SOCKETS
-  // Enable Webseckets on the web server for Websocket API
+  // Enable Websockets on the web server for Websocket API
   CDCWebSocket = new AsyncWebSocket( CDC_DEFAULT_WEBSOCKET_URL);
   
   // Websocket handlers
@@ -576,6 +609,10 @@ void setupServers(void) {
   });
 
   // Assorted special function pages and images
+  CDCWebServer->on(CDC_EXTERNALSOURCE_ICONURL, HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(LittleFS, CDC_EXTERNALSOURCE_ICONURL, "image/png");
+  });
+
   CDCWebServer->on("/WiFiAPmode.png", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(LittleFS, "/WiFiAPmode.png", "image/png");
   });

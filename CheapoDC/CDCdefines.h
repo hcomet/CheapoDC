@@ -59,8 +59,26 @@
 // Web Socket support
 // Read the README.md in https://github.com/hcomet/CheapoDC/tree/main/CheapoDC for
 // changes needed to AsyncTCP.cpp and AsyncWebSocket.h  before enabling Web Sockets
+// When Web Sockets are enabled then the post processing queue is also enabled so that  
+// commands requiring longer actions like initiating a Wed Query go into a queue. The 
+// asyncWebSocket implementation will not handle long transactions that block and cause 
+// watchdog process timeouts.
 // *************************************************************************************
-// #define CDC_ENABLE_WEB_SOCKETS  // Uncomment this line to enable Web Sockets
+//#define CDC_ENABLE_WEB_SOCKETS      // Uncomment this line to enable Web Sockets
+
+// Command post processing queue support
+// Some API commands may auto generate post processing actions such as weather queries or 
+// power output updates. These may cause long command transactions. If the API client is 
+// making many asynchronous calls to the API and those cause long transactions then the 
+// AsyncTCP queue can be overwhelmed and prevent the ESP32 watchdog timer from getting
+// enough time causing panic crashes. Enabling this queue will cause the post processing
+// actions to be put in a queue that is cleared every CDC_RUNCMDQUEUE_EVERY msec.
+// For situations where API calls are synchronously called (ie: HTML embedded or the INDI 
+// driver) the queue is not needed. This is the default which is disabled. For a situation
+// where asynchronous calls are not limited (ie: the Web Sockets javascript client) then it
+// should be enabled. Enabling Web Sockets will automatically enable the queue.
+//#define CDC_ENABLE_CMDQUEUE         // Uncomment to enable command post processing queue
+#define CDC_RUNCMDQUEUE_EVERY 10    // run command queue every x msec
 
 // *************************************************************************************
 // Network configuration
@@ -82,7 +100,7 @@
 #define CDC_DEFAULT_TIMEZONE 0
 #define CDC_DEFAULT_DSTOFFSET 0
 #define CDC_DEFAULT_NTPSERVER "north-america.pool.ntp.org"
-
+/*
 // *************************************************************************************
 // Pick your Weather Service
 // *************************************************************************************
@@ -98,20 +116,37 @@
 #define CDC_DEFAULT_WEATHERAPIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric"
 #define CDC_DEFAULT_WEATHERUNITS "metric" // Need metric for temperature calculations to work forced to metric in API string
 #define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png"
-#else
+//#else
 // *************************************************************************************
 // Open-Meteo API configuration
 // no registration is required so no API key is required
 // *************************************************************************************
 #define CDC_USE_OPEN_METEO
-#define CDC_DEFAULT_WEATHERAPIKEY "Not Required"
-#define CDC_DEFAULT_WEATHERSOURCE "Open-Meteo"
+
+#define CDC_DEFAULT_WEATHERSOURCE OPENMETEO // "Open-Meteo"
 #define CDC_DEFAULT_WEATHERAPIURL "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,is_day,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,dew_point_2m"
 #define CDC_DEFAULT_WEATHERUNITS "metric"                                        // Need metric for temperature calculations to work
 #define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
 #endif
-
-#define CDC_DEFAULT_WEATHER_QUERY 5
+*/
+// *************************************************************************************
+// Weather Query Service configuration values for supported services
+// - Open-Meteo: https://open-meteo.com/
+// - OpenWeather: https://home.openweathermap.org/users/sign_up (To get an API key)
+// - External Source: Temperature and Humidity must be provided via the API
+// ************************************************************************************* 
+#define CDC_OPENMETEO_APIURL "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,is_day,weather_code&timeformat=unixtime"           
+#define CDC_OPENMETEO_ICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
+#define CDC_OPENWEATHER_APIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric" // Need metric for temperature calculations to work
+#define CDC_OPENWEATHER_ICONURL "https://openweathermap.org/img/wn/%s@2x.png"
+#define CDC_EXTERNALSOURCE_APINURL ""
+#define CDC_EXTERNALSOURCE_ICONURL "/weatherIconNA.png"
+// Set Weather Query defaults for Open-Meteo since it does not require an API key
+#define CDC_DEFAULT_WEATHERSOURCE 0 // OPENMETEO 
+#define CDC_DEFAULT_WEATHERAPIURL CDC_OPENMETEO_APIURL
+#define CDC_DEFAULT_WEATHERICONURL CDC_OPENWEATHER_ICONURL
+#define CDC_DEFAULT_WEATHERAPIKEY "" // Register to get an API Key if using OpenWeather
+#define CDC_DEFAULT_WEATHER_QUERY_EVERY 5
 #define CDC_DEFAULT_HTTP_REQ_RETRY 1
 
 // *************************************************************************************
@@ -163,8 +198,7 @@
 #define CDC_UNITS_MINUTE "min"
 #define CDC_UNITS_NONE ""
 
-// Date Time format string
-#define CDC_DATE_TIME "%s, %s %02d %4d %02d:%02d:%02d" // DDD, MMM dd yyyy hh:mm:ss
+/*
 // Used for tracking weather update times
 #ifdef CDC_USE_OPEN_WEATHER
 #define CDC_TIME "%02d:%02d:%02d"  // hh:mm:ss
@@ -173,6 +207,7 @@
 #define CDC_TIME "%02d:%02d GMT" // hh:mm GMT
 #define CDC_DATE "%s %02d, %4d"  // MMM dd, yyyy
 #endif
+*/
 #define CDC_NA "--"
 #define CDC_BLANK ""
 
@@ -215,13 +250,16 @@
 #define CDC_CMD_ATPX 35  // External Temperature (Usually set by outside call to API)
 #define CDC_CMD_CTP 36   // Current temperature track point based on DC settings
 #define CDC_CMD_WUL 37   // Name or location of weather station from last weather query
-#define CDC_CMD_CLC 38   // Cloud Coverage in percent
+#define CDC_CMD_CLC 38   // Cloud Coverage in percent *** Deprecated in V2.0 ***
 #define CDC_CMD_LWUT 39  // Last weather update time taken from query result
 #define CDC_CMD_LWUD 40  // Last weather update date taken from query result
 #define CDC_CMD_UPT 41   // return uptime in hh:mm:ss:msec
 #define CDC_CMD_WIFI 42  // WIFI mode AP (Access Point) or STA (Station Mode)
 #define CDC_CMD_IP 43    // IP Address
 #define CDC_CMD_HN 44    // Host name
+#define CDC_CMD_WQEN 45  // Weather Query Enabled (false = 0, true = 1) 
+#define CDC_CMD_LNNQ 46  // External Weather Query Temperture
+#define CDC_CMD_XWQH 47  // External Weather Querry Humidity
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625
@@ -235,7 +273,7 @@
    If not defined the the level will default to LOG_LEVEL_DEBUG. Everything will get logged
 */
 
-#define LOG_LEVEL LOG_LEVEL_ERROR
+#define LOG_LEVEL LOG_LEVEL_DEBUG
 // #define LOG_FILTER "handleWebsocketMessage,processor,getCmdProcessor,SaveConfig,processClientRequest"
 // #define LOG_FILTER_EXCLUDE
 

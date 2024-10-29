@@ -102,6 +102,7 @@ function onMessage(event) {
         if (document.getElementById(keys[0]+"S")) {
             
             document.getElementById(keys[0]+"S").value = msg[keys[0]];
+            console.log("Set select value for " + keys[0]+"S" + " to " + msg[keys[0]]);
                         
         }
 
@@ -125,6 +126,18 @@ function onMessage(event) {
                 var newMax = parseInt(msg[keys[0]])-1;
                 document.getElementById("OMINI").setAttribute("max", newMax);
                 break;
+            case "WS":
+                if (document.getElementById("WSS").value == 2) {
+                    document.getElementById("ATPQ").className = "cButton";
+                    document.getElementById("ATPQI").disabled = false;
+                    document.getElementById("HU").className = "cButton";
+                    document.getElementById("HUI").disabled = false;
+                } else {
+                    document.getElementById("ATPQ").className = "cButton hidden";
+                    document.getElementById("ATPQI").disabled = true;
+                    document.getElementById("HU").className = "cButton hidden";
+                    document.getElementById("HUI").disabled = true;
+                }
             default:
                 break;
             
@@ -185,7 +198,7 @@ function setChangeItem( item ) {
         //console.log("Add event for: " + inputId);
     } else if (document.getElementById(selectId)) {
         document.getElementById(selectId).onchange = (event) => { document.getElementById(itemId).disabled = false; console.log(event);};
-        //console.log("Add event for: " + selectId);
+        console.log("Add event for: " + selectId);
     } else {
         console.log("No Input or Select found for: " + itemId);
     }

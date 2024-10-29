@@ -89,13 +89,13 @@
             <div class="configline">
                 <configItem>Weather Query:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="ATPQ" step="0.1" class="cInput" id="ATPQI" disabled
+                    <div class="cReading"><input type="number" name="ATPQ" step="0.1" class="cInput" id="ATPQI" 
                             data-cdc="%ATPQ%" /></div>
                 </configValue>
                 <configComment>
                     <div class="cReading">Degrees C</div>
                 </configComment>
-                <configAction><button type="button" class="cButton hidden" id="ATPQ">Update</button></configAction>
+                <configAction><button type="button" class="cButton" id="ATPQ">Update</button></configAction>
             </div>
             <div class="configline">
                 <configItem>External Input:</configItem>
@@ -125,7 +125,7 @@
             <div class="configline">
                 <configItem>Humidity:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="number" name="HU" class="cInput" id="HUI" disabled
+                    <div class="cReading"><input type="number" name="HU" class="cInput" id="HUI" step=""1" min="0" max="100"
                             data-cdc="%HU%" /></div>
                 </configValue>
                 <configComment>
@@ -206,35 +206,39 @@
             <div class="configline">
                 <configItem>Weather Source:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="text" name="WS" name="WS" id="WSI" readonly data-cdc="%WS%" />
+                    <div class="cReading"><select name="WS" id="WSS" data-cdc="%WS%">
+                            <option id="Open-Meteo" value="0">Open-Meteo</option>
+                            <option id="OpenWeather" value="1">OpenWeather</option>
+                            <option id="External Source" value="2">External Source</option>
+                        </select>
                     </div>
                 </configValue>
                 <configComment>
                     <div class="cReading">Service</div>
                 </configComment>
-                <configAction><button type="button" class="cButton hidden" id="WS">Update</button></configAction>
+                <configAction><button type="button" class="cButton" id="WS" disabled>Update</button></configAction>
             </div>
             <div class="urlconfig">
                 <configItem>Weather API URL:</configItem>
                 <configValue>
-                    <div class="cReading url"><input type="url" name="WAPI" class="cInput" id="WAPII"
+                    <div class="cReading url"><input type="url" name="WAPI" class="cInput" id="WAPII" disabled
                             data-cdc="%WAPI%" /></div>
                 </configValue>
                 <configComment>
                     <div class="cReading">printf format</div>
                 </configComment>
-                <configAction><button type="button" class="cButton" id="WAPI">Update</button></configAction>
+                <configAction><button type="button" class="cButton hidden" id="WAPI">Update</button></configAction>
             </div>
             <div class="urlconfig">
                 <configItem>Weather Icon URL:</configItem>
                 <configValue>
-                    <div class="cReading url"><input type="url" name="WIURL" class="cInput" id="WIURLI"
+                    <div class="cReading url"><input type="url" name="WIURL" class="cInput" id="WIURLI" disabled
                             data-cdc="%WIURL%" /></div>
                 </configValue>
                 <configComment>
                     <div class="cReading">printf format</div>
                 </configComment>
-                <configAction><button type="button" class="cButton" id="WIURL">Update</button></configAction>
+                <configAction><button type="button" class="cButton hidden" id="WIURL">Update</button></configAction>
             </div>
             <div class="configline">
                 <configItem>Weather API Key:</configItem>
@@ -245,12 +249,22 @@
                 <configAction><button type="button" class="cButton" id="WKEY">Update</button></configAction>
             </div>
             <div class="configline">
+                <configItem>Last Weather Query:</configItem>
+                <configValue>
+                    <div class="cReading"><input type="text" name="LQT" id="LQTI" readonly data-cdc="%LQT%" /></div>
+                </configValue>
+                <configComment>
+                    <div class="cReading">hh:mm:ss Local</div>
+                </configComment>
+                <configAction><button type="button" class="cButton hidden" id="LQT">Update</button></configAction>
+            </div>
+            <div class="configline">
                 <configItem>Last Weather Update:</configItem>
                 <configValue>
                     <div class="cReading"><input type="text" name="LWUT" id="LWUTI" readonly data-cdc="%LWUT%" /></div>
                 </configValue>
                 <configComment>
-                    <div class="cReading"></div>
+                    <div class="cReading">hh:mm:ss Local</div>
                 </configComment>
                 <configAction><button type="button" class="cButton hidden" id="LWUT">Update</button></configAction>
             </div>

@@ -8,7 +8,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "CDCdefines.h"
-#include <EasyLogger.h>
+#include "CDCEasyLogger.h"
 #include "CDCvars.h"
 #include "CDCSetup.h"
 #include "CDController.h"
@@ -17,14 +17,27 @@ dewController::dewController(void)
 {
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
 #ifdef CDC_ENABLE_PWM_OUTPUT
+  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcAttachChannel(CDC_PWM_OUPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL);
+  #else
     ledcSetup(CDC_PWM_CHANNEL, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION);
-    LOG_DEBUG("dewController", "Output 1: " << CDC_PWM_OUPUT_PIN1);
     ledcAttachPin(CDC_PWM_OUPUT_PIN1, CDC_PWM_CHANNEL);
-#ifdef CDC_PWM_OUPUT_PIN2
-    LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUPUT_PIN2);
+  #endif
+    LOG_DEBUG("dewController", "Output 1: " << CDC_PWM_OUPUT_PIN1);
+
+  #ifdef CDC_PWM_OUPUT_PIN2
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcAttachChannel(CDC_PWM_OUPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL);
+    #else
     ledcAttachPin(CDC_PWM_OUPUT_PIN2, CDC_PWM_CHANNEL);
-#endif
+    #endif
+    LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUPUT_PIN2);
+  #endif
+  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    ledcWriteChannel(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+  #else
     ledcWrite(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+  #endif
 #endif
 
     this->_currentControllerMode = CDC_DEFAULT_CONTROLLER_MODE;
@@ -149,7 +162,11 @@ void dewController::updateOutput(int output)
             PWMDutyCycle = (this->_currentOutput * (pow(2, CDC_PWM_RESOLUTION) - 1)) / 100;
             LOG_DEBUG("updateOutput", "Output set to: " << PWMDutyCycle << " of " << (pow(2, CDC_PWM_RESOLUTION) - 1));
 #ifdef CDC_ENABLE_PWM_OUTPUT
-            ledcWrite(CDC_PWM_CHANNEL, PWMDutyCycle);
+  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+            ledcWriteChannel(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+  #else
+            ledcWrite(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+  #endif
 #endif
 #ifdef CDC_STATUS_LED_BLINK_ON_POWER_CHANGE
             theSetup->statusLEDOn();
@@ -178,10 +195,6 @@ void dewController::setControllerMode(controllerMode mode)
     {
         this->updateOutput(0);
     }
-    else
-    {
-        this->updateOutput();
-    }
 
     LOG_DEBUG("setControllerMode", "Controller mode set to: " << this->_currentControllerMode);
 }
@@ -199,13 +212,11 @@ void dewController::setTemperatureMode(temperatureMode mode)
         this->_currentTemperatureMode = mode;
     }
     LOG_DEBUG("setTemperatureMode", "Temperature mode set to: " << this->_currentTemperatureMode);
-    this->updateOutput();
 }
 void dewController::setSetPoint(float setPointTemperature)
 {
     this->_currentTemperatureSetPoint = setPointTemperature;
     LOG_DEBUG("setSetPoint", "Set point set to: " << this->_currentTemperatureSetPoint);
-    this->updateOutput();
 }
 
 void dewController::setTrackPointOffset(float trackPointOffset)
@@ -221,7 +232,6 @@ void dewController::setTrackPointOffset(float trackPointOffset)
     }
 
     LOG_DEBUG("setTrackPointOffset", "Track point offset set to: " << this->_currentTrackPointOffset);
-    this->updateOutput();
 }
 
 void dewController::setSetPointMode(setPointMode mode)
@@ -236,7 +246,6 @@ void dewController::setSetPointMode(setPointMode mode)
         this->_currentSetPointMode = mode;
     }
     LOG_DEBUG("setSetPointMode", "Set point mode set to: " << this->_currentSetPointMode);
-    this->updateOutput();
 }
 
 void dewController::setTrackingRange(float trackingRange)
@@ -250,7 +259,6 @@ void dewController::setTrackingRange(float trackingRange)
         LOG_ERROR("setTrackingRange", "Invalid Controller Range value: " << trackingRange);
     }
     LOG_DEBUG("setTrackingRange", "Set controller range to: " << this->_currentTrackingRange);
-    this->updateOutput();
 }
 
 void dewController::setMinOutput(int output)
@@ -264,7 +272,6 @@ void dewController::setMinOutput(int output)
         LOG_ERROR("setMinOutput", "Invalid Minimum Output value: " << output);
     }
     LOG_DEBUG("setMinOutput", "Set controller minimum output to: " << this->_minimumOutputSetting);
-    this->updateOutput();
 }
 
 void dewController::setMaxOutput(int output)
@@ -278,5 +285,4 @@ void dewController::setMaxOutput(int output)
         LOG_ERROR("setMaxOutput", "Invalid Maximum Output value: " << output);
     }
     LOG_DEBUG("setMaxOutput", "Set controller maximum output to: " << this->_maximumOutputSetting);
-    this->updateOutput();
 }

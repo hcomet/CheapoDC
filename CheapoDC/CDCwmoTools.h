@@ -13,7 +13,7 @@
 #define MY_CDCWMO
 #include <Arduino.h>
 #include "CDCdefines.h"
-#include <EasyLogger.h>
+//#include "CDCEasyLogger.h"
 #include "CDCvars.h"
 #include "CDCSetup.h"
 

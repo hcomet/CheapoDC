@@ -8,7 +8,7 @@
 #define MY_CDCVARS_H
 
 #include <Arduino.h>
-#include <ESP32Time.h>
+//#include <ESP32Time.h>
 #include "CDCdefines.h"
 #include "CDCSetup.h"
 #include "CDController.h"
@@ -20,6 +20,5 @@ class CDCSetup;
 extern CDCSetup    *theSetup;                               // main setup class
 class dewController;
 extern dewController    *theDController;
-extern ESP32Time   *theTime;
 
 #endif 

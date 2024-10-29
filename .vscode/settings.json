@@ -31,5 +31,10 @@
         "WICON",
         "WIURL",
         "WKEY"
-    ]
+    ],
+    "files.associations": {
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
+    }
 }

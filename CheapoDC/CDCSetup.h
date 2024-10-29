@@ -9,11 +9,10 @@
 #define MY_CDCSETUP_H
 
 #include <Arduino.h>
-#include <ESP32Time.h>
+//#include <ESP32Time.h>
+//#include <TimeLib.h>
 #include "CDCdefines.h"
 #include "CDCvars.h"
-
-//ESP32Time   *theTime;
 
 struct CDCWiFiConfig {
                 char hostname[64];
@@ -30,12 +29,13 @@ struct CDCLocation {
                 int  timezone;
                 int  DSTOffset;
 };
-/*
-#define CDC_WEATHERSOURCE_JSONARRAY "{\"SOURCE\":[\"Open-Meteo\",\"OpenWeather\"]}"
+
+#define CDC_WEATHERSOURCE_JSONARRAY "{\"Source\":[\"Open-Meteo\",\"OpenWeather\",\"External Source\"]}"
 enum    weatherSource {
             OPENMETEO,          // 0
-            OPENWEATHERSOURCE   // 1      
-}; */
+            OPENWEATHERSOURCE,   // 1 
+            EXTERNALSOURCE      // 2     
+}; 
 
 struct          weatherData
                 {
@@ -47,17 +47,17 @@ struct          weatherData
                 float ambientTemperature;
                 float humidity;
                 float dewPoint;
-                float minTemperature;
-                float maxTemperature;
-                int pressure;
-                int visibility;
-                float windSpeed;
-                int windDirection;
-                int cloudCoverage;
+        //        float minTemperature;
+        //        float maxTemperature;
+        //        int pressure;
+        //        int visibility;
+        //        float windSpeed;
+        //        int windDirection;
+        //        int cloudCoverage;
                 char weatherDescription[32];
                 char weatherIcon[4];
-                char sunrise[32];
-                char sunset[32];
+        //        char sunrise[32];
+        //        char sunset[32];
 };
 
 enum statusLEDDelayCmd
@@ -93,11 +93,12 @@ class CDCSetup
         float           getAmbientTemperatureExternal() {return this->_ambientTemperatureExternal;};
         float           getHumidity() {return this->_currentWeather.humidity;};
         float           getDewPoint() {return this->_currentWeather.dewPoint;};
-        int             getCloudCoverage() {return this->_currentWeather.cloudCoverage;};
         const char*     getWeatherSource() {return this->_weatherSource;};
+        weatherSource   getCurrentWeatherSource() {return this->_currentWeatherSource;}
         const char*     getWeatherAPIURL() {return this->_weatherAPIURL;};
         const char*     getWeatherIconURL() {return this->_weatherIconURL;};
         const char*     getWeatherAPIKey() {return this->_weatherAPIKey;};
+        bool            getWeatherQueryEnabled() {return this->_weatherQueryEnabled;};
         int             getWeatherQueryEvery() { return this->_queryWeatherEvery;};
         const char*     getLastWeatherQueryTime() {return this->_currentWeather.lastWeatherQueryTime;};
         const char*     getLastWeatherQueryDate() {return this->_currentWeather.lastWeatherQueryDate;};
@@ -113,10 +114,14 @@ class CDCSetup
         const char*     getIPAddress() {return this->_IPAddress;};
 
         // setters
+        void    setWeatherSource( weatherSource newWeatherSource );
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};
         void    setWeatherQueryIconURL( String newURL ) {strlcpy(this->_weatherIconURL, newURL.c_str(), sizeof(this->_weatherIconURL));};
         void    setWeatherQueryAPIKey( String newURL ) {strlcpy(this->_weatherAPIKey, newURL.c_str(), sizeof(this->_weatherAPIKey));};   
         void    setWeatherQueryEvery( int queryEvery );
+        void    setWeatherQueryEnabled(bool enabled) {this->_weatherQueryEnabled = enabled;};
+        void    setAmbientTemperatureWQ( float temperature );
+        void    setHumidity( float humidity );
         void    setAmbientTemperatureExternal( float temperature );
         void    setUpdateOutputEvery( int updateEvery );
         void    setNTPServer( String server ) {strlcpy(this->_NTPServer, server.c_str(), sizeof(this->_NTPServer));};
@@ -125,6 +130,25 @@ class CDCSetup
         void    setLocationName( String name ) {strlcpy(this->_location.name, name.c_str(), sizeof(this->_location.name));};
         void    setLocationTimeZone( int timezone);
         void    setLocationDST( int DSTOffset );
+        void    calculateAndSetDewPoint();
+
+        // Time related helpers
+        // All return in local time based on time values in CDCLocation
+        // Will convert from GMT to Local if time_t returned
+        // Sting formats as follows:
+        // Date Time format string
+#define CDC_MAX_DATETIME_STRING 26
+#define CDC_DATE "%s, %s %02d %4d" // DDD, MMM dd yyyy ie: Mon, Jan 01, 2024
+#define CDC_TIME "%02d:%02d:%02d"  // hh:mm:ss ie: 22:00:00 in 24 hour time
+#define CDC_DATE_TIME "%s, %s %02d %4d %02d:%02d:%02d" // DDD, MMM dd yyyy hh:mm:ss
+        String getDateTime( );
+        String getDateTime( time_t t );
+        String getDate( );
+        String getDate( time_t t );
+        String getTime( );
+        String getTime( time_t t );
+        int    getSecond();
+        int    getMinute();
 
         
         
@@ -138,6 +162,8 @@ class CDCSetup
         CDCLocation     _location;
         float           _ambientTemperatureExternal;
         char            _weatherSource[32];
+        bool            _weatherQueryEnabled;
+        weatherSource   _currentWeatherSource;
         char            _weatherAPIURL[256];
         char            _weatherIconURL[256];
         char            _weatherAPIKey[64];

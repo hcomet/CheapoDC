@@ -9,19 +9,22 @@
 //
 // ******************************************************************
 #include <Arduino.h>
-#include <ESP32Time.h>
+#include <TimeLib.h>
 #include "CDCdefines.h"
-#include <EasyLogger.h>
+#include "CDCEasyLogger.h"
 #include "CDCWebSrvr.h"
 #include "CDCvars.h"
 #include "CDCSetup.h"
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+#include "CDCommands.h"
+#endif
 
 char programName[] = "CheapoDC"; // Program name
-char programVersion[] = "1.0.1";  // program version
+char programVersion[] = "2.0.0";  // program version
 
 CDCSetup *theSetup; // main setup class
 dewController *theDController;
-ESP32Time *theTime;
+//ESP32Time *theTime;
 
 // Counters used for time based scheduler in main loop
 int milliCount = 0;
@@ -41,6 +44,11 @@ int statusLEDDelta = 0;
 int statusLEDLast = 0;
 int statusLEDCountDown = CDC_STATUS_LED_DELAY;
 
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+// run command queue timer in msec only for Web Sockets enabled
+int runCmdQueueDelta = 0;
+int runCmdQueueLast = 0;
+#endif
 // Weather query timer in minutes
 int weatherQueryDelta = 0;
 int weatherQueryLast = 0;
@@ -75,6 +83,27 @@ void ledTimer(int timeCheck)
   }
 }
 
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+void runCmdQueueTimer(int timeCheck)
+{
+
+    if ((timeCheck - runCmdQueueLast) < 0)
+    {
+      runCmdQueueDelta = 1000 - runCmdQueueLast + timeCheck;
+    }
+    else
+    {
+      runCmdQueueDelta = timeCheck - runCmdQueueLast;
+    }
+
+    if (runCmdQueueDelta >= CDC_RUNCMDQUEUE_EVERY)
+    {
+      runCmdPostProcessQueue();
+      runCmdQueueLast = timeCheck;
+    }
+}
+#endif
+
 void weatherQueryTimer(int timeCheck)
 {
 
@@ -92,8 +121,6 @@ void weatherQueryTimer(int timeCheck)
     if (weatherQueryDelta >= theSetup->getWeatherQueryEvery())
     {
       theSetup->queryWeather();
-      LOG_ALERT("weatherQueryTimer", "Time, Weather (temperature [C], humidity[%], dew point[C]) " << theTime->getDateTime().c_str() << ", "
-                << theSetup->getAmbientTemperatureWQ() << ", " << theSetup->getHumidity() << ", " << theSetup->getDewPoint());
       weatherQueryLast = timeCheck;
     }
   }
@@ -114,7 +141,7 @@ void controllerUpdateTimer(int timeCheck)
 
     if (controllerUpdateDelta >= theSetup->getControllerUpdateEvery())
     {
-      LOG_DEBUG("controllerUpdateTimer", "Call update output" << theTime->getDateTime());
+      LOG_DEBUG("controllerUpdateTimer", "Call update output" << theSetup->getDateTime());
       theDController->updateOutput();
       controllerUpdateLast = timeCheck;
     }
@@ -147,11 +174,14 @@ void saveConfigTimer(int timeCheck)
 void setup()
 {
 
+  sleep(1);
   Serial.begin(115200);
+  sleep(1);
+  LOG_ALERT("setup","Initializing CheapoDC.");
 
   theDController = new dewController();
-  theDController->setEnabled();
   theSetup = new CDCSetup();
+  theSetup->setWeatherQueryEnabled( false );
 
   LOG_DEBUG("Main-setup", "Load CheapoDC configuration");
   if (!theSetup->LoadConfig())
@@ -166,24 +196,43 @@ void setup()
 
   // Adjust Timezone etc....
   configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
+  now();
 
-  LOG_ALERT("Main-setup", "CHeapoDC Webserver Startup: " << theTime->getDateTime());
+  #if LOG_LEVEL == LOG_LEVEL_DEBUG
+  struct tm lTime;
+  getLocalTime(&lTime);
+  LOG_DEBUG("Main-setup", "Local time struct: ");
+  LOG_DEBUG("Main-setup", "  seconds: " << lTime.tm_sec);
+  LOG_DEBUG("Main-setup", "  minutes: " << lTime.tm_min);
+  LOG_DEBUG("Main-setup", "  hours: " << lTime.tm_hour);
+  LOG_DEBUG("Main-setup", "  m-day: " << lTime.tm_mday);
+  LOG_DEBUG("Main-setup", "  month: " << lTime.tm_mon);
+  LOG_DEBUG("Main-setup", "  year: " << lTime.tm_year);
+  LOG_DEBUG("Main-setup", "  y-day: " << lTime.tm_yday);
+  LOG_DEBUG("Main-setup", "  is DST: " << lTime.tm_isdst);
+  #endif
+
   setupServers();
-
-  // Synchronize with RTC for scheduling
-  milliLast = millis();
-  secCount = theTime->getSecond();
-  minCount = theTime->getMinute();
-  // lastMinute = theTime->getMinute();
 
   theSetup->statusLEDDelay( RESET_DELAY );
   LOG_DEBUG("CDCSETUP", "Weather query every: " << theSetup->getWeatherQueryEvery());
+  // Synchronize with RTC for scheduling
+  milliLast = millis();
+  secCount = theSetup->getSecond();
+  minCount = theSetup->getMinute();
+
+  // Enable and make first weather query
+  theSetup->setWeatherQueryEnabled( true );
   if (theSetup->getWeatherQueryEvery() != 0)
   {
     theSetup->queryWeather();
     weatherQueryLast = minCount;
   }
 
+  theDController->setEnabled();
+  #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+  clearCmdPostProcessQueue();
+  #endif
 }
 
 // Main loop
@@ -212,6 +261,9 @@ void loop()
 
     // Do millisec timer items
     ledTimer(milliCount);
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+    runCmdQueueTimer(milliCount);
+#endif
     // End milliseconds check
 
     // Do seconds timer items

@@ -9,7 +9,7 @@
 #include <LittleFS.h>
 #include <map>
 #include "CDCdefines.h"
-#include <EasyLogger.h>
+#include "CDCEasyLogger.h"
 #include "CDCvars.h"
 #include "CDCSetup.h"
 #include "CDCWebSrvr.h"
@@ -30,19 +30,19 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"TKR", {CDC_CMD_TKR, 1, CDC_UNITS_DEGREES_C}},             // Tracking range
     {"DCM", {CDC_CMD_DCM, 1, CDC_CONTROLLERMODE_JSONARRAY}},    // dew controller mode (DCM must be before DCO for Save/Load)
     {"DCO", {CDC_CMD_DCO, 1, CDC_UNITS_PERCENT}},               // Dew Controller Output
-    {"WS", {CDC_CMD_WS, 0, CDC_UNITS_NONE}},                    // Weather source
+    {"WS", {CDC_CMD_WS, 1, CDC_WEATHERSOURCE_JSONARRAY}},       // Weather source
     {"LQT", {CDC_CMD_LQT, 0, CDC_UNITS_NONE}},                  // last weather query time
     {"LQD", {CDC_CMD_LQD, 0, CDC_UNITS_NONE}},                  // last weather query date
     {"QN", {CDC_CMD_QN, 0, CDC_UNITS_NONE}},                    // Query Weather Now (Set only command)
-    {"FW", {CDC_CMD_FW, 0, CDC_UNITS_NONE}},                    // firmware version
+    {"FW", {CDC_CMD_FW, 1, CDC_UNITS_NONE}},                    // firmware version
     {"HP", {CDC_CMD_HP, 0, CDC_UNITS_NONE}},                    // Heap size
     {"LFS", {CDC_CMD_LFS, 0, CDC_UNITS_NONE}},                  // LittleFS remaining space
     {"DCTM", {CDC_CMD_DCTM, 1, CDC_TEMPERATUREMODE_JSONARRAY}}, // dew controller temperature mode
     {"SPM", {CDC_CMD_SPM, 1, CDC_SETPOINTMODE_JSONARRAY}},      // dew controller set point mode
     {"WQE", {CDC_CMD_WQE, 1, CDC_UNITS_MINUTE}},                // Weather query every
     {"UOE", {CDC_CMD_UOE, 1, CDC_UNITS_MINUTE}},                // update output every
-    {"WAPI", {CDC_CMD_WAPI, 1, CDC_UNITS_NONE}},                // Weather API URL
-    {"WIURL", {CDC_CMD_WIURL, 1, CDC_UNITS_NONE}},              // Weather Icon URL
+    {"WAPI", {CDC_CMD_WAPI, 0, CDC_UNITS_NONE}},                // Weather API URL
+    {"WIURL", {CDC_CMD_WIURL, 0, CDC_UNITS_NONE}},              // Weather Icon URL
     {"WKEY", {CDC_CMD_WKEY, 1, CDC_UNITS_NONE}},                // Weather API Key
     {"LAT", {CDC_CMD_LAT, 1, CDC_UNITS_DEGREES}},               // Location latitude
     {"LON", {CDC_CMD_LON, 1, CDC_UNITS_DEGREES}},               // Location longitude
@@ -57,13 +57,14 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"ATPX", {CDC_CMD_ATPX, 0, CDC_UNITS_DEGREES_C}},           // External Temperature input by external app
     {"CTP", {CDC_CMD_CTP, 0, CDC_UNITS_DEGREES_C}},             // Current Track Point Temperature
     {"WUL", {CDC_CMD_WUL, 0, CDC_UNITS_NONE}},                  // Location of Weather station reported in query
-    {"CLC", {CDC_CMD_CLC, 0, CDC_UNITS_PERCENT}},               // Cloud Coverage in percent
+    {"CLC", {CDC_CMD_CLC, 0, CDC_UNITS_PERCENT}},               // Cloud Coverage in percent *** Deprecated in V2.0 ***
     {"LWUT", {CDC_CMD_LWUT, 0, CDC_UNITS_NONE}},                // Last weather update time taken from query result
     {"LWUD", {CDC_CMD_LWUD, 0, CDC_UNITS_NONE}},                // Last weather update date taken from query result
     {"UPT", {CDC_CMD_UPT, 0, CDC_UNITS_NONE}},                  // return uptime in hhh:mm:ss:msec
     {"WIFI", {CDC_CMD_WIFI, 0, CDC_UNITS_NONE}},                // WIFI mode AP (Access Point) or STA (Station Mode)
     {"IP", {CDC_CMD_IP, 0, CDC_UNITS_NONE}},                    // IP Address
-    {"HN", {CDC_CMD_HN, 0, CDC_UNITS_NONE}}                     // Host name
+    {"HN", {CDC_CMD_HN, 0, CDC_UNITS_NONE}},                    // Host name
+    {"WQEN", {CDC_CMD_WQEN, 0, CDC_UNITS_NONE}}                 // Weather Query Enabled (false = 0, true = 1) 
 };
 
 bool configUpdated = false;
@@ -77,6 +78,32 @@ void setConfigUpdated()
   #endif
 };
 bool getConfigUpdated() { return configUpdated; };
+
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+// command queue processor for Web Socket transactions
+struct {
+    bool doWeatherQuery = false;
+    bool doUpdateOutput = false;
+} cmdPostProcessQueue;
+
+void clearCmdPostProcessQueue()
+{
+  cmdPostProcessQueue.doUpdateOutput = false;
+  cmdPostProcessQueue.doWeatherQuery = false;
+};
+
+void runCmdPostProcessQueue()
+{
+  if (cmdPostProcessQueue.doWeatherQuery)
+    theSetup->queryWeather();
+    
+  if (cmdPostProcessQueue.doUpdateOutput)
+    theDController->updateOutput();
+
+  clearCmdPostProcessQueue();
+};
+
+#endif // CDC_ENABLE_CMDQUEUE
 
 // Process CDC get commands and return results
 cmdResponse getCmdProcessor(const String &var)
@@ -203,7 +230,7 @@ cmdResponse getCmdProcessor(const String &var)
   }
   case CDC_CMD_WS:
   {
-    newResponse.response = String(theSetup->getWeatherSource());
+    newResponse.response = String(int(theSetup->getCurrentWeatherSource()));
 
     break;
   }
@@ -350,7 +377,7 @@ cmdResponse getCmdProcessor(const String &var)
   }
   case CDC_CMD_CDT:
   {
-    newResponse.response = String(theTime->getDateTime());
+    newResponse.response = String(theSetup->getDateTime());
     break;
   }
   case CDC_CMD_ATPX:
@@ -375,11 +402,9 @@ cmdResponse getCmdProcessor(const String &var)
 
     break;
   }
-  case CDC_CMD_CLC:
+  case CDC_CMD_CLC: // *** Deprecated in V2.0 ***
   {
-    char buf[16] = "";
-    sprintf(buf, "%d", theSetup->getCloudCoverage());
-    newResponse.response = String(buf);
+    newResponse.response = String("NA");
     break;
   }
   case CDC_CMD_LWUD:
@@ -423,6 +448,14 @@ cmdResponse getCmdProcessor(const String &var)
     newResponse.response = String(theSetup->getWiFiHostname());
     break;
   }
+  case CDC_CMD_WQEN:
+  {
+    char buf[16] = "";
+
+    sprintf(buf, "%d", theSetup->getWeatherQueryEnabled());
+    newResponse.response = String(buf);
+    break;
+  }
   default:
     return newResponse;
     break;
@@ -452,48 +485,174 @@ bool setCmdProcessor(const String &var, String newValue)
 
   switch (command)
   {
+  case CDC_CMD_ATPQ:
+  {
+
+    if (theSetup->getCurrentWeatherSource() != EXTERNALSOURCE )
+    {
+      LOG_ALERT("setCmdProcessor", "Weather Source must be EXTERNALSOURCE to set ATPQ");
+      return false;
+    }
+    else
+    {
+      float oldValue = theSetup->getAmbientTemperatureWQ();
+
+      if (oldValue != newValue.toFloat())
+      {
+        theSetup->setAmbientTemperatureWQ(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+        theDController->updateOutput();
+#endif
+      }
+    }
+    break;
+  }
+  case CDC_CMD_HU:
+  {
+
+    if (theSetup->getCurrentWeatherSource() != EXTERNALSOURCE )
+    {
+      LOG_ALERT("setCmdProcessor", "Weather Source must be EXTERNALSOURCE to set HU");
+      return false;
+    }
+    else
+    {
+      float oldValue = theSetup->getHumidity();
+      
+      if (oldValue != newValue.toFloat())
+      {
+        theSetup->setHumidity(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+        theDController->updateOutput();
+#endif
+      }
+    }
+    break;
+  }
   case CDC_CMD_SP:
   {
-    theDController->setSetPoint(newValue.toFloat());
-
+    float oldValue = theDController->getSetPoint();
+      
+    if (oldValue != newValue.toFloat())
+    {
+      theDController->setSetPoint(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+    cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_TPO:
   {
-    theDController->setTrackPointOffset(newValue.toFloat());
-
+    float oldValue = theDController->getTrackPointOffset();
+      
+    if (oldValue != newValue.toFloat())
+    {
+      theDController->setTrackPointOffset(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+    cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_TKR:
   {
-    theDController->setTrackingRange(newValue.toFloat());
-
+    float oldValue = theDController->getTrackingRange();
+      
+    if (oldValue != newValue.toFloat())
+    {
+      theDController->setTrackingRange(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+    cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_DCO:
   {
-    theDController->updateOutput(newValue.toInt());
-
+    float oldValue = theDController->getOutput();
+      
+    if (oldValue != newValue.toFloat())
+    {
+      theDController->updateOutput(newValue.toInt());
+    }
+    break;
+  }
+  case CDC_CMD_WS:
+  {
+    int oldValue = (int)theSetup->getWeatherSource();
+    if (oldValue != newValue.toInt())
+    {
+      theSetup->setWeatherSource((weatherSource)newValue.toInt()); 
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doWeatherQuery = true;
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theSetup->queryWeather();
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_QN:
   {
-    bool dontCare = theSetup->queryWeather();
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+    cmdPostProcessQueue.doWeatherQuery = true;
+#else
+    theSetup->queryWeather();
+#endif
     break;
   }
   case CDC_CMD_DCM:
   {
-    theDController->setControllerMode((controllerMode)newValue.toInt());
+    int oldValue = (int)theDController->getControllerMode();
+    if (oldValue != newValue.toInt())
+    {
+      theDController->setControllerMode((controllerMode)newValue.toInt());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_DCTM:
   {
-    theDController->setTemperatureMode((temperatureMode)newValue.toInt());
+    int oldValue = (int)theDController->getTemperatureMode();
+    if (oldValue != newValue.toInt())
+    {
+      theDController->setTemperatureMode((temperatureMode)newValue.toInt());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_SPM:
   {
-    theDController->setSetPointMode((setPointMode)newValue.toInt());
+    int oldValue = (int)theDController->getSetPointMode();
+    if (oldValue != newValue.toInt())
+    {
+      theDController->setSetPointMode((setPointMode)newValue.toInt());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_WQE:
@@ -506,16 +665,6 @@ bool setCmdProcessor(const String &var, String newValue)
     theSetup->setUpdateOutputEvery(newValue.toInt());
     break;
   }
-  case CDC_CMD_WAPI:
-  {
-    theSetup->setWeatherQueryAPIURL(newValue);
-    break;
-  }
-  case CDC_CMD_WIURL:
-  {
-    theSetup->setWeatherQueryIconURL(newValue);
-    break;
-  }
   case CDC_CMD_WKEY:
   {
     theSetup->setWeatherQueryAPIKey(newValue);
@@ -523,12 +672,36 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   case CDC_CMD_LAT:
   {
-    theSetup->setLocationLatitude(newValue.toFloat());
+    float oldValue = atof(theSetup->getLocation().latitude);
+    
+    if (newValue.toFloat() != oldValue)
+    {
+      theSetup->setLocationLatitude(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doWeatherQuery = true;
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theSetup->queryWeather();
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_LON:
   {
-    theSetup->setLocationLongitude(newValue.toFloat());
+    float oldValue = atof(theSetup->getLocation().longitude);
+    
+    if (newValue.toFloat() != oldValue)
+    {
+      theSetup->setLocationLongitude(newValue.toFloat());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doWeatherQuery = true;
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theSetup->queryWeather();
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_LNM:
@@ -558,17 +731,52 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   case CDC_CMD_OMIN:
   {
-    theDController->setMinOutput(newValue.toInt());
+    int oldValue = (int)theDController->getMinOutput();
+    if (oldValue != newValue.toInt())
+    {
+      theDController->setMinOutput(newValue.toInt());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+      cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_OMAX:
   {
-    theDController->setMaxOutput(newValue.toInt());
+    int oldValue = (int)theDController->getMaxOutput();
+    if (oldValue != newValue.toInt())
+    {
+      theDController->setMaxOutput(newValue.toInt());
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+    cmdPostProcessQueue.doUpdateOutput = true;
+#else
+      theDController->updateOutput();
+#endif
+    }
     break;
   }
   case CDC_CMD_ATPX:
   {
-    theSetup->setAmbientTemperatureExternal(newValue.toFloat());
+    float oldValue = theSetup->getAmbientTemperatureExternal();
+    if (oldValue != newValue.toFloat())
+    {
+      theSetup->setAmbientTemperatureExternal(newValue.toFloat());
+      if (theDController->getTemperatureMode() == EXTERNAL_INPUT)
+      {
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+        cmdPostProcessQueue.doUpdateOutput = true;
+#else
+        theDController->updateOutput();
+#endif
+      }
+    }
+    break;
+  }
+  case CDC_CMD_WQEN:
+  {
+    theSetup->setWeatherQueryEnabled((bool)newValue.toInt());
     break;
   }
   default:

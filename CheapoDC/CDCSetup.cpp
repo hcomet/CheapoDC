@@ -10,25 +10,24 @@
 #include "FS.h"
 #include <LittleFS.h>
 #include <TimeLib.h>
-#include <ESP32Time.h>
+//#include <ESP32Time.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
 #include "CDCdefines.h"
-#include <EasyLogger.h>
+#include "CDCEasyLogger.h"
 #include "CDCvars.h"
 #include "CDCSetup.h"
 #include "CDController.h"
 #include "CDCommands.h"
-#ifdef CDC_USE_OPEN_METEO
 #include "CDCwmoTools.h"
-#endif
 
 #define FORMAT_LITTLEFS_IF_FAILED true
 
 //** TimeLib dayShortStr() not working so use my own:
 const char *mydayShortStr[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+const char *mymonthShortStr[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 //********************************************************************************************
 String httpGETRequest(const char *serverName, int retryCount = 0)
@@ -75,180 +74,154 @@ String httpGETRequest(const char *serverName, int retryCount = 0)
 bool CDCSetup::queryWeather(void)
 {
   char httpRequestURL[256];
-  DynamicJsonDocument doc(1024);
+#if ARDUINOJSON_VERSION_MAJOR>=7
+	JsonDocument doc;
+#else
+	DynamicJsonDocument doc(1024);
+#endif
   float alphaDP;
 
-  if (theSetup->getInWiFiAPMode())
+  if (!this->_weatherQueryEnabled)
   {
-    LOG_ERROR("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
-    return false;
+    LOG_DEBUG("queryWeather", "Weather Query is Disabled.");
+    return true;
   }
-#ifdef CDC_USE_OPEN_WEATHER
-  // Using Open Weather API
-  sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude, this->_weatherAPIKey, CDC_DEFAULT_WEATHERUNITS);
-
-  DeserializationError error = deserializeJson(doc, httpGETRequest(httpRequestURL));
-  if (error)
+  
+  LOG_DEBUG("queryWeather", "Current weather source: " << this->_currentWeatherSource);
+  if (this->_currentWeatherSource == EXTERNALSOURCE)
   {
-    LOG_ERROR("queryWeather", "Deserialization failed: " << error.c_str());
-    return false;
-  }
-
-  JsonObject main = doc["main"];
-  LOG_DEBUG("queryWeather", "Last query time: " << this->getLastWeatherQueryTime());
-  LOG_DEBUG("queryWeather", "Last query date: " << this->getLastWeatherQueryDate());
-  String date = theTime->getDate();
-  String time = theTime->getTime();
-
-  date.toCharArray(this->_currentWeather.lastWeatherQueryDate, sizeof(this->_currentWeather.lastWeatherQueryDate));
-  time.toCharArray(this->_currentWeather.lastWeatherQueryTime, sizeof(this->_currentWeather.lastWeatherQueryTime));
-
-  LOG_DEBUG("queryWeather", "New query time: " << this->getLastWeatherQueryTime());
-  LOG_DEBUG("queryWeather", "ESP32 date: <" << theTime->getDateTime() << ">");
-  LOG_DEBUG("queryWeather", "New query date: " << this->getLastWeatherQueryDate());
-
-  // Do Date-Time items which are in LINUX UTC Time
-  time_t tempTime = doc["dt"] | 0;
-  time_t tempTZ = doc["timezone"] | 0;
-  tempTime = tempTime + tempTZ;
-
-  if (tempTime != 0)
-  {
-    sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
-    sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, mydayShortStr[weekday(tempTime) - 1], monthShortStr(month(tempTime)), day(tempTime), year(tempTime));
+    strlcpy(this->_currentWeather.weatherUpdateLocation, "External Source", sizeof(this->_currentWeather.weatherUpdateLocation));
+    strlcpy(this->_currentWeather.weatherDescription, "Not avaialable.", sizeof(this->_currentWeather.weatherDescription));
+    strlcpy(this->_currentWeather.weatherIcon, "NA", sizeof(this->_currentWeather.weatherIcon));
   }
   else
   {
-    strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
-    strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+    if (theSetup->getInWiFiAPMode())
+    {
+      LOG_ERROR("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
+      return false;
+    }
+
+    if (this->_currentWeatherSource == OPENMETEO)
+    {
+      sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude, "");
+    }
+    else
+    {
+      sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude, this->_weatherAPIKey);
+    }
+
+    DeserializationError error = deserializeJson(doc, httpGETRequest(httpRequestURL));
+    if (error)
+    {
+      LOG_ERROR("queryWeather", "Deserialization failed: " << error.c_str());
+      return false;
+    }
+
+    LOG_DEBUG("queryWeather", "Last query time: " << this->getLastWeatherQueryTime());
+    LOG_DEBUG("queryWeather", "Last query date: " << this->getLastWeatherQueryDate());
+
+    strlcpy(this->_currentWeather.lastWeatherQueryTime, this->getTime().c_str(), sizeof(this->_currentWeather.lastWeatherQueryTime));
+    strlcpy(this->_currentWeather.lastWeatherQueryDate, this->getDate().c_str(), sizeof(this->_currentWeather.lastWeatherQueryDate));
+
+    LOG_DEBUG("queryWeather", "New query time: " << this->getLastWeatherQueryTime());
+    LOG_DEBUG("queryWeather", "New query date: " << this->getLastWeatherQueryDate());
+
+    if (this->_currentWeatherSource == OPENMETEO)
+    {
+      JsonObject main = doc["current"];
+      /*
+      String tempTime = main["time"] | String(CDC_BLANK);
+
+      if (tempTime.length() != 0)
+      {
+        sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, tempTime.substring(11, 13).toInt(), tempTime.substring(14, 16).toInt());
+        sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, monthShortStr(tempTime.substring(5, 7).toInt()), tempTime.substring(8, 10).toInt(), tempTime.substring(0, 4).toInt());
+      }
+      else
+      {
+        strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+      }
+*/
+      time_t tempTime = main["time"] | 0;
+
+      if (tempTime != 0)
+      {
+        strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
+        //sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
+        //sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, mydayShortStr[weekday(tempTime) - 1], monthShortStr(month(tempTime)), day(tempTime), year(tempTime));
+      }
+      else
+      {
+        strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+      }
+
+      LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
+
+      // Get temperature, Humidity
+
+      this->_currentWeather.ambientTemperature = main["temperature_2m"] | 0.0;
+      this->_currentWeather.humidity = main["relative_humidity_2m"] | 0.0;
+
+      strlcpy(this->_currentWeather.weatherUpdateLocation, this->_location.name, sizeof(this->_currentWeather.weatherUpdateLocation));
+      unsigned int wmoCode = main["weather_code"] | 0;
+      unsigned int isDay = main["is_day"] | 1;
+
+      String tempDescription = mapWMOCode(wmoCode, (isDay == 1), true);
+      String tempIcon = mapWMOCode(wmoCode, (isDay == 1), false);
+
+      strlcpy(this->_currentWeather.weatherDescription, tempDescription.c_str(), sizeof(this->_currentWeather.weatherDescription));
+      strlcpy(this->_currentWeather.weatherIcon, tempIcon.c_str(), sizeof(this->_currentWeather.weatherIcon));
+
+    }
+    else   // OpenWeather
+    {
+      JsonObject main = doc["main"];
+      
+      // Do Date-Time items which are in LINUX UTC Time
+      time_t tempTime = doc["dt"] | 0;
+      time_t tempTZ = doc["timezone_offset"] | 0;
+      //tempTime = tempTime + tempTZ;
+
+      if (tempTime != 0)
+      {
+        strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
+        //sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
+        //sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, mydayShortStr[weekday(tempTime) - 1], monthShortStr(month(tempTime)), day(tempTime), year(tempTime));
+      }
+      else
+      {
+        strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+      }
+
+      LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
+
+      // Get temperature, Humidity and calculate Dew point
+
+      this->_currentWeather.ambientTemperature = main["temp"] | 0.0;
+      this->_currentWeather.humidity = main["humidity"] | 0.0;
+
+      strlcpy(this->_currentWeather.weatherUpdateLocation, doc["name"] | CDC_NA, sizeof(this->_currentWeather.weatherUpdateLocation));
+      String tempDescription = String(doc["weather"][0]["main"] | CDC_NA);
+      tempDescription += String(" - ") + String(doc["weather"][0]["description"] | CDC_NA);
+      tempDescription.toCharArray(this->_currentWeather.weatherDescription, sizeof(this->_currentWeather.weatherDescription));
+      strlcpy(this->_currentWeather.weatherIcon, doc["weather"][0]["icon"] | CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+    }
+
+    this->calculateAndSetDewPoint();
   }
-
-  LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
-
-  tempTime = doc["sys"]["sunrise"] | 0;
-  tempTime = tempTime + tempTZ;
-  if (tempTime != 0)
-    sprintf(this->_currentWeather.sunrise, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
-  else
-    strlcpy(this->_currentWeather.sunrise, CDC_NA, sizeof(this->_currentWeather.sunrise));
-
-  tempTime = doc["sys"]["sunset"] | 0;
-  tempTime = tempTime - tempTZ;
-  if (tempTime != 0)
-    sprintf(this->_currentWeather.sunset, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
-  else
-    strlcpy(this->_currentWeather.sunset, CDC_NA, sizeof(this->_currentWeather.sunset));
-
-  // Get temperature, Humidity and calculate Dew point
-
-  this->_currentWeather.ambientTemperature = main["temp"] | 0.0;
-  this->_currentWeather.humidity = main["humidity"] | 0.0;
-  if ((this->_currentWeather.ambientTemperature == 0.0) && (this->_currentWeather.humidity == 0.0))
-  {
-    this->_currentWeather.dewPoint = 0.0;
-  }
-  else
-  {
-    alphaDP = log(this->_currentWeather.humidity / 100) + ((CDC_MC_A * this->_currentWeather.ambientTemperature) / (CDC_MC_B + this->_currentWeather.ambientTemperature));
-    this->_currentWeather.dewPoint = (CDC_MC_B * alphaDP) / (CDC_MC_A - alphaDP);
-  }
-
-  this->_currentWeather.minTemperature = main["temp_min"] | 0.0;
-  this->_currentWeather.maxTemperature = main["temp_max"] | 0.0;
-  this->_currentWeather.pressure = main["pressure"] | 0;
-  this->_currentWeather.visibility = doc["visibility"] | 0;
-  this->_currentWeather.windSpeed = doc["wind"]["speed"] | 0.0;
-  this->_currentWeather.windDirection = doc["wind"]["deg"] | 0;
-  this->_currentWeather.cloudCoverage = doc["clouds"]["all"] | 0;
-
-  strlcpy(this->_currentWeather.weatherUpdateLocation, doc["name"] | CDC_NA, sizeof(this->_currentWeather.weatherUpdateLocation));
-  String tempDescription = String(doc["weather"][0]["main"] | CDC_NA);
-  tempDescription += String(" - ") + String(doc["weather"][0]["description"] | CDC_NA);
-  tempDescription.toCharArray(this->_currentWeather.weatherDescription, sizeof(this->_currentWeather.weatherDescription));
-  strlcpy(this->_currentWeather.weatherIcon, doc["weather"][0]["icon"] | CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-#endif
-
-#ifdef CDC_USE_OPEN_METEO
-  // Using Open Meteo API
-  sprintf(httpRequestURL, this->_weatherAPIURL, this->_location.latitude, this->_location.longitude);
-
-  DeserializationError error = deserializeJson(doc, httpGETRequest(httpRequestURL));
-  if (error)
-  {
-    LOG_ERROR("queryWeather", "Deserialization failed: " << error.c_str());
-    return false;
-  }
-
-  JsonObject main = doc["current"];
-  LOG_DEBUG("queryWeather", "Last query time: " << this->getLastWeatherQueryTime());
-  LOG_DEBUG("queryWeather", "Last query date: " << this->getLastWeatherQueryDate());
-  String date = theTime->getDate();
-  String time = theTime->getTime();
-
-  date.toCharArray(this->_currentWeather.lastWeatherQueryDate, sizeof(this->_currentWeather.lastWeatherQueryDate));
-  time.toCharArray(this->_currentWeather.lastWeatherQueryTime, sizeof(this->_currentWeather.lastWeatherQueryTime));
-
-  LOG_DEBUG("queryWeather", "New query time: " << this->getLastWeatherQueryTime());
-  LOG_DEBUG("queryWeather", "ESP32 date: <" << theTime->getDateTime() << ">");
-  LOG_DEBUG("queryWeather", "New query date: " << this->getLastWeatherQueryDate());
-
-  String tempTime = main["time"] | String(CDC_BLANK);
-
-  if (tempTime.length() != 0)
-  {
-    sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, tempTime.substring(11, 13).toInt(), tempTime.substring(14, 16).toInt());
-    sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, monthShortStr(tempTime.substring(5, 7).toInt()), tempTime.substring(8, 10).toInt(), tempTime.substring(0, 4).toInt());
-  }
-  else
-  {
-    strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
-    strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
-  }
-
-  LOG_ALERT("queryWeather", "Last Update: " << this->_currentWeather.lastWeatherUpdateDate << " - " << this->_currentWeather.lastWeatherUpdateTime);
-
-  strlcpy(this->_currentWeather.sunrise, CDC_NA, sizeof(this->_currentWeather.sunrise));
-
-  strlcpy(this->_currentWeather.sunset, CDC_NA, sizeof(this->_currentWeather.sunset));
-
-  // Get temperature, Humidity and Dew point
-
-  this->_currentWeather.ambientTemperature = main["temperature_2m"] | 0.0;
-  this->_currentWeather.humidity = main["relative_humidity_2m"] | 0.0;
-  this->_currentWeather.dewPoint = main["dew_point_2m"] | 0.0;
-
-  // this->_currentWeather.minTemperature = main["temp_min"] | 0.0;
-  // this->_currentWeather.maxTemperature = main["temp_max"] | 0.0;
-  // this->_currentWeather.pressure = main["pressure"] | 0;
-  // this->_currentWeather.visibility = doc["visibility"] | 0;
-  this->_currentWeather.windSpeed = main["wind_speed_10m"] | 0.0;
-  this->_currentWeather.windDirection = main["wind_direction_10m"] | 0;
-  this->_currentWeather.cloudCoverage = main["cloud_cover"] | 0;
-
-  strlcpy(this->_currentWeather.weatherUpdateLocation, this->_location.name, sizeof(this->_currentWeather.weatherUpdateLocation));
-  unsigned int wmoCode = main["weather_code"] | 0;
-  unsigned int isDay = main["is_day"] | 1;
-
-  String tempDescription = mapWMOCode(wmoCode, (isDay == 1), true);
-  String tempIcon = mapWMOCode(wmoCode, (isDay == 1), false);
-
-  strlcpy(this->_currentWeather.weatherDescription, tempDescription.c_str(), sizeof(this->_currentWeather.weatherDescription));
-  strlcpy(this->_currentWeather.weatherIcon, tempIcon.c_str(), sizeof(this->_currentWeather.weatherIcon));
-#endif
 
   LOG_DEBUG("queryWeather", "Current Weather: " << this->_currentWeather.lastWeatherQueryDate << " " << this->_currentWeather.lastWeatherQueryTime << " From: " << this->_currentWeather.weatherUpdateLocation);
   LOG_DEBUG("queryWeather", "    temperature: " << this->_currentWeather.ambientTemperature);
   LOG_DEBUG("queryWeather", "    humidity: " << this->_currentWeather.humidity);
   LOG_DEBUG("queryWeather", "    dewPoint: " << this->_currentWeather.dewPoint);
-  LOG_DEBUG("queryWeather", "    pressure: " << this->_currentWeather.pressure);
-  LOG_DEBUG("queryWeather", "    visibility: " << this->_currentWeather.visibility);
-  LOG_DEBUG("queryWeather", "    windSpeed: " << this->_currentWeather.windSpeed);
-  LOG_DEBUG("queryWeather", "    windDirection: " << this->_currentWeather.windDirection);
-  LOG_DEBUG("queryWeather", "    cloudCoverage: " << this->_currentWeather.cloudCoverage);
   LOG_DEBUG("queryWeather", "    description: " << this->_currentWeather.weatherDescription);
   LOG_DEBUG("queryWeather", "    weatherIcon: " << this->_currentWeather.weatherIcon);
-  LOG_DEBUG("queryWeather", "    sunrise: " << this->_currentWeather.sunrise);
-  LOG_DEBUG("queryWeather", "    sunset: " << this->_currentWeather.sunset);
   LOG_DEBUG("queryWeather", "    data updated: " << this->_currentWeather.lastWeatherUpdateDate << " " << this->_currentWeather.lastWeatherUpdateTime);
 
   return true;
@@ -283,7 +256,7 @@ CDCSetup::CDCSetup(void)
 
   // Start RTC/NTP correct the timezone later after we load the CDC Config file
   LOG_DEBUG("CDCSETUP", "Start RTC");
-  theTime = new ESP32Time(0);
+  // theTime = new ESP32Time(0);
 
   strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
   strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
@@ -297,10 +270,12 @@ bool CDCSetup::SaveConfig(void)
 
   if (getConfigUpdated())
   {
-
-    DynamicJsonDocument doc(1024);
-
+#if ARDUINOJSON_VERSION_MAJOR>=7
+	  JsonDocument doc;
+#else
+	  DynamicJsonDocument doc(1024);
     LOG_DEBUG("SaveConfig", "JsonDocument size: " << doc.capacity());
+#endif
 
     File file = LittleFS.open(CDC_CONFIG_FILE, FILE_WRITE);
     if (!file)
@@ -384,8 +359,7 @@ void CDCSetup::_loadDefaults(void)
 
   this->_ambientTemperatureExternal = 0.0;
 
-  memset(this->_weatherSource, '\0', sizeof(this->_weatherSource));
-  strlcpy(this->_weatherSource, CDC_DEFAULT_WEATHERSOURCE, sizeof(this->_weatherSource));
+  this->_currentWeatherSource = (weatherSource)CDC_DEFAULT_WEATHERSOURCE;
 
   memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
   strlcpy(this->_weatherAPIURL, CDC_DEFAULT_WEATHERAPIURL, sizeof(this->_weatherAPIURL));
@@ -395,8 +369,8 @@ void CDCSetup::_loadDefaults(void)
 
   memset(this->_weatherAPIKey, '\0', sizeof(this->_weatherAPIKey));
   strlcpy(this->_weatherAPIKey, CDC_DEFAULT_WEATHERAPIKEY, sizeof(this->_weatherAPIKey));
-
-  this->_queryWeatherEvery = CDC_DEFAULT_WEATHER_QUERY;
+  
+  this->_queryWeatherEvery = CDC_DEFAULT_WEATHER_QUERY_EVERY;
   this->_controllerUpdateEvery = CDC_DEFAULT_UPDATE_OUTPUT_EVERY;
 
   this->_statusBlinkEvery = CDC_DEFAULT_STATUS_BLINK;
@@ -413,24 +387,22 @@ void CDCSetup::_loadDefaults(void)
   this->_currentWeather.ambientTemperature = 0.0;
   this->_currentWeather.humidity = 0.0;
   this->_currentWeather.dewPoint = 0.0;
-  this->_currentWeather.minTemperature = 0.0;
-  this->_currentWeather.maxTemperature = 0.0;
-  this->_currentWeather.pressure = 0;
-  this->_currentWeather.visibility = 0;
-  this->_currentWeather.windSpeed = 0.0;
-  this->_currentWeather.windDirection = 0;
-  this->_currentWeather.cloudCoverage = 0;
   memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
   memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
-  memset(this->_currentWeather.sunrise, '\0', sizeof(this->_currentWeather.sunrise));
-  memset(this->_currentWeather.sunset, '\0', sizeof(this->_currentWeather.sunset));
 }
 
 //********************************************************************************************
 bool CDCSetup::LoadConfig(void)
 {
   // Load CheapoDC config from file
-  DynamicJsonDocument doc(1024);
+#if ARDUINOJSON_VERSION_MAJOR>=7
+	JsonDocument doc;
+#else
+	DynamicJsonDocument doc(1024);
+#endif
+  bool upgradeConfigFile = false;
+  String upgradeString;
+
 
   if (!theDController)
   {
@@ -456,12 +428,28 @@ bool CDCSetup::LoadConfig(void)
 
   JsonObject config = doc.as<JsonObject>();
 
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+  clearCmdPostProcessQueue();
+#endif
+
   for (JsonPair kv : config)
   {
     LOG_DEBUG("LoadConfig", "From config file: " << file.name() << " Key: " << kv.key().c_str() << " Value: " << kv.value().as<const char *>());
     if (!kv.value().isNull())
     {
-      setCmdProcessor(String(kv.key().c_str()), String(kv.value().as<const char *>()));
+      std::map<std::string, CDCommand>::const_iterator pos = CDCCommands.find(kv.key().c_str());
+      if (pos != CDCCommands.end()) 
+      {
+        bool loadValue = pos->second.saveToConfig;
+
+        if (loadValue)
+          setCmdProcessor(String(kv.key().c_str()), String(kv.value().as<const char *>()));
+      }
+      if (String(kv.key().c_str()).compareTo(String("WAPI")) == 0)
+      {
+        upgradeConfigFile = true;
+        upgradeString = String(kv.value().as<const char *>());
+      }
     }
     else
     {
@@ -469,6 +457,27 @@ bool CDCSetup::LoadConfig(void)
     }
   }
 
+  // Check for V1 config file with Source API value and use it to import and set the Weather Source
+  if (upgradeConfigFile) {
+    LOG_DEBUG("LoadConfig", "Config file upgrade required, found WAPI: " << upgradeString.c_str())
+    if (upgradeString.indexOf("openweathermap") >= 0)
+    { 
+      this->setWeatherSource(OPENWEATHERSOURCE);
+      LOG_ALERT("LoadConfig", "V1 Config found setting WS to OPENWEATHER.");
+    }
+    else if (upgradeString.indexOf("open-meteo") >= 0)
+    {
+      this->setWeatherSource(OPENMETEO);
+      LOG_ALERT("LoadConfig", "V1 Config found setting WS to OPENMETEO.");
+    }
+    setConfigUpdated();
+    this->SaveConfig();
+
+  }
+  
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+  runCmdPostProcessQueue();
+#endif
   LOG_DEBUG("LoadConfig", "Load config complete");
   resetConfigUpdated();
   file.close();
@@ -533,7 +542,11 @@ bool CDCSetup::_setupWiFi(void)
 
   this->_inWiFiAPMode = false;
   // Try to load WiFi config from json file CDC_WIFI_CONFIG
+#if ARDUINOJSON_VERSION_MAJOR>=7
+  JsonDocument doc;
+#else
   StaticJsonDocument<512> doc;
+#endif
 
   File file = LittleFS.open(CDC_WIFI_CONFIG);
   if (!file)
@@ -689,8 +702,6 @@ void CDCSetup::setLocationLatitude(float latitude)
     if ((latitude >= -90.0) & (latitude <= 90.0))
     {
       strlcpy(this->_location.latitude, newLatitude.c_str(), sizeof(this->_location.latitude));
-      if (this->queryWeather())
-        theDController->updateOutput();
     }
     else
     {
@@ -705,15 +716,13 @@ void CDCSetup::setLocationLongitude(float longitude)
 
   if (strcmp(newLongitude.c_str(), this->_location.longitude) != 0)
   {
-    if ((longitude >= -90.0) & (longitude <= 90.0))
+    if ((longitude >= -180.0) & (longitude <= 180.0))
     {
       strlcpy(this->_location.longitude, newLongitude.c_str(), sizeof(this->_location.longitude));
-      if (this->queryWeather())
-        theDController->updateOutput();
     }
     else
     {
-      LOG_ERROR("setLocationLongitude", "New longitude out of range -90 to 90: " << longitude);
+      LOG_ERROR("setLocationLongitude", "New longitude out of range -180 to 180: " << longitude);
     }
   }
 }
@@ -725,6 +734,9 @@ void CDCSetup::setLocationTimeZone(int timezone)
   if ((timezone >= (-12 * 3600)) & (timezone <= (14 * 3600)))
   {
     this->_location.timezone = timezone;
+    // Apply Timezone change
+    configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
+    now();
   }
   else
   {
@@ -739,6 +751,9 @@ void CDCSetup::setLocationDST(int DSTOffset)
   if ((DSTOffset >= -3600) & (DSTOffset <= 3600))
   {
     this->_location.DSTOffset = DSTOffset;
+    // Apply DST change
+    configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
+    now();
   }
   else
   {
@@ -748,11 +763,7 @@ void CDCSetup::setLocationDST(int DSTOffset)
 
 void CDCSetup::setAmbientTemperatureExternal(float temperature)
 {
-  if (temperature != this->_ambientTemperatureExternal)
-  {
-    this->_ambientTemperatureExternal = temperature;
-    theDController->updateOutput();
-  }
+  this->_ambientTemperatureExternal = temperature;
 }
 
 void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
@@ -785,9 +796,210 @@ void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
   default:
     break;
   }
-}
+} 
 
 bool CDCSetup::statusLEDDelayComplete()
 {
   return ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay <= 0));
+}
+
+void CDCSetup::setWeatherSource(weatherSource source)
+{
+    if ((source < OPENMETEO) || (source > EXTERNALSOURCE))
+    {
+        LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " set to default " << (weatherSource)CDC_DEFAULT_WEATHERSOURCE);
+        this->_currentWeatherSource = (weatherSource)CDC_DEFAULT_WEATHERSOURCE;
+    }
+    else
+    {
+        this->_currentWeatherSource = source;
+        memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
+        memset(this->_weatherIconURL, '\0', sizeof(this->_weatherIconURL));
+        if (source ==  OPENMETEO)
+        {
+          strlcpy(this->_weatherAPIURL, CDC_OPENMETEO_APIURL, sizeof(this->_weatherAPIURL));
+          strlcpy(this->_weatherIconURL, CDC_OPENMETEO_ICONURL, sizeof(this->_weatherIconURL));
+        }
+        else if (source == OPENWEATHERSOURCE)
+        {
+          strlcpy(this->_weatherAPIURL, CDC_OPENWEATHER_APIURL, sizeof(this->_weatherAPIURL));
+          strlcpy(this->_weatherIconURL, CDC_OPENWEATHER_ICONURL, sizeof(this->_weatherIconURL));
+        }
+        else
+        {
+          strlcpy(this->_weatherAPIURL, CDC_EXTERNALSOURCE_APINURL, sizeof(this->_weatherAPIURL));
+          strlcpy(this->_weatherIconURL, CDC_EXTERNALSOURCE_ICONURL, sizeof(this->_weatherIconURL));
+          memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
+          strlcpy(this->_currentWeather.weatherDescription, "Not avaialable.", sizeof(this->_currentWeather.weatherDescription));
+          memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
+          strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+          strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+          strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+
+        }
+    }
+    LOG_DEBUG("setWeatherSource", "Set weather source set to: " << this->_currentWeatherSource);
+}
+
+void CDCSetup::calculateAndSetDewPoint()
+{
+  float alphaDP;
+
+  if ((this->_currentWeather.ambientTemperature == 0.0) && (this->_currentWeather.humidity == 0.0))
+  {
+    this->_currentWeather.dewPoint = 0.0;
+  }
+  else
+  {
+    alphaDP = log(this->_currentWeather.humidity / 100) + ((CDC_MC_A * this->_currentWeather.ambientTemperature) / (CDC_MC_B + this->_currentWeather.ambientTemperature));
+    this->_currentWeather.dewPoint = (CDC_MC_B * alphaDP) / (CDC_MC_A - alphaDP);
+  }
+  LOG_DEBUG("calculateAndSetDewPoint", "Dew Point calculated and set to: " << this->_currentWeather.dewPoint);
+}
+
+void CDCSetup::setAmbientTemperatureWQ(float temperature)
+{
+  if (this->getCurrentWeatherSource() != EXTERNALSOURCE)
+  {
+    LOG_ERROR("setAmbientTemperatureWQ","Set temperature requires Weather Source set to EXTERNALSOURCE.");
+  }
+  else
+  {
+    this->_currentWeather.ambientTemperature = temperature;
+    strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
+    strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
+    strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+    strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+    LOG_DEBUG("setAmbientTemperatureWQ", "Temperature set to: " << temperature);
+    this->calculateAndSetDewPoint();
+  }
+  return;
+}
+
+void CDCSetup::setHumidity(float humidity)
+{
+  if (this->getCurrentWeatherSource() != EXTERNALSOURCE)
+  {
+    LOG_ERROR("setHumidity","Set humidity requires Weather Source set to EXTERNALSOURCE.");
+  }
+  else
+  {
+    this->_currentWeather.humidity = humidity;
+    strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
+    strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
+    strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+    strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+    LOG_DEBUG("setHumidity", "Humidity set to: " << humidity);
+    this->calculateAndSetDewPoint();
+  }
+  return;
+}
+
+String CDCSetup::getDateTime()
+{
+  char dtBuff[CDC_MAX_DATETIME_STRING] = {};
+  struct tm lTime;
+
+  getLocalTime(&lTime);
+  
+  sprintf(dtBuff, CDC_DATE_TIME, mydayShortStr[lTime.tm_wday], mymonthShortStr[lTime.tm_mon], lTime.tm_mday, (lTime.tm_year + 1900), lTime.tm_hour, lTime.tm_min, second(lTime.tm_sec));
+
+  return String(dtBuff);
+}
+
+String CDCSetup::getDateTime( time_t t )
+{
+  char dtBuff[CDC_MAX_DATETIME_STRING];
+  struct tm lTime;
+  tmElements_t lTElements;
+  time_t local_t = t + theSetup->_location.timezone;
+
+  getLocalTime(&lTime);
+
+  if (lTime.tm_isdst == 1)
+    local_t = local_t + theSetup->_location.DSTOffset;
+
+  breakTime(local_t, lTElements);
+  
+  sprintf(dtBuff, CDC_DATE_TIME, mydayShortStr[lTElements.Wday-1], mymonthShortStr[lTElements.Month-1], lTElements.Day, (lTElements.Year+1970), lTElements.Hour, lTElements.Hour, second(lTElements.Second));
+
+return String(dtBuff);
+}
+String CDCSetup::getDate( )
+{
+  char dtBuff[CDC_MAX_DATETIME_STRING] = {};
+  struct tm lTime;
+
+  getLocalTime(&lTime);
+  
+  sprintf(dtBuff, CDC_DATE, mydayShortStr[lTime.tm_wday], mymonthShortStr[lTime.tm_mon], lTime.tm_mday, (lTime.tm_year + 1900));
+
+return String(dtBuff);
+}
+
+String CDCSetup::getDate( time_t t )
+{
+  char dtBuff[CDC_MAX_DATETIME_STRING] = {};
+  struct tm lTime;
+  tmElements_t lTElements;
+  time_t local_t = t + theSetup->_location.timezone;
+
+  getLocalTime(&lTime);
+
+  if (lTime.tm_isdst == 1)
+    local_t = local_t + theSetup->_location.DSTOffset;
+  
+  breakTime(local_t, lTElements);
+  
+  sprintf(dtBuff, CDC_DATE, mydayShortStr[lTElements.Wday-1], mymonthShortStr[lTElements.Month-1], lTElements.Day, (lTElements.Year+1970));
+
+return String(dtBuff);
+}
+
+String CDCSetup::getTime( )
+{
+  char dtBuff[CDC_MAX_DATETIME_STRING];
+  struct tm lTime;
+
+  getLocalTime(&lTime);
+  
+  sprintf(dtBuff, CDC_TIME, lTime.tm_hour, lTime.tm_min, second(lTime.tm_sec));
+
+return String(dtBuff);
+}
+
+String CDCSetup::getTime( time_t t )
+{
+  char dtBuff[CDC_MAX_DATETIME_STRING];
+  struct tm lTime;
+  tmElements_t lTElements;
+  time_t local_t = t + theSetup->_location.timezone;
+
+  getLocalTime(&lTime);
+  
+  if (lTime.tm_isdst == 1)
+    local_t = local_t + theSetup->_location.DSTOffset;
+
+  breakTime(local_t, lTElements);
+  sprintf(dtBuff, CDC_TIME, lTElements.Hour, lTElements.Minute, second(lTElements.Second));
+
+return String(dtBuff);
+}
+
+int CDCSetup::getSecond()
+{
+  struct tm lTime;
+
+  getLocalTime(&lTime);
+
+  return lTime.tm_sec;
+}
+
+int CDCSetup::getMinute()
+{
+  struct tm lTime;
+
+  getLocalTime(&lTime);
+
+  return lTime.tm_min;
 }

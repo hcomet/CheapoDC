@@ -36,4 +36,12 @@ void setConfigUpdated();
 void resetConfigUpdated();
 bool getConfigUpdated();
 
-#endif
+#if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
+// Additional operations queue for keeping longer processes from impacting command responses
+
+extern void clearCmdPostProcessQueue();
+extern void runCmdPostProcessQueue();
+
+#endif // CDC_ENABLE_CMDQUEUE
+
+#endif // MY_CDCCMDS_H

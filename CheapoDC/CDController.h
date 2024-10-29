@@ -33,6 +33,13 @@ enum setPointMode
         TEMPERATURE, // 1
         MIDPOINT     // 2
 };
+/*
+#define CDC_WEATHERQUERYMODE_JSONARRAY "{\"Mode\":[\"Internal\",\"External\"]}"
+enum setWeatherQueryMode
+{
+        INTERNAL,    // 0
+        EXTERNAL // 1
+}; */
 
 class dewController
 {

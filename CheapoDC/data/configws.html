@@ -5,12 +5,12 @@
         <div id="loader"></div>
         <header><div class="headerGrid">
             <hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon>
-            <hTitle class="title">CheapoDC Configuration</hTitle>
+            <hTitle class="title">CheapoDC Configuration<br><div class="subtitle">Web Sockets Version</div></hTitle>
             <logoutIcon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logoutIcon>
         </div>
         </header>
         <main> 
-            <h2>Dew Controller Configuration</h2> 
+            <h2>Dew Controller Configuration</h2>
             <div class="configline">
                 <configItem>Controller Mode:</configItem>
                 <configValue>
@@ -103,7 +103,6 @@
                 </configValue>
                 <configComment><div class="cReading">Degrees C</div></configComment>
                 <configAction><button type="button" class="cButton" id="SP">Update</button></configAction>
-                </script>
             </div>
             <br/>
             <div class="configline">
@@ -142,10 +141,16 @@
             <div class="configline">
                 <configItem>Weather Source:</configItem>
                 <configValue>
-                    <div class="cReading"><input type="text" name="WS" id="WSI" readonly/></div>
+                    <div class="cReading">
+                        <select name="WS" id="WSS" >
+                            <option id="Open-Meteo" value="0">Open-Meteo</option>
+                            <option id="OpenWeather" value="1">OpenWeather</option>
+                            <option id="ExternalSource" value="2">External Source</option>
+                        </select>
+                    </div>
                 </configValue>
                 <configComment><div class="cReading">Service</div></configComment>
-                <configAction><button type="button" class="cButton hidden" id="WS">Update</button></configAction>
+                <configAction><button type="button" class="cButton" id="WS">Update</button></configAction>
             </div>
             <div class="urlconfig">
                 <configItem>Weather API URL:</configItem>

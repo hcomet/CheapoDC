@@ -89,6 +89,7 @@ function setValue( item ) {
     xhr.onreadystatechange = () => {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
             var jsonResponse = xhr.response;
+            console.log("JSON Response: ", jsonResponse);
             var itemId = Object.keys(jsonResponse)[0];
             var inputId = itemId + "I";
             var selectId = itemId + "S";
@@ -192,15 +193,18 @@ function setChangeItem( item ) {
             case "Automatic":
             case "Weather Query": 
             case "Dew Point":
+            case "Open-Meteo":
                 element.value = 0;
                 break;
             case "Manual":
             case "External Input":
             case "Temperature":
+            case "OpenWeather":
                 element.value = 1;
                 break;
             case "Off":
             case "Midpoint":
+            case "External Source":
                 element.value = 2;
                 break;
             default:
@@ -222,6 +226,7 @@ function setChangeItem( item ) {
                 document.getElementById("DCO").className = "cButton hidden";
                 document.getElementById("DCOI").disabled = true;
             }
+            break;
         case "OMIN":
             var min = parseInt(document.getElementById("OMINI").value);
             document.getElementById("DCOI").setAttribute("min", min);
@@ -231,6 +236,19 @@ function setChangeItem( item ) {
             var max = parseInt(document.getElementById("OMAXI").value);
             document.getElementById("DCOI").setAttribute("max", max);
             document.getElementById("OMINI").setAttribute("max", max - 1);
+            break;
+        case "WS":
+            if (document.getElementById("WSS").value == 2) {
+                document.getElementById("ATPQ").className = "cButton";
+                document.getElementById("ATPQI").disabled = false;
+                document.getElementById("HU").className = "cButton";
+                document.getElementById("HUI").disabled = false;
+            } else {
+                document.getElementById("ATPQ").className = "cButton hidden";
+                document.getElementById("ATPQI").disabled = true;
+                document.getElementById("HU").className = "cButton hidden";
+                document.getElementById("HUI").disabled = true;
+            }
             break;
         default:
             break;

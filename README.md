@@ -117,15 +117,17 @@ Two completed CheapoDCs from the outside.
 How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md). One of the pre-build configuration items is to pick and configure a weather service.
 
 ## Weather Service
-CheapoDC can leverage one of two open weather service APIs to retrieve current temperature, humidity and dew point for your location. The service to use is specified in the CDCDefines.h file and only one service may be support at a time. The selected service is built into the firmware.
-### [OpenWeather](https://openweathermap.org/)
-The OpenWeather API is the default configuration. In order to use the OpenWeather API a registered account and API key is required. The account is free and allows for up to 60 queries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up).
+The current temperature and humidity for your location may be obtained by either using one of the two CheapoDC integrated open weather service APIs or may be be provided from an external client through the CheapoDC API. Dew point is calculated based on the temperature and humidity values. The Weather Source may be set using the [Web UI](#cheapodc-configuration) or through the [API](#cheapodc-api). CheapoDC defaults to using Open-Meteo.
 ### [Open-Meteo](https://open-meteo.com/)
 Use of the Open-Meteo API does not require any registration for current weather queries. The free level allows for 10,000 API calls per day. Weather updates seem to be regular at a 15 minute interval. AT a 5 minute query interval several CHeapoDCs can be running at the same time without issue.
-### Which to use?
-Both services require a location using Latitude and Longitude which you can set using the CheapoDC [Web UI](/README.md#web-ui) or INDI Lib driver. OpenWeather provides the name of the weather station closest to your coordinates in its response. Open-Meteo does not. If run side-by-side with the same co-ordinates they provide slightly different results. You may want to check which service provides the best results for your location.
+### [OpenWeather](https://openweathermap.org/) 
+ In order to use the OpenWeather API a registered account and API key is required. The account is free and allows for up to 60 queries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up).
+ ### External Source
+ When the Weather Source is set to External Source the temperature and humidity values for your location must be set via the CheapoDC API. This allows for integration with other weather services or personal weather stations. 
+### Which Weather Service to use?
+Both services require a location using Latitude and Longitude which you can set using the CheapoDC [Web UI](/README.md#web-ui) or [CHeapoDC API](#cheapodc-api). Both sources will use weather stations close to the provided coordinates. OpenWeather provides the name of the weather station used in its response. Open-Meteo does not. If run side-by-side with the same co-ordinates they provide slightly different results. You may want to check which service provides the best results for your location.
 
-As indicated the defaults service is OpenWeather API. But if you do not want to share information with yet another internet data collector then configure Open-Meteo.
+As indicated the default service is Open-Meteo. This is primariy because no registration is required to use the open service.
 ## Web UI
 CheapoDC comes with a Web UI that supports basic web authentication. The ID and password for the web authentication is set in the CDCdefines.h file as part of the build configuration. Default is "admin" for both. TLS (or HTTPS) is not supported so the security is minimal. The intention is to provide a deterrent to someone on your network from easily doing a Web OTA upgrade to the firmware or uploading files to the LittleFS partition.
 
