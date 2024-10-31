@@ -23,13 +23,6 @@ size_t content_len;
 AsyncWebServer * CDCWebServer;
 
 #ifdef CDC_ENABLE_WEB_SOCKETS
-/*
-#if (WS_MAX_QUEUED_MESSAGES < 64)
-#error "WS_MAX_QUEUED_MESSAGES in AsyncWebSocket.h must be set to 64 or higher to handle web socket queue properly!"
-#endif
-#define CONFIG_ESP_INT_WDT_TIMEOUT_MS 600
-#define CONFIG_ESP_TASK_WDT_TIMEOUT_S 10
-*/
 AsyncWebSocket * CDCWebSocket;
 #endif
 AsyncServer * CDCTCPServer;
@@ -140,11 +133,15 @@ void handleDoFileUpload(AsyncWebServerRequest *request, const String& filename, 
 // File download processor
 void processDownload(AsyncWebServerRequest *request ) {
   AsyncWebParameter* p = request->getParam("file");
+  File file = LittleFS.open(p->value().c_str(), FILE_READ);
 
   LOG_DEBUG("processDownload", "p.name: " << p->name().c_str());
   LOG_DEBUG("processDownload", "p.value: " << p->value().c_str());
 
-  request->send(LittleFS, p->value().c_str(), String(), true);
+  request->send(file, p->value().c_str(), String(), true);
+
+  file.close();
+  
 }
 
 // File deletion processor

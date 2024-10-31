@@ -10,7 +10,6 @@
 #include "FS.h"
 #include <LittleFS.h>
 #include <TimeLib.h>
-//#include <ESP32Time.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <ESPmDNS.h>
@@ -130,29 +129,13 @@ bool CDCSetup::queryWeather(void)
     if (this->_currentWeatherSource == OPENMETEO)
     {
       JsonObject main = doc["current"];
-      /*
-      String tempTime = main["time"] | String(CDC_BLANK);
-
-      if (tempTime.length() != 0)
-      {
-        sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, tempTime.substring(11, 13).toInt(), tempTime.substring(14, 16).toInt());
-        sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, monthShortStr(tempTime.substring(5, 7).toInt()), tempTime.substring(8, 10).toInt(), tempTime.substring(0, 4).toInt());
-      }
-      else
-      {
-        strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
-        strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
-      }
-*/
+     
       time_t tempTime = main["time"] | 0;
 
       if (tempTime != 0)
       {
         strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
-        strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
-        //sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
-        //sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, mydayShortStr[weekday(tempTime) - 1], monthShortStr(month(tempTime)), day(tempTime), year(tempTime));
-      }
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));      }
       else
       {
         strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
@@ -189,10 +172,7 @@ bool CDCSetup::queryWeather(void)
       if (tempTime != 0)
       {
         strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
-        strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
-        //sprintf(this->_currentWeather.lastWeatherUpdateTime, CDC_TIME, hour(tempTime), minute(tempTime), second(tempTime));
-        //sprintf(this->_currentWeather.lastWeatherUpdateDate, CDC_DATE, mydayShortStr[weekday(tempTime) - 1], monthShortStr(month(tempTime)), day(tempTime), year(tempTime));
-      }
+        strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate(tempTime).c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));      }
       else
       {
         strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
@@ -895,6 +875,7 @@ void CDCSetup::setHumidity(float humidity)
   return;
 }
 
+// Time and Date function
 String CDCSetup::getDateTime()
 {
   char dtBuff[CDC_MAX_DATETIME_STRING] = {};

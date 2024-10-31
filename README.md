@@ -179,9 +179,12 @@ The APIs use the same commands which are listed in the top of [CDCommands.cpp](/
 The table below provides a list of the commands but the code is the final correct source of truth here.
 * String maximum lengths are identified in the table.
 * Floats are truncated to 2 decimal places.
-* All commands support getter API methods.
-* Commands supporting a setter method are identified. 
+* All commands except **QN** support getter API methods. 
 * The **QN** command is a setter only command. It requires a value that is not Null. "NA" works.
+* Commands supporting a setter method are identified.
+* The **ATPQ** and **HU** commands are only setter commands when Weather Source is set to External Source.
+* Date and time responses are in local time based on the Time Zone Offset and DST Offset values.
+* The **CLC** command has been depricated.
 * Using an invalid command or trying a setter on a command not supporting a setter will return an error.
 * Strictly speaking command values are always treated as Strings since the values are always enclosed in quotes in the JSON. Conversion to appropriate type is handled internally.
 #### CheapoDC Commands
@@ -190,23 +193,23 @@ The table below provides a list of the commands but the code is the final correc
 |   TMFL   |&cross;|  HTML    | String [*] |   File list in HTML for use in Web UI |
 |   WICON  |&cross;|  None    | String [4] |   Weather Icon for use with OpenWeather |
 |   WDESC  |&cross;|  None    | String [32]|   Weather description |
-|   ATPQ   |&cross;|  &deg;C    | Float |   Ambient temperature from weather query |
-|    HU    |&cross;|  &percnt;    | Integer |   Relative humidity (0 to 100)|
+|   ATPQ   |&check;|  &deg;C    | Float |   Ambient temperature from weather query<br>Settable when Weather Source is set to External Source |
+|    HU    |&check;|  &percnt;    | Integer |   Relative humidity (0 to 100)<br>Settable when Weather Source is set to External Source. |
 |    DP    |&cross;|  &deg;C    | Float |   Dew point|
 |    SP    |&check;|  &deg;C    | Float |   Temperature set point|
 |    TPO   |&check;|  &deg;C    | Float |   Track Point offset (-5.0 to 5.0)|
 |    TKR   |&check;|  &deg;C    | Float |   Tracking range (4.0 to 10.0)|
-|    DCO   |&check;|  &percnt;    | Float |   Dew Controller Output (0 to 100)|
-|    WS    |&cross;|  None    | String [32] |   Weather source (OpenWeather or Open-Meteo)|
+|    DCO   |&check;|  &percnt;    | Float |   Dew Controller Output (0 to 100)<br>Settable when Dew Controller Mode set to Manual. |
+|    WS    |&check;|  None    | ENUM |   Weather source <br>Open-Meteo = 0<br>OpenWeather = 1<br>External Source = 2|
 |    LQT   |&cross;|  None    | String [32] |   Last weather query time|
 |    LQD   |&cross;|  None    | String [32] |   Last weather query date|
 |    QN    |&check;|  None    | String [4] |   Query weather now (Set only command)|
 |    FW    |&cross;|  None    | String [16] |   firmware version|
 |    HP    |&cross;|  Bytes    | Integer |   Heap size|
 |    LFS   |&cross;|  Bytes    | Integer |   LittleFS remaining space|
-|    DCM   |&check;| Enum    | Enum |   Dew controller mode|
-|   DCTM   |&check;| Enum    | Float |   Dew controller temperature mode|
-|    SPM   |&check;| Enum    | Float |   Dew controller set point mode|
+|    DCM   |&check;| Enum    | Enum |   Dew controller mode<br>Automatic = 0<br>Manual = 1<br>Off = 2|
+|   DCTM   |&check;| Enum    | Enum |   Dew controller temperature mode<br>Weather Query = 0<br>External Input = 1 |
+|    SPM   |&check;| Enum    | Enum |   Dew controller set point mode<br>Dew Point = 0<br>Temperature = 1<br>Midpoint = 2 |
 |    WQE   |&check;|  Minutes    | Integer |   Weather query every|
 |    UOE   |&check;|  Minutes    | Integer |   update output every|
 |   WAPI   |&check;|  None    | String [256] |   Weather API URL|
@@ -225,13 +228,14 @@ The table below provides a list of the commands but the code is the final correc
 |   ATPX   |&check;|  &deg;C    | Float |   External Temperature input by external app|
 |    CTP   |&cross;|  &deg;C    | Float |   Current Track Point Temperature|
 |    WUL   |&cross;|  None    | String [32] |   Weather station reported in query|
-|    CLC   |&cross;|  &percnt;    | Integer |   Cloud Coverage in percent|
-|   LWUT   |&cross;|  None    | String [32] |   Last weather update time|
-|   LWUD   |&cross;|  None    | String [32] |   Last weather update date|
-|    UPT   |&cross;|  None    | Integer |   Device uptime in hhh:mm:ss:msec|
+|  ~~CLC~~ |&cross;|  &percnt;    | ~~Integer~~ |   ***Deprecated***|
+|   LWUT   |&cross;| None    | String [32] |   Last weather update time<br>hh:mm:ss|
+|   LWUD   |&cross;|  None  | String [32] |   Last weather update date<br>DDD, dd MMM yyyy|
+|    UPT   |&cross;|  None    | Integer |   Device uptime<br>hhh:mm:ss:msec|
 |   WIFI   |&cross;|  None    | String [4] |   WIFI mode AP (Access Point) or STA (Station Mode)|
 |    IP    |&cross;|  None    | String [16] |   IP Address|
 |    HN    |&cross;|  None | String [16] |   Host name |
+|    WQEN    |&check;|  None | Bool | Web Query Enabled<br>False = 0<br>True = 1|
 
 ### TCP API
 The TCP API uses JSON formatted commands over TCP on port 58000. JSON strings must always be terminated with a newline character "\n". "cmd" in the following formats is the 2 to 4 character command identified in [CDCommands.cpp](/CheapoDC/CDCommands.cpp).
@@ -269,4 +273,6 @@ See the Configuration Files section in [Building and Installing CheapoDC](./Chea
 
 ## [INDI Driver](#indi-driver)
 An INDI driver is now available in the master branch as of INDI release 2.0.7, April 1, 2024. Details should become available on the [INDI website devices list](https://www.indilib.org/devices.html) as well as the [StellarMate website devices list](https://www.stellarmate.com/devices.html).
+
+Driver version 1.1 supports the latest versions of the CheapoDC firmware adding support for Weather Device integration.
 

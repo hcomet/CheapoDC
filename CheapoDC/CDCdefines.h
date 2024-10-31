@@ -100,35 +100,7 @@
 #define CDC_DEFAULT_TIMEZONE 0
 #define CDC_DEFAULT_DSTOFFSET 0
 #define CDC_DEFAULT_NTPSERVER "north-america.pool.ntp.org"
-/*
-// *************************************************************************************
-// Pick your Weather Service
-// *************************************************************************************
-#define CDC_USE_OPEN_WEATHER // Comment out to use Open Meteo
-#ifdef CDC_USE_OPEN_WEATHER
-// *************************************************************************************
-// Open WeatherMap API configuration.
-// Register with OpenWeather for a free account to get your API Key
-// https://home.openweathermap.org/users/sign_up
-// *************************************************************************************
-#define CDC_DEFAULT_WEATHERAPIKEY "" // Register to get an API Key
-#define CDC_DEFAULT_WEATHERSOURCE "OpenWeather"
-#define CDC_DEFAULT_WEATHERAPIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric"
-#define CDC_DEFAULT_WEATHERUNITS "metric" // Need metric for temperature calculations to work forced to metric in API string
-#define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png"
-//#else
-// *************************************************************************************
-// Open-Meteo API configuration
-// no registration is required so no API key is required
-// *************************************************************************************
-#define CDC_USE_OPEN_METEO
 
-#define CDC_DEFAULT_WEATHERSOURCE OPENMETEO // "Open-Meteo"
-#define CDC_DEFAULT_WEATHERAPIURL "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,is_day,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,dew_point_2m"
-#define CDC_DEFAULT_WEATHERUNITS "metric"                                        // Need metric for temperature calculations to work
-#define CDC_DEFAULT_WEATHERICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
-#endif
-*/
 // *************************************************************************************
 // Weather Query Service configuration values for supported services
 // - Open-Meteo: https://open-meteo.com/
@@ -145,7 +117,7 @@
 #define CDC_DEFAULT_WEATHERSOURCE 0 // OPENMETEO 
 #define CDC_DEFAULT_WEATHERAPIURL CDC_OPENMETEO_APIURL
 #define CDC_DEFAULT_WEATHERICONURL CDC_OPENWEATHER_ICONURL
-#define CDC_DEFAULT_WEATHERAPIKEY "" // Register to get an API Key if using OpenWeather
+#define CDC_DEFAULT_WEATHERAPIKEY "" 
 #define CDC_DEFAULT_WEATHER_QUERY_EVERY 5
 #define CDC_DEFAULT_HTTP_REQ_RETRY 1
 
@@ -258,8 +230,6 @@
 #define CDC_CMD_IP 43    // IP Address
 #define CDC_CMD_HN 44    // Host name
 #define CDC_CMD_WQEN 45  // Weather Query Enabled (false = 0, true = 1) 
-#define CDC_CMD_LNNQ 46  // External Weather Query Temperture
-#define CDC_CMD_XWQH 47  // External Weather Querry Humidity
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625
@@ -273,7 +243,7 @@
    If not defined the the level will default to LOG_LEVEL_DEBUG. Everything will get logged
 */
 
-#define LOG_LEVEL LOG_LEVEL_DEBUG
+#define LOG_LEVEL LOG_LEVEL_ERROR
 // #define LOG_FILTER "handleWebsocketMessage,processor,getCmdProcessor,SaveConfig,processClientRequest"
 // #define LOG_FILTER_EXCLUDE
 
