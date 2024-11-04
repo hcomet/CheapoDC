@@ -495,13 +495,13 @@ bool setCmdProcessor(const String &var, String newValue)
     }
     else
     {
-      float oldValue = theSetup->getAmbientTemperatureWQ();
-
-      if (oldValue != newValue.toFloat())
+      bool doUpdateOutput = (theSetup->getAmbientTemperatureWQ() != newValue.toFloat());
+      // Want to set last update every call
+      theSetup->setAmbientTemperatureWQ(newValue.toFloat());
+      if (doUpdateOutput)
       {
-        theSetup->setAmbientTemperatureWQ(newValue.toFloat());
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
-      cmdPostProcessQueue.doUpdateOutput = true;
+        cmdPostProcessQueue.doUpdateOutput = true;
 #else
         theDController->updateOutput();
 #endif
@@ -519,13 +519,14 @@ bool setCmdProcessor(const String &var, String newValue)
     }
     else
     {
-      float oldValue = theSetup->getHumidity();
-      
-      if (oldValue != newValue.toFloat())
+      bool doUpdateOutput = (theSetup->getHumidity() != newValue.toFloat());
+      // Want to update the last weather update info every call
+      theSetup->setHumidity(newValue.toFloat());
+
+      if (doUpdateOutput)
       {
-        theSetup->setHumidity(newValue.toFloat());
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
-      cmdPostProcessQueue.doUpdateOutput = true;
+        cmdPostProcessQueue.doUpdateOutput = true;
 #else
         theDController->updateOutput();
 #endif

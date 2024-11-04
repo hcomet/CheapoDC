@@ -845,13 +845,15 @@ void CDCSetup::setAmbientTemperatureWQ(float temperature)
   }
   else
   {
+    bool calculateDewPoint = (this->_currentWeather.ambientTemperature != temperature);
     this->_currentWeather.ambientTemperature = temperature;
     strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
     strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
     strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
     strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
     LOG_DEBUG("setAmbientTemperatureWQ", "Temperature set to: " << temperature);
-    this->calculateAndSetDewPoint();
+    if (calculateDewPoint)
+      this->calculateAndSetDewPoint();
   }
   return;
 }
@@ -864,13 +866,15 @@ void CDCSetup::setHumidity(float humidity)
   }
   else
   {
+    bool calculateDewPoint = (this->_currentWeather.humidity != humidity);
     this->_currentWeather.humidity = humidity;
     strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->getTime().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateTime));
     strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->getDate().c_str(), sizeof(this->_currentWeather.lastWeatherUpdateDate));
     strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
     strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
     LOG_DEBUG("setHumidity", "Humidity set to: " << humidity);
-    this->calculateAndSetDewPoint();
+    if (calculateDewPoint)
+      this->calculateAndSetDewPoint();
   }
   return;
 }

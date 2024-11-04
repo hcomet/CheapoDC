@@ -117,7 +117,7 @@ class CDCSetup
         void    setWeatherSource( weatherSource newWeatherSource );
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};
         void    setWeatherQueryIconURL( String newURL ) {strlcpy(this->_weatherIconURL, newURL.c_str(), sizeof(this->_weatherIconURL));};
-        void    setWeatherQueryAPIKey( String newURL ) {strlcpy(this->_weatherAPIKey, newURL.c_str(), sizeof(this->_weatherAPIKey));};   
+        void    setWeatherQueryAPIKey( String newURL ) {strlcpy(this->_weatherAPIKey, newURL.isEmpty() ? CDC_NA : newURL.c_str(), sizeof(this->_weatherAPIKey));};   
         void    setWeatherQueryEvery( int queryEvery );
         void    setWeatherQueryEnabled(bool enabled) {this->_weatherQueryEnabled = enabled;};
         void    setAmbientTemperatureWQ( float temperature );

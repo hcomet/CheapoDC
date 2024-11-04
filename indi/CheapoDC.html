@@ -147,94 +147,61 @@ sudo apt-get install libindi1
 		<li><strong>OpenWeather</strong>: The CheapoDC will query the OpenWeather service every Query Weather seconds for weather 
 		updates. An API Key is required for weather services from OpenWeather.</li>
 		<li><strong>External Source</strong>: The CheapoDC will NOT query a weather service but will use temperature and humidity
-			values pushed to it via it's API. The Weather Snoop must be enabled and the Weather Device properly configured for 
+			values pushed to it via it's API. A Weather Device must be set in the Snoop Devices section for 
 		this setting to work properly. The weather update period is defined by the weather device and should be settable in the 
 		weather device's configuration tabs.</li>
 	</ul>
 	<li><strong>Weather API Key</strong>: An API key is required to use <a
 			href="https://openweathermap.org/">OpenWeather</a> which can be acquired after registering for a free 
 			OpenWeather account. If <a href="https://open-meteo.com/">Open-Meteo</a> is used then no API key is 
-			required. This property will only be displayed when the Weather Source is set to OpenWeather.
+			required. This option field will only be displayed when the Weather Source is set to OpenWeather.
 		</li>
-	<li><strong>Weather Location Name</strong>: If using OpenWeather this is the name of the weather station found
-		closest to the Location coordinates. This property will only be displayed when the Weather Source is set to OpenWeather.
-	</li>
 	<li><strong>Weather Last Updated</strong>: The date and time of the last weather report update. For Open-Meteo and OpenWeather 
 		the update time is taken from service API response. For External Source the update time is set every time a weather device
-		value is pushed to the CheapoDC. The time is reported using local time.</li>
-	
-	<li><strong>Snoop Temperature</strong>: Enable/Disable getting temperature automatically from another
-		device. This is particularly useful if there is another active device with a temperature probe mounted on the
-		telescope. When Enabled, the temperature detected by the other device's temperature probe will be used to update
-		CheapoDC's External Input temperature. If the CheapoDC Temperature Mode is set to External Input then the
-		External Input temperature will be used as the Reference Temperature for calculating output power. The configuration of
-		the active device to snoop is done with the Temperature Device settings. (Default Disable).</li>
-	<li><strong>Temperature Device</strong>: Settings for getting temperature from another active device:
-		<ul>
-			<li><strong>Device</strong>: Name of device to snoop. Usually the same as the device's tab name in the INDI
-				Control Panel.
-				Info - Name. (Default Focus Simulator).</li>
-			<li><strong>Property</strong>: The property name used for snoop configuration. The default,
-				FOCUS_TEMPERATURE, is specified by INDI as the
-				standard property name for temperature with electronic focuser drivers.</li>
-			<li><strong>Attribute</strong>: The attribute to use for the temperature value. The default, TEMPERATURE, is
-				specified by INDI as the standard attribute name for temperature.</li>
-		</ul>
-	</li>
-	<li><strong>Snoop Weather</strong>: Enable/Disable getting temperature and humidity automatically from another
-		device. This is useful if there is an indilib weather device such as a personal weather station co-located with your 
-		observation location. When Enabled, the temperature and  humidity reported by the weather device will be used to update
-		CheapoDC's weather query temperature and humidity values for calculating dew point and power output. 
-		The CheapoDC Weather Source must be set to External Source for these values to be pushed to the CheapoDC device and be used
-		for calculating output power. The configuration of the active weather device to snoop is done with the Weather Device 
-		settings. (Default Disable).</li>
-	<li><strong>Weather Device</strong>: Settings for getting temperature and humidity from an active weather device:
-		<ul>
-			<li><strong>Device</strong>: Name of device to snoop. Usually the same as the device's tab name in the INDI
-				Control Panel.
-				Info - Name. (Default Weather Simulator).</li>
-			<li><strong>Property</strong>: The property name used for snoop configuration. The default,
-				WEATHER_PARAMETERS, is specified by INDI as the
-				standard property name for weather device drivers.</li>
-			<li><strong>Temp Attribute</strong>: The attribute to use for the temperature value. The default, WEATHER_TEMPERATURE, is
-				specified by INDI as the standard attribute name for weather temperature.</li>
-			<li><strong>Humidity Attribute</strong>: The attribute to use for the humidity value. The default, WEATHER_HUMIDITY, is
-				specified by INDI as the standard attribute name for weather humidity.</li>
-		</ul>
-	</li>
+		value is pushed to the CheapoDC. The time is reported using local time based on the UTC Offset shown in the Site Management tab.</li>
+	<li><strong>Snoop Devices</strong>:Set the appropriate active device to be snooped for CheapoDC configuration and updates. Snoop for any 
+		of the devices can be disabled by setting the device to blank.
+	<ul>
+		<li>
+			<strong>Telescope</strong>: The telescope driver used to configure GEOGRAPHIC_COORD for LAT and LONG values shown on the 
+			Site Management tab. The UTC Offset is also set from the telescope driver. It is important to configure this correctly so 
+			that CheapoDC weather queries are made for the correct geolocation. Default device is Telescope Simulator.
+		</li>
+		<li>
+			<strong>Focuser</strong>: May be set to a focuser driver if the focuser has a temperature probe. When sent the probe temperature
+			will be sent to the CheapoDC and be shown on the Main Control tab in the Temperature - External Input field. If the CheapoDC 
+			Temperature Mode is set to External Input then the External Input temperature will be used as the Reference Temperature for 
+			calculating output power. Default device is Focuser Simulator.
+		</li>
+		<li>
+			<strong>Weather</strong>: May be set to a weather driver if if there is an indilib weather device such as a personal weather station 
+			co-located with your observation location. When set, the temperature and  humidity reported by the weather device will be used to update
+			CheapoDC's weather query temperature and humidity values for calculating dew point and power output. 
+			The CheapoDC Weather Source must be set to External Source for these values to be pushed to the CheapoDC device and be used
+			for calculating output power. Default device is Weather Simulator.
+		</li>
+	</ul></li>
 </ul>
 <p>After setting up the device Options, save the configuration using the Configuration - Save button.</p>
 <h3>Site Management</h3>
-<p>The site management tab is used to configure the device location used by CheapoDC when making weather queries. By
-	default the CheapoDC drive is configured to get location geographic coordinates from another device such as a 
-	telescope or mount.</p>
-	<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./sitemanagement.jpg" alt="Options" /></p>
+<p>The site management tab may be used to configure the device location used by CheapoDC when making weather queries. By
+	default the CheapoDC driver is configured to get location geographic coordinates from another device such as a 
+	telescope or mount. This the preferred configuration.</p>
+	<p><img style="display: block; margin-left: auto; margin-right: auto;" src="./sitemanagement.jpg" alt="Site Management" /></p>
 	<ul>
 		<li><strong>Location</strong>:
-		<ul><li><strong>Lat (dd:mm:ss)</strong>: The Latitude in degrees, minutes and seconds.
-			If Snoop Location is enabled then the value is taken from the Location Device. -90:00:00 to 90:00:00</li>
-		<li><strong>Long (dd:mm:ss)</strong>: The Longitude in degrees, minutes and seconds. 
-			If Snoop Location is enabled then the value is taken from the Location Device. 00:00:00 to 360:00:00</li></ul>
-		<li><strong>Snoop Location</strong>: Enable/Disable getting the Latitude and Longitude automatically from another
-			device. Generally the other device would be a mount. The configuration of the active device to snoop is done
-			with the Location Device settings. (Default Enable).</li>
-		<li><strong>Location Device</strong>: Settings for getting geographic coordinates from another active device:
+		<ul><li><strong>Lat (dd:mm:ss)</strong>: The Latitude in degrees, minutes and seconds. Values: -90:00:00 to 90:00:00.</li>
+		<li><strong>Lon (dd:mm:ss)</strong>: The Longitude in degrees, minutes and seconds. Values: 00:00:00 to 360:00:00.</li></ul>
+		<li><strong>Device Time</strong>: The local time on the CheapoDC device based on the devices NTP server configuration (set using
+			the devices Wed UI) and the UTC offset.
 			<ul>
-				<li><strong>Device</strong>: Name of device to snoop. Usually the same as the device's tab name in the INDI
-					Control Panel.
+				<li><strong>Local Time</strong>: Local date and time based on UTC offset.
 					Info - Name. (Default Telescope Simulator).</li>
-				<li><strong>Property</strong>: The property name used for snoop configuration. The default,
-					GEOGRAPHIC_COORD, is specified by INDI as the
-					standard property name for geographic coordinates.</li>
-				<li><strong>LAT Attribute</strong>: The attribute to use for the Latitude value. The default, LAT, is
-					specified by INDI as the standard attribute name for Latitude in geographic coordinate properties.</li>
-				<li><strong>LONG Attribute</strong>: The attribute to use for the Longitude value. The default, LONG, is
-					specified by INDI as the standard attribute name for Longitude in geographic coordinate properties.</li>
+				<li><strong>UTC Offset</strong>: The offset from UTC time in hours. Should be set from the Telescope device. If no telescope device
+				is set then it will be pulled from the CheapoDC device settings.</li>
 			</ul>
 		</li>
 	</ul>
-
-	<p>After setting up the Site Management options, save the configuration using the Configuration - Save button on the Options tab.</p>
 
 <h3>Main Control</h3>
 <p>The main control tab is where the different CheapoDC operating modes may be set and current controller power output
@@ -266,7 +233,7 @@ sudo apt-get install libindi1
 				weather service using the service query API will be used for the Reference Temperature. (Default)</li>
 			<li><strong>External Input</strong>: When in External Input mode the External Input temperature will be used
 				for the Reference
-				Temperature. This is the mode to use when snooping temperature values from another device with a
+				Temperature. This is the mode to use when snooping temperature values from a Focuser device with a
 				temperature probe.</li>
 		</ul>
 	</li>
@@ -274,14 +241,15 @@ sudo apt-get install libindi1
 		<ul>
 			<li><strong>Weather Query (&deg;C)</strong>: Ambient temperature returned from a weather service API
 				query. This value is used
-				for the output calculation when the Temperature Mode is set to Weather Query.</li>
-			<li><strong>External Input (&deg;C)</strong>: Temperature returned from an external input such as the Snoop
-				Temperature device.
-				This value is used for the output calculation when the Temperature Mode is set to External Input.</li>
+				for the output calculation when the Temperature Mode is set to Weather Query. If Weather Source is set to
+				External Source then temperature values sent from a configured Weather device will be seen here.</li>
+			<li><strong>External Input (&deg;C)</strong>: Temperature returned from an external input such as a configured 
+				Weather device.This value is used for the output calculation when the Temperature Mode is set to External Input.</li>
 		</ul>
 	</li>
-	<li><strong>Humidity</strong>: The relative humidity in percent returned from a weather service API query.</li>
-	<li><strong>Dew Point</strong>: The dew point in &deg;C based on a weather service API query.</li>
+	<li><strong>Humidity</strong>: The relative humidity in percent returned from a weather service API query. If Weather Source is set to
+		External Source then humidity values sent from a configured Weather device will be seen here.</li>
+	<li><strong>Dew Point</strong>: The dew point in &deg;C calculated from the current Weather Query Temperature and Humidity.</li>
 	<li><strong>Refresh</strong>: Force a weather service query and update of the driver property values.</li>
 </ul>
 

@@ -38,7 +38,16 @@ CheapoDC configuration files.
     * Arduino IDE 1.8.x: https://randomnerdtutorials.com/esp32-littlefs-arduino-ide/
     * Arduino IDE 2.3.2: https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/
 
-4. Install the following libraries if not already installed:  
+4. Install the following libraries if not already installed:
+   * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)  
+     Version: 7.2.0
+   * [ESPAsyncWebSrv by dvarrel](https://github.com/dvarrel/ESPAsyncWebSrv)  
+     Version: 1.2.8
+   * [AsyncTCP by dvarrel](https://github.com/dvarrel/AsyncTCP)  
+     Version: 1.1.4
+   * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
+     Version: 1.6.1
+     
 
     ![Libraries](../images/CDC-Libraries.jpg)
 
