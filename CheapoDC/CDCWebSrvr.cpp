@@ -348,7 +348,7 @@ String processClientRequest(uint8_t *data, size_t len) {
   DeserializationError err = deserializeJson(requestJson, data);
   if (err) {
     LOG_ERROR("processClientRequest", "Deserialization error: " << err.c_str());
-    response = String("{\"RESULT\":-1}");
+    response = String("{\"RESULT\":-2}");
     return response;
   } 
   
@@ -374,6 +374,7 @@ String processClientRequest(uint8_t *data, size_t len) {
       LOG_DEBUG("processClientRequest", "responseJson[\"UNITS\"]: "  << responseJson["UNITS"].as<String>());
     
     } else {
+      // Command not found
       responseJson["RESULT"] = -2;
     }
 
@@ -385,22 +386,25 @@ String processClientRequest(uint8_t *data, size_t len) {
     }
 
     LOG_DEBUG("processClientRequest", "GET request: " << getCommand << " Response = " << response);
-  } 
-
-  if (requestJson["SET"]) {  
+    
+  } else if (requestJson["SET"]) {  
     JsonObject putCommand = requestJson["SET"];
-    response = String("{\"RESULT\":0}");
+    response = String("{\"RESULT\":-2}");
     for (JsonPair kv : putCommand) {
       LOG_DEBUG("processClientRequest", "Processing SET command: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
 
       if (!setCmdProcessor(String(kv.key().c_str() ), String(kv.value().as<const char*>() ))) {
         LOG_ERROR("processClientRequest", "SET command failure: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
-        response = String("{\"RESULT\":-1}");
+        response = String("{\"RESULT\":-2}");
+      } else {
+        response = String("{\"RESULT\":0}");
       }
       
     }
 
-  }    
+  }  else {
+    response = String("{\"RESULT\":-2}");
+  }  
   return response;
 }
 

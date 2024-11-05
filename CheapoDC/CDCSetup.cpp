@@ -87,13 +87,7 @@ bool CDCSetup::queryWeather(void)
   }
   
   LOG_DEBUG("queryWeather", "Current weather source: " << this->_currentWeatherSource);
-  if (this->_currentWeatherSource == EXTERNALSOURCE)
-  {
-    strlcpy(this->_currentWeather.weatherUpdateLocation, "External Source", sizeof(this->_currentWeather.weatherUpdateLocation));
-    strlcpy(this->_currentWeather.weatherDescription, "Not avaialable.", sizeof(this->_currentWeather.weatherDescription));
-    strlcpy(this->_currentWeather.weatherIcon, "NA", sizeof(this->_currentWeather.weatherIcon));
-  }
-  else
+  if (this->_currentWeatherSource != EXTERNALSOURCE)
   {
     if (theSetup->getInWiFiAPMode())
     {
@@ -359,10 +353,19 @@ void CDCSetup::_loadDefaults(void)
   strlcpy(this->_NTPServer, CDC_DEFAULT_NTPSERVER, sizeof(this->_NTPServer));
 
   memset(this->_currentWeather.weatherUpdateLocation, '\0', sizeof(this->_currentWeather.weatherUpdateLocation));
+  strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_NA, sizeof(this->_currentWeather.weatherUpdateLocation));
+
   memset(this->_currentWeather.lastWeatherQueryTime, '\0', sizeof(this->_currentWeather.lastWeatherQueryTime));
+  strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+
   memset(this->_currentWeather.lastWeatherQueryDate, '\0', sizeof(this->_currentWeather.lastWeatherQueryDate));
+  strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+
   memset(this->_currentWeather.lastWeatherUpdateTime, '\0', sizeof(this->_currentWeather.lastWeatherUpdateTime));
+  strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+
   memset(this->_currentWeather.lastWeatherUpdateDate, '\0', sizeof(this->_currentWeather.lastWeatherUpdateDate));
+  strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
 
   this->_currentWeather.ambientTemperature = 0.0;
   this->_currentWeather.humidity = 0.0;
@@ -810,11 +813,12 @@ void CDCSetup::setWeatherSource(weatherSource source)
           strlcpy(this->_weatherAPIURL, CDC_EXTERNALSOURCE_APINURL, sizeof(this->_weatherAPIURL));
           strlcpy(this->_weatherIconURL, CDC_EXTERNALSOURCE_ICONURL, sizeof(this->_weatherIconURL));
           memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
-          strlcpy(this->_currentWeather.weatherDescription, "Not avaialable.", sizeof(this->_currentWeather.weatherDescription));
+          strlcpy(this->_currentWeather.weatherDescription, CDC_EXTERNALSOURCE_DESC, sizeof(this->_currentWeather.weatherDescription));
           memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
           strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
           strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
           strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+          strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_EXTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
 
         }
     }

@@ -18,20 +18,20 @@ dewController::dewController(void)
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
 #ifdef CDC_ENABLE_PWM_OUTPUT
   #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-    ledcAttachChannel(CDC_PWM_OUPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL);
+    ledcAttachChannel(CDC_PWM_OUTPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL);
   #else
     ledcSetup(CDC_PWM_CHANNEL, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION);
-    ledcAttachPin(CDC_PWM_OUPUT_PIN1, CDC_PWM_CHANNEL);
+    ledcAttachPin(CDC_PWM_OUTPUT_PIN1, CDC_PWM_CHANNEL);
   #endif
-    LOG_DEBUG("dewController", "Output 1: " << CDC_PWM_OUPUT_PIN1);
+    LOG_DEBUG("dewController", "Output 1: " << CDC_PWM_OUTPUT_PIN1);
 
-  #ifdef CDC_PWM_OUPUT_PIN2
+  #ifdef CDC_PWM_OUTPUT_PIN2
     #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-    ledcAttachChannel(CDC_PWM_OUPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL);
+    ledcAttachChannel(CDC_PWM_OUTPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL);
     #else
-    ledcAttachPin(CDC_PWM_OUPUT_PIN2, CDC_PWM_CHANNEL);
+    ledcAttachPin(CDC_PWM_OUTPUT_PIN2, CDC_PWM_CHANNEL);
     #endif
-    LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUPUT_PIN2);
+    LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUTPUT_PIN2);
   #endif
   #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
     ledcWriteChannel(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);

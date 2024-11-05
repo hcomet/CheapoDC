@@ -21,10 +21,10 @@
 // *************************************************************************************
 // ESP32 C3 Board configuration
 // *************************************************************************************
-#define CDC_ENABLE_PWM_OUTPUT // comment to disable output pins (mainly for debugging)
-#define CDC_PWM_OUPUT_PIN1 0  // set first Output channel Pin
-#define CDC_PWM_OUPUT_PIN2 1  // Uncomment and set Pin value to enable second channel
-#define CDC_PWM_CHANNEL 0     // Currently both output Pin 1 an 2 share a channel
+#define CDC_ENABLE_PWM_OUTPUT // comment out to disable output pins (mainly for debugging)
+#define CDC_PWM_OUTPUT_PIN1 0  // set first Output Pin
+#define CDC_PWM_OUTPUT_PIN2 1  // set second Output Pin or comment out to disable
+#define CDC_PWM_CHANNEL 0      // Currently both output Pin 1 an 2 share a channel
 
 // *************************************************************************************
 // Builtin LED or other pin to use for Status LED.
@@ -92,6 +92,12 @@
 #define CDC_DEFAULT_WIFI_TRYAPS 1                   // Number of times to cycle through APs when in STA mode
 
 // *************************************************************************************
+// *************************************************************************************
+// ***********         DO NOT change anything below here.                    ***********
+// *************************************************************************************
+// *************************************************************************************
+
+// *************************************************************************************
 // Default Location and time settings
 // *************************************************************************************
 #define CDC_DEFAULT_LOCATION_NAME "Greenwich"
@@ -111,13 +117,15 @@
 #define CDC_OPENMETEO_ICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
 #define CDC_OPENWEATHER_APIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric" // Need metric for temperature calculations to work
 #define CDC_OPENWEATHER_ICONURL "https://openweathermap.org/img/wn/%s@2x.png"
-#define CDC_EXTERNALSOURCE_APINURL ""
+#define CDC_EXTERNALSOURCE_APINURL "--"
 #define CDC_EXTERNALSOURCE_ICONURL "/weatherIconNA.png"
+#define CDC_EXTERNALSOURCE_DESC "Not available."
+#define CDC_EXTERNALSOURCE_LOCATION_NAME "External Source"
 // Set Weather Query defaults for Open-Meteo since it does not require an API key
 #define CDC_DEFAULT_WEATHERSOURCE 0 // OPENMETEO 
 #define CDC_DEFAULT_WEATHERAPIURL CDC_OPENMETEO_APIURL
 #define CDC_DEFAULT_WEATHERICONURL CDC_OPENWEATHER_ICONURL
-#define CDC_DEFAULT_WEATHERAPIKEY "NOT_SET" 
+#define CDC_DEFAULT_WEATHERAPIKEY "--"   // Do not change the default. Enter your key throught the Web UI.
 #define CDC_DEFAULT_WEATHER_QUERY_EVERY 5
 #define CDC_DEFAULT_HTTP_REQ_RETRY 1
 
@@ -138,12 +146,6 @@
 #define CDC_MAXIMUM_TRACKING_RANGE 10.0
 #define CDC_DEFAULT_UPDATE_OUTPUT_EVERY 1 // in minutes
 #define CDC_DEFAULT_SAVE_CONFIG_EVERY 20  // in seconds
-
-// *************************************************************************************
-// *************************************************************************************
-// ***********         Don't change anything below here.                      ***********
-// *************************************************************************************
-// *************************************************************************************
 
 // PWM Configuration
 #define CDC_PWM_FREQUENCY 1000
