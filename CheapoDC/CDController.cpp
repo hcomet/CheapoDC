@@ -163,9 +163,9 @@ void dewController::updateOutput(int output)
             LOG_DEBUG("updateOutput", "Output set to: " << PWMDutyCycle << " of " << (pow(2, CDC_PWM_RESOLUTION) - 1));
 #ifdef CDC_ENABLE_PWM_OUTPUT
   #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-            ledcWriteChannel(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+            ledcWriteChannel(CDC_PWM_CHANNEL, PWMDutyCycle);
   #else
-            ledcWrite(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
+            ledcWrite(CDC_PWM_CHANNEL, PWMDutyCycle);
   #endif
 #endif
 #ifdef CDC_STATUS_LED_BLINK_ON_POWER_CHANGE
