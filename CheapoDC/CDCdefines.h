@@ -90,6 +90,7 @@
 #define CDC_DEFAULT_WIFI_AP_PASSWORD "cheapodc"     // WiFi password for AP mode
 #define CDC_DEFAULT_WIFI_CONNECTATTEMPTS 15         // Number of times to try to connect to an AP when in STA mode
 #define CDC_DEFAULT_WIFI_TRYAPS 1                   // Number of times to cycle through APs when in STA mode
+//#define CDC_ENABLE_WIFI_TX_POWER_MOD WIFI_POWER_8_5dBm // Uncomment to adjust WiFi TX power if you are having connection issues
 
 // *************************************************************************************
 // *************************************************************************************

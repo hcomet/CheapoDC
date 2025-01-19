@@ -479,6 +479,16 @@ bool CDCSetup::_connectWiFi(void)
   WiFi.setSleep(false); // Disable sleep since there were reports it may affect mDNS
   WiFi.begin(this->_wifiConfig.ssid, this->_wifiConfig.password);
   LOG_DEBUG("_connectWiFi", "Connect to WiFi:" << this->_wifiConfig.ssid);
+  
+  #ifdef CDC_ENABLE_WIFI_TX_POWER_MOD
+  if (!WiFi.setTxPower(CDC_ENABLE_WIFI_TX_POWER_MOD)) {
+    LOG_ERROR("_connectWiFi", "WiFi TX Power could not be set to: " << CDC_ENABLE_WIFI_TX_POWER_MOD);
+  } else {
+    char buffer[16];
+    sprintf(buffer, "%.1f dbm", WiFi.getTxPower()/4.0);
+    LOG_ALERT("_connectWiFi", "WiFi TX Power set to: " << String(buffer));
+  }
+  #endif // CDC_ENABLE_WIFI_TX_POWER_MOD
 
   // Wait for connection and attempt _wifiConfig.connectAttempts times
   while ((WiFi.status() != WL_CONNECTED) && (count < this->_wifiConfig.connectAttempts))
@@ -496,6 +506,7 @@ bool CDCSetup::_connectWiFi(void)
     this->blinkStatusLEDEvery(statusLEDEvery);
     return false;
   }
+
 
   strlcpy(this->_IPAddress, WiFi.localIP().toString().c_str(), sizeof(this->_IPAddress));
   LOG_ALERT("_connectWiFi", this->_wifiConfig.hostname << ".local connected to: " << this->_wifiConfig.ssid << " with IP address: " << this->_IPAddress);
