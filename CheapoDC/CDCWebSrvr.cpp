@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 #include <AsyncTCP.h>
-#include "ESPAsyncWebSrv.h"
+#include <ESPAsyncWebServer.h>
 #include <Update.h>
 #include "FS.h"
 #include <LittleFS.h>
@@ -132,7 +132,7 @@ void handleDoFileUpload(AsyncWebServerRequest *request, const String& filename, 
 
 // File download processor
 void processDownload(AsyncWebServerRequest *request ) {
-  AsyncWebParameter* p = request->getParam("file");
+  const AsyncWebParameter* p = request->getParam("file");
   File file = LittleFS.open(p->value().c_str(), FILE_READ);
 
   LOG_DEBUG("processDownload", "p.name: " << p->name().c_str());
@@ -146,7 +146,7 @@ void processDownload(AsyncWebServerRequest *request ) {
 
 // File deletion processor
 void processDelete(AsyncWebServerRequest *request ) {
-  AsyncWebParameter* p = request->getParam("file");
+  const AsyncWebParameter* p = request->getParam("file");
 
   LOG_DEBUG("processDelete", "p.name: " << p->name().c_str());
   LOG_DEBUG("processDelete", "p.value: " << p->value().c_str());
