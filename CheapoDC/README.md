@@ -109,7 +109,7 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
          ```#define CDC_DEFAULT_WIFI_SSID "defaultSSID"```  
        * Change ST mode password. ***DEFAULT: defaultPassword***.  
          ```#define CDC_DEFAULT_WIFI_PASSWORD "defaultPassword"```
-      * WiFi TX Power setting may be optionally modified if you are having issues with an ESP32-C4 board connecting to your WiFi gateway. Set the WiFi TX Power:
+      * WiFi TX Power setting may be optionally modified if you are having issues with an ESP32-C3 board connecting to your WiFi gateway. Set the WiFi TX Power:
         * Enable setting WiFi Tx Power. ***DEFAULT: Disabled***.  
           ```//#define CDC_ENABLE_WIFI_TX_POWER_MOD WIFI_POWER_8_5dBm ```  
           Uncomment to enable. If enabled the default value sets TX power to 8.5dbm. Any of the `wifi_power_t` values found [here](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFiGeneric.h#L51-L67) may be used.
