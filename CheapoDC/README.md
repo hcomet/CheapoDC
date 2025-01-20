@@ -31,7 +31,8 @@ CheapoDC configuration files.
   <u>**NOTE:**</u> Builds have been verified on both the 2.3.3 and 1.8.19 versions of the Arduino IDE. Use of the latest 2.x version of the IDE is preferred.
 2. Add support for ESP32 modules using the Boards Manager in the Arduino IDE.  
   <u>**IMPORTANT:**</u>
-    * Install the boards plugin for ESP32 from Espressif Systems version 3.x. Version 2.x should also work but upgrading to 3.x is encouraged.
+    * Install the boards plugin for ESP32 from Espressif Systems version 3.x. Version 2.x should also work but upgrading to 3.x is encouraged.  
+    <u>**NOTE:**</u> There have been issues reported with ESPAsyncWebServer and ESP Arduino Core 3.1.X. For now do not upgrade past 3.0.7 until resolved.
     * CheapoDC is intended for use on ESP32 devices. The current version has been verified on an ESP32-C3 Supermini board and an ESP32-S3 mini board.
 3. Install the ESP32 Sketch data uploader with support for LittleFS. The CheapoDC uses the LittleFS file system for configuration files and web pages uploaded from the ***CheapoDC/data*** folder. If the data is uploaded using any other file system format, such as SPIFFS, the CheapoDC firmware will not run properly.  
 <u>**NOTE:**</u> The following links provide information on how to install a data uploader plugin with LittleFS support for:
@@ -108,6 +109,10 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
          ```#define CDC_DEFAULT_WIFI_SSID "defaultSSID"```  
        * Change ST mode password. ***DEFAULT: defaultPassword***.  
          ```#define CDC_DEFAULT_WIFI_PASSWORD "defaultPassword"```
+      * WiFi TX Power setting may be optionally modified if you are having issues with an ESP32-C4 board connecting to your WiFi gateway. Set the WiFi TX Power:
+        * Enable setting WiFi Tx Power. ***DEFAULT: Disabled***.  
+          ```//#define CDC_ENABLE_WIFI_TX_POWER_MOD WIFI_POWER_8_5dBm ```  
+          Uncomment to enable. If enabled the default value sets TX power to 8.5dbm. Any of the `wifi_power_t` values found [here](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFiGeneric.h#L51-L67) may be used.
 
   9. The hostname for the CheapoDC may also be changed. This is really only needed if you have multiple CheapoDC controllers on the same network.  Its recommended that this be done in the ***CDCWiFi.json*** file to allow a single firmware image to be used across multiple CheapoDC controllers. To change the hostname in the ***CDCdefines.h*** file:
      * Change the host name. ***DEFAULT: cheapodc***.  
