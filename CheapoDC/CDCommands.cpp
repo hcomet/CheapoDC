@@ -148,8 +148,7 @@ cmdResponse getCmdProcessor(const String &var)
       {
         LOG_INFO("processor", "--FILE: " << file.name() << " tSIZE: " << file.size());
         newResponse.response += String("<div class=\"filelist\"><fileItem>") + String(file.name()) + String("</fileItem><fileAction1>");
-        newResponse.response += String(" <a href=\"./download?file=") + String(file.path()) + String("\">Download</a></fileAction1><fileAction2>");
-        // newResponse.response += String("<li>File: <a href=\"./download?file=") + String(file.path()) + String("\">") + String(file.name()) + String("</a>");
+        newResponse.response += String(" <a href=\"./download?file=") + String(file.path()) + String("\" download=\"") + String(file.name()) + String("\">Download</a></fileAction1><fileAction2>");
         newResponse.response += String("<div class=\"danger\" onclick=\"deleteFile('") + String(file.path()) + String("')\" >Delete</div></fileAction2></div></li>");
       }
       file = root.openNextFile();
@@ -254,7 +253,7 @@ cmdResponse getCmdProcessor(const String &var)
   }
   case CDC_CMD_HP:
   {
-    char buf[10] = ""; // 3 chars for "xxx"
+    char buf[10] = ""; 
     sprintf(buf, "%'d", ESP.getFreeHeap());
     newResponse.response = String(buf);
 
@@ -262,7 +261,7 @@ cmdResponse getCmdProcessor(const String &var)
   }
   case CDC_CMD_LFS:
   {
-    char buf[12] = ""; // 3 chars for "xxx"
+    char buf[12] = ""; // buffer for bytes left in LittleFS partition
     sprintf(buf, "%'d", (LittleFS.totalBytes() - LittleFS.usedBytes()));
     newResponse.response = String(buf);
 

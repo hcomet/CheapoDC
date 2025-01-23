@@ -133,14 +133,10 @@ void handleDoFileUpload(AsyncWebServerRequest *request, const String& filename, 
 // File download processor
 void processDownload(AsyncWebServerRequest *request ) {
   const AsyncWebParameter* p = request->getParam("file");
-  File file = LittleFS.open(p->value().c_str(), FILE_READ);
 
   LOG_DEBUG("processDownload", "p.name: " << p->name().c_str());
   LOG_DEBUG("processDownload", "p.value: " << p->value().c_str());
-
-  request->send(file, p->value().c_str(), String(), true);
-
-  file.close();
+  request->send(LittleFS, p->value().c_str(), String(), true);
   
 }
 
@@ -516,9 +512,6 @@ void setupServers(void) {
   CDCTCPServer->onClient(&handleTCPClient, CDCTCPServer);
   CDCTCPServer->begin();
   
-   #ifdef CDC_ENABLE_WEB_SOCKETS
-  #endif
-
   // Webserver Handlers
   CDCWebServer->on("/CDCStyle.css", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(LittleFS, "/CDCStyle.css", "text/css");
@@ -561,7 +554,7 @@ void setupServers(void) {
 
   #endif
 
-  // non-webseocket javascript can always be served
+  // non-websocket javascript can always be served
   CDCWebServer->on("/CDCjs.js", HTTP_GET, [](AsyncWebServerRequest *request) {
    request->send(LittleFS, "/CDCjs.js", "text/javascript");
   });
@@ -636,7 +629,6 @@ void setupServers(void) {
     return request->requestAuthentication();
   #endif
     processDownload(request);
-    request->send(LittleFS, "/listfiles.html", String(), false, processor);
   });
 
   CDCWebServer->on("/delete", HTTP_GET, [](AsyncWebServerRequest *request) {
