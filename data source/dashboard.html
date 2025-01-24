@@ -1,0 +1,50 @@
+<head><title>CheapoDC Dashboard</title> <link rel="icon" type="image/png" href="/favicon.png">
+<meta http-equiv="refresh" content="30">
+<link rel="stylesheet" href="./CDCStyle.css">
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+</head><body><div class="wrapper">
+    <header><div class="headerGrid">
+        <hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon><hTitle class="title">CheapoDC Dashboard</hTitle><logoutIcon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logoutIcon>
+    </div>
+    </header> 
+    <main>       
+        <div class="dashboard"><dbItem>Ambient Temperature:</dbItem><dbValue><div class="reading">%ATPQ%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Dew Point:</dbItem><dbValue><div class="reading">%DP%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Humidity:</dbItem><dbValue><div class="reading">%HU%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Temperature Set Point:</dbItem><dbValue><div class="reading">%SP%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Track Point Offset:</dbItem><dbValue><div class="reading">%TPO%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Track Point:</dbItem><dbValue><div class="reading">%CTP%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Tracking Range:</dbItem><dbValue><div class="reading">%TKR%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Controller Output:</dbItem><dbValue><div class="reading">%DCO%</div></dbValue><dbAction></dbAction></div>
+        <br />
+        <div class="dashboard"><dbItem>Controller Mode:</dbItem><dbValue><div class="setting">%DCM%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Temperature Mode:</dbItem><dbValue><div class="setting">%DCTM%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Set Point Mode:</dbItem><dbValue><div class="setting">%SPM%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbItem>Last Update Time:</dbItem><dbValue><div class="setting">%LWUT%</div></dbValue><dbAction></dbAction></div>
+    </main>
+
+<aside>
+    <div class="locName">%LNM%</div><div class="locCoord">%LAT%, %LON%</div><div class="queryLocName">%WUL%</div>
+    <div class="weatherIcon"><img src="%WICON%"></div><div class="weatherDesc">%WDESC%</div>
+    <div class="wReading"><wReadingTerm>Temperature:</wReadingTerm><wReadingValue>%ATPQ%</wReadingValue></div>
+    <div class="wReading"><wReadingTerm>Dew Point:</wReadingTerm><wReadingValue>%DP%</wReadingValue></div>
+    <div class="wReading"><wReadingTerm>Humidity:</wReadingTerm><wReadingValue>%HU%</wReadingValue></div>
+</aside>
+<footer>
+    <hr class="footerThr">
+ <button type="button" class="bfooterDisabled" disabled >Dashboard</button> <!--onclick="document.location='../dashboard'"--> 
+ <button type="button" class="bfooter" onclick="document.location='../config'">Configuration</button>
+ <button type="button" class="bfooter" onclick="document.location='../otaIndex'">Device Management</button>
+ <button type="button" class="bfooter" onclick="document.location='../listFiles'">File Management</button>
+ <hr class="footerBhr">
+ <div class="atribution">Cheapo Dew Controller - &copy; 2024 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
+</footer></div>
+<script>
+function logoutCDC() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/logout", true);
+  xhr.send();
+  setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
+}
+</script>
+</body>

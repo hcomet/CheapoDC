@@ -1,0 +1,74 @@
+<head><title>Device Management</title> <link rel="icon" type="image/png" href="/favicon.png">
+   <link rel="stylesheet" href="./CDCStyle.css">
+</head><body><div class="wrapper">
+   <header><div class="headerGrid">
+      <hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon>
+      <hTitle class="title">Device Management</hTitle>
+      <logoutIcon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logoutIcon>
+  </div>
+  </header>
+   <main>
+   <h2>Web OTA Firmware Update</h2>
+   <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+      <input type="file" name="file1" id="file1" value="Choose FW" /><input type="button" name="upload"  id="iupload" value="Update" title="Upload File" onclick="uploadFile()" disabled/>
+      <h3 id="status">Completed: 0&percnt;</h3> <p id="loaded_n_total"><span id="filename"></span><span id="filesize"></span></p>
+  </form> 
+  <hr class="footerThr">
+  <h2>Reboot Device</h2>
+  <button type="button" class="reboot" onclick="rebootDevice()">Reboot</button>
+</main>
+<aside>
+   <div class="locName">%LNM%</div><div class="locCoord">%LAT%, %LON%</div><div class="queryLocName">%WUL%</div>
+   <div class="weatherIcon"><img src="%WICON%"></div><div class="weatherDesc">%WDESC%</div>
+   <div class="wReading"><wReadingTerm>Temperature:</wReadingTerm><wReadingValue>%ATPQ%</wReadingValue></div>
+   <div class="wReading"><wReadingTerm>Dew Point:</wReadingTerm><wReadingValue>%DP%</wReadingValue></div>
+   <div class="wReading"><wReadingTerm>Humidity:</wReadingTerm><wReadingValue>%HU%</wReadingValue></div>
+</aside>
+<footer>
+   <hr class="footerThr">
+<button type="button" class="bfooter" onclick="document.location='../dashboard'" >Dashboard</button>  
+<button type="button" class="bfooter" onclick="document.location='../config'">Configuration</button>
+<button type="button" class="bfooterDisabled" disable>Device Management</button> <!-- onclick="document.location='../otaIndex'"-->
+<button type="button" class="bfooter" onclick="document.location='../listFiles'" >File Management</button> 
+<hr class="footerBhr">
+<div class="atribution">Cheapo Dew Controller - &copy; 2024 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
+</footer></div>
+<script>
+   document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
+ function uploadFile() {
+  var file = document.getElementById("file1").files[0];
+  document.getElementById("filename").innerHTML =  document.getElementById("file1").value.replace(/.*[\/\\]/, '') + ": ";
+  var formdata = new FormData();
+  formdata.append("file1", file);
+  var ajax = new XMLHttpRequest();
+  ajax.upload.addEventListener("progress", progressHandler, false);
+  ajax.open("POST", "/update");
+  ajax.send(formdata);
+}
+function progressHandler(event) {
+  document.getElementById("filesize").innerHTML =  event.loaded + " bytes";
+  var percent = (event.loaded / event.total) * 100;
+  document.getElementById("status").innerHTML = "Completed: " + Math.round(percent) + "&percnt;";
+  if (percent >= 100) {
+      document.getElementById("status").innerHTML = "Completed: 100&percnt; Wait for Reload."; 
+      document.getElementById("iupload").disabled = true;
+      setTimeout(function() {location.reload();}, 5000);
+      //document.getElementById("file1").addEventListener('change', function() {
+        //       document.getElementById('iupload').disabled = false;
+         //      document.getElementById("status").innerHTML = "Completed: 0&percnt;";});
+  }
+}
+function rebootDevice() {
+    if (confirm("Confirm Reboot")) {
+        xmlhttp = new XMLHttpRequest();
+        xmlhttp.open("GET", "/reboot", true);
+        xmlhttp.send();
+    }
+}
+function logoutCDC() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/logout", true);
+  xhr.send();
+  setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
+}
+ </script></body>

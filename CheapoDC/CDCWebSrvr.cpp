@@ -119,9 +119,8 @@ void handleDoFileUpload(AsyncWebServerRequest *request, const String& filename, 
   file.close();
 
   if (final) {
-    AsyncWebServerResponse *response = request->beginResponse(302, "text/plain", "Please wait while the device reboots");
-    response->addHeader("Refresh", "20");  
-    response->addHeader("Location", "/");
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
+    response->addHeader("Server", "ESP Async Web Server");
     request->send(response);
 
     LOG_DEBUG("handleDoFileUpload","End file." );

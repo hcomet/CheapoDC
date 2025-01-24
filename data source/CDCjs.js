@@ -1,0 +1,273 @@
+var modeCount = 0;
+var outstandingQueries = 0;
+var refreshCount = 0;
+
+// ----------------------------------------------------------------------------
+// Initialization
+// ----------------------------------------------------------------------------
+
+window.addEventListener('load', onLoad);
+
+function onLoad(event) {
+    document.getElementById("loader").style.display = "block";
+    initButtons();
+    document.addEventListener('keydown', function (event) {
+        if (event.ctrlKey && (event.key === 'z')) {
+            initButtons();
+        }
+    });
+}
+
+function convertHTML(str) {
+    const symbols = {
+        "&amp;" : "&",
+        "&lt;" : "<",
+        "&gt;" : ">",
+        "&quot;" : "\"",
+        "&apos;" : "'",
+        "&deg;" : '\u00B0',
+        "&percnt;" : "%",
+        "&commat;" : "@"
+    };
+    let newStr = str;
+    let startStr = str;
+    for (const symbol in symbols) {
+      if (startStr.indexOf(symbol) >= 0) {
+        newStr = startStr.replaceAll(symbol, symbols[symbol]);
+        startStr = newStr;
+      }
+    }
+     return newStr;
+  }
+
+  function encodeForHTTP(str) {
+    const symbols = {
+        "%" : "%25",
+        "&" : "%26",
+        "<" : "%30",
+        ">" : "%3E",
+        "?" : "%3F",
+        "@" : "%40",
+        "$" : "%24",
+        "#" : "%23"
+    };
+    let newStr = str;
+    let startStr = str;
+    //console.log("In string: " + str);
+    for (const symbol in symbols) {
+      if (startStr.indexOf(symbol) >= 0) {
+        newStr = startStr.replaceAll(symbol, symbols[symbol]);
+        startStr = newStr; 
+      }
+    }
+     return newStr;
+  }
+
+  function removeUnits( str ) {
+    const units = { 0 : '\u00B0', 1 : "%", 2 : "min", 3 : "msec", 4 : "sec", 5 : "&" };
+    let newStr = str
+    for ( j = 0; j <= 5; j++) {
+        var i = str.indexOf(units[j]);
+      if ( i >= 0 ) {
+        newStr = str.substr(0, i);
+        j = 6;
+      }
+    }
+     return newStr;
+  }
+
+// ----------------------------------------------------------------------------
+// Button handling
+// ----------------------------------------------------------------------------
+
+function setValue( item ) {
+    var itemId = item.id;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', "/getvalue", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.responseType = "json";
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            var jsonResponse = xhr.response;
+            console.log("JSON Response: ", jsonResponse);
+            var itemId = Object.keys(jsonResponse)[0];
+            var inputId = itemId + "I";
+            var selectId = itemId + "S";
+            var value = Object.values(jsonResponse)[0];
+
+            if (document.getElementById(inputId)) {
+                if (document.getElementById(inputId).type == "number")
+                    document.getElementById(inputId).dataset.cdc = value;
+                else
+                    document.getElementById(inputId).dataset.cdc = convertHTML(value);
+            } else if (document.getElementById(selectId)) {
+                document.getElementById(selectId).dataset.cdc = value;
+            } else {
+                console.log("No Input or Select found for: " + itemId);
+            }
+            refreshCount = refreshCount -1;
+
+            if (refreshCount<=0) {
+                refreshCount = 0;
+                initButtons();
+            }
+        }
+    }
+    xhr.send("get=" + itemId);
+    refreshCount = refreshCount + 1;
+}
+
+function refreshData() {
+    //console.log("***Refresh Data***");
+    allcButtons = [...document.getElementsByClassName("cButton")];
+// console.log(allcButtons);
+    allcButtons.forEach( function(element){setValue(element);} );
+}
+
+function sendValue( itemId ) {
+    var inputId = itemId + "I";
+    var selectId = itemId + "S";
+    var value;
+
+    document.getElementById("loader").style.display = "block";
+
+    if (document.getElementById(inputId)) {
+        value = document.getElementById(inputId).value;
+    } else if (document.getElementById(selectId)) {
+        value = document.getElementById(selectId).value;
+    } else {
+        console.log("No Input or Select found for: " + itemId);
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', "/setvalue", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.responseType = "json";
+    xhr.onreadystatechange = () => {
+        // Call a function when the state changes.
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+          refreshData();
+        }
+      };
+    xhr.send(itemId + "=" + encodeForHTTP(value));
+    console.log("Sending: " + itemId + "=" + encodeForHTTP(value));
+    document.getElementById(itemId).disabled = true;
+
+    return;
+}
+
+function setChangeItem( item ) {
+    var itemId = item.id;
+    var inputId = itemId + "I";
+    var selectId = itemId + "S";
+    //console.log(itemId + " - " + inputId );
+    item.disabled = true;
+    //item.onclick = "sendValue(" + itemId + ");";
+
+    if (document.getElementById(inputId)) {
+        var element = document.getElementById(inputId);
+        element.oninput = (event) => { document.getElementById(itemId).disabled = false;
+            document.getElementById(itemId).onclick = function() {sendValue(itemId);};};
+
+        switch (element.type){
+            case "number":
+                element.value = removeUnits(element.dataset.cdc);
+                break;
+            case "text":
+                element.value = element.dataset.cdc;
+                break;
+            case "url":
+                element.value = element.dataset.cdc;
+                break;
+            default:
+                console.log("Bad input type: " + element.type);
+                break;
+        }
+    } else if (document.getElementById(selectId)) {
+        var element = document.getElementById(selectId);
+        element.onchange = (event) => { document.getElementById(itemId).disabled = false; 
+            document.getElementById(itemId).onclick = function() {sendValue(itemId);};};
+;
+        switch (element.dataset.cdc) {
+            case "Automatic":
+            case "Weather Query": 
+            case "Dew Point":
+            case "Open-Meteo":
+                element.value = 0;
+                break;
+            case "Manual":
+            case "External Input":
+            case "Temperature":
+            case "OpenWeather":
+                element.value = 1;
+                break;
+            case "Off":
+            case "Midpoint":
+            case "External Source":
+                element.value = 2;
+                break;
+            default:
+                console.log("Bad Select value: " + element.dataset.cdc);
+                break;
+        }
+
+    } else {
+        console.log("No Input or Select found for: " + itemId);
+        return
+    }
+
+    switch (itemId) {
+        case "DCM":
+            if (document.getElementById("DCMS").value== 1) {
+                document.getElementById("DCO").className = "cButton";
+                document.getElementById("DCOI").disabled = false;
+            } else {
+                document.getElementById("DCO").className = "cButton hidden";
+                document.getElementById("DCOI").disabled = true;
+            }
+            break;
+        case "OMIN":
+            var min = parseInt(document.getElementById("OMINI").value);
+            document.getElementById("DCOI").setAttribute("min", min);
+            document.getElementById("OMAXI").setAttribute("min", min + 1);
+            break;
+        case "OMAX":
+            var max = parseInt(document.getElementById("OMAXI").value);
+            document.getElementById("DCOI").setAttribute("max", max);
+            document.getElementById("OMINI").setAttribute("max", max - 1);
+            break;
+        case "WS":
+            if (document.getElementById("WSS").value == 2) {
+                document.getElementById("ATPQ").className = "cButton";
+                document.getElementById("ATPQI").disabled = false;
+                document.getElementById("HU").className = "cButton";
+                document.getElementById("HUI").disabled = false;
+            } else {
+                document.getElementById("ATPQ").className = "cButton hidden";
+                document.getElementById("ATPQI").disabled = true;
+                document.getElementById("HU").className = "cButton hidden";
+                document.getElementById("HUI").disabled = true;
+            }
+            break;
+        default:
+            break;
+        
+    }
+    
+
+}
+
+function initButtons() {
+    allcButtons = [...document.getElementsByClassName("cButton")];
+// console.log(allcButtons);
+    allcButtons.forEach( function(element){setChangeItem(element);} );
+    document.getElementById("loader").style.display = "none";
+}
+
+function logoutCDC() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/logout", true);
+    xhr.send();
+    setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
+  }

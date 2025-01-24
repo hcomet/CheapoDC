@@ -1,6 +1,6 @@
 ![CheapoDC Logo](images/logo.png)
 
-The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini. Parts required include the ESP32-C3 mini, one or two MOSFET modules, a 12V to 5V buck converter, some protoboard, a couple of RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that controls 2 dew heater straps. Details on how to build the CheapoDC firmware as well as information about the differences between the V2 and V1 firmware may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md). Hardware details can be found in the [Hardware](/README.md#hardware) section of this document.
+The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini. Parts required include the ESP32-C3 mini, one or two MOSFET modules, a 12V to 5V buck converter, some protoboard, a couple of RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that controls 2 dew heater straps. Details on how to build the CheapoDC firmware as well as information about the latest firmware release may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md). Hardware details can be found in the [Hardware](/README.md#hardware) section of this document.
 
 A primary goal was to keep the build simple with minimal components. This is done by leveraging the ESP32 WiFi capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API or the [Open-Meteo](https://open-meteo.com/) API may be used to retrieve ambient temperature, humidity and dew point for the controller's geographic location. This is then used to calculate CheapoDC's power output. No additional components, such as temperature or humidity probes, are required. The responsiveness and aggressiveness of the controller can be adjusted through several configuration settings. CheapoDC works best with internet connectivity to support the weather service queries but it can also be used in a limited way without internet access.
 
@@ -165,7 +165,7 @@ Use of the Open-Meteo API does not require any registration for current weather 
 
 Both services require a location using Latitude and Longitude which you can set using the CheapoDC [Web UI](/README.md#web-ui) or [CHeapoDC API](#cheapodc-api). Both sources will use weather stations close to the provided coordinates. OpenWeather provides the name of the weather station used in its response. Open-Meteo does not. If run side-by-side with the same co-ordinates they provide slightly different results. You may want to check which service provides the best results for your location.
 
-As indicated the default service is Open-Meteo. This is primariy because no registration is required to use the open service.
+As indicated the default service is Open-Meteo. This is primarily because no registration is required to use the open service.
 
 ## Web UI
 
@@ -342,6 +342,6 @@ See the Configuration Files section in [Building and Installing CheapoDC](./Chea
 
 ## [INDI Driver](https://www.indilib.org/aux/cheapodc-dew-controller.html)
 
-An INDI driver is now available in the master branch as of INDI release 2.0.7, April 1, 2024. Details should become available on the [INDI website devices list](https://www.indilib.org/devices.html) as well as the [StellarMate website devices list](https://www.stellarmate.com/devices.html).
+An INDI driver is now available in the master branch as of INDI release 2.0.7, April 1, 2024. Details should become available on the [INDI website devices list](https://www.indilib.org/aux/cheapodc-dew-controller.html) as well as the [StellarMate website devices list](https://www.stellarmate.com/devices.html).
 
 Driver version 1.1 supports the latest versions of the CheapoDC firmware adding support for Weather Device integration.
