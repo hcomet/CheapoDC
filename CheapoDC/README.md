@@ -97,13 +97,7 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
     <u>**NOTE:**</u> Uncomment the ```#define``` to enable.  
     Some API SET commands may auto generate post processing actions such as weather queries or power output updates. These may cause long command transactions. If the API client is making many asynchronous calls to the API and which are long transactions then the AsyncTCP queue can be overwhelmed and prevent the ESP32 watchdog timer from getting enough time causing panic crashes. Enabling this queue will cause the post processing actions to be put in a queue that is processed every `CDC_RUNCMDQUEUE_EVERY` milliseconds (default is 10 msec). For situations where API calls are synchronously called (ie: HTML embedded or the INDI driver) the queue is not needed. Which is why the default is disabled. For situations where asynchronous calls are not limited (ie: the Web Sockets javascript client) then it should be enabled. Enabling Web Sockets will automatically enable the queue.  
 
-      If issues with the ESP32 watchdog timer are seen when making many asynchronous parallel API calls even with the queue enabled then either have the client limit the number of asynchronous API calls executed in parallel or increase the asynchronous queue size in AsyncTCP and AsyncWebSocket:
-
-      * In the AsyncTCP.cpp file in your Arduino Libraries folder:  
-    Change  
-    ```_async_queue = xQueueCreate(32, sizeof(lwip_event_packet_t *));```  
-    to  
-    ```_async_queue = xQueueCreate(64, sizeof(lwip_event_packet_t *));```  
+      If issues with the ESP32 watchdog timer are seen when making many asynchronous parallel API calls or WebSocket calls don't complete even with the queue enabled then either have the client limit the number of asynchronous API calls executed in parallel or increase the AsyncWebSocket queue size:
 
       * In the AsyncWebSocket.h file in your Arduino Libraries folder,  
     Change  

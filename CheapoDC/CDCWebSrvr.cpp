@@ -598,7 +598,7 @@ void setupServers(void) {
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
-    request->send_P(200, "text/html", filelist, processor);
+    request->send(200, "text/html", filelist, processor);
   });
 
   // Assorted special function pages and images
@@ -636,7 +636,7 @@ void setupServers(void) {
     return request->requestAuthentication();
   #endif
     processDelete(request);
-    request->send_P(200, "text/html", filelist, processor);
+    request->send(200, "text/html", filelist, processor);
   });
 
   CDCWebServer->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
