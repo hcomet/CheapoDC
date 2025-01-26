@@ -2,12 +2,12 @@
 
 ## If you are Upgrading from a Previous Release
 
-This note is to highlight the change in partition scheme that was implemented for release v2.1.0. If you are upgrading from a release prior to v2.1.0 then you will need to switch partition schemes as part of the upgrade. Please read the [Partition Scheme](#partition-scheme) section for the reasons for the change.
+This note is to highlight the change in recommended partition scheme implemented for release v2.1.0. If you are upgrading from a release prior to v2.1.0 then you will need to switch partition schemes as part of the upgrade. Please read the [Partition Scheme](#partition-scheme) section for the reasons for the change.
 
 ## Changes in CheapoDC V2
 
 1. V2 contains changes to support new library versions:
-   * ESP32 Arduino Core version 3.1.x support. Core Version 2.x support now deprecated as of CheapoDC v2.1.0.
+   * Arduino core for ESP32 version 3.1.x support. Core Version 2.x support now deprecated as of CheapoDC v2.1.0.
    * Switch to the [ESP32 Asynchronous Networking Organization](https://github.com/ESP32Async) versions of
    ESPAsyncWebServer and AsyncTCP.
    * ArduinoJson version 7. Version 6 should also continue to work but migration to version 7 is encouraged.
@@ -49,17 +49,16 @@ CheapoDC configuration files.
    * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)  
      Version: 7.3.0
    * [ESP Async WebServer by Me-No-Dev](https://github.com/mathieucarbou/ESPAsyncWebServer)  
-     Version: 3.6.0  
-     <u>**Note:**</u> Migrating to [ESP32Async Organization](https://github.com/ESP32Async)
+     Version: 3.6.0 - [ESP32Async Organization](https://github.com/ESP32Async) version
    * [Async TCP by Me-No-Dev](https://github.com/mathieucarbou/AsyncTCP)  
-     Version: 3.3.2  
-     <u>**Note:**</u> Migrating to [ESP32Async Organization](https://github.com/ESP32Async)
+     Version: 3.3.2 - [ESP32Async Organization](https://github.com/ESP32Async) version
    * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
      Version: 1.6.1
 
    <u>**NOTES:**</u>
+   * CheapoDC v2.1.0 has migrated from the [dvarrel](https://github.com/dvarrel) versions of EspAsyncWebServer and AsyncTCP to the [ESP32Async Organization](https://github.com/ESP32Async) versions. ESP32Async Organization looks to be very proactive in maintaining the libraries and also contains members of the Arduino core for ESP32 team helping to keep it in sync. Currently the Arduino Library Manager shows Me-No-Dev as the owner but will likely change to ESP32Async.
    * If you have other versions of the ESPSyncWebServer or AsyncTCP not from the links above they will need to be uninstalled to prevent issues with the build.
-   * If newer versions of a library are available then only use new subversions not new major versions.
+   * In general, if newer versions of a library are available then only use new subversions not new major versions.
 
 5. Download the latest firmware release source code from <https://github.com/hcomet/CheapoDC/releases>  
   <u>**NOTE:**</u> After extracting the release to your file system open the CheapDC.ino file in the Arduino IDE. This will open the full set of source files in the IDE. Now configure the firmware before building it.
@@ -206,7 +205,7 @@ The *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)* partition scheme provides
 2. The initial release of CheapoDC only needed 80% of the application partition space and I felt that future upgrades and fixes wouldn't need a lot more than that.
 3. The other predefined partition schemes didn't provide a good option for larger application size, OTA support and a partition large enough for the LittleFS data CheapoDC needed.
 
-It turns out that I was wrong about the second point. Although I have not added a lot of code to the initial version of CheapoDC the underlying libraries it relies on have changed and expanded in size. A combination of moving to the ESP32 Arduino Core 3.1.x,
+It turns out that I was wrong about the second point. Although I have not added a lot of code to the initial version of CheapoDC the underlying libraries it relies on have changed and expanded in size. A combination of moving to the Arduino core for ESP32 3.1.x,
 Arduino 2.3.x, adopting the ESPAsync Organization version of ESPAsync Web Server plus other new library releases has put the CheapoDC v2.1.0 release at 98.6% of the application space. This is without Debug logging or WebSockets support enabled, which can no longer be enabled.
 
 The only solution is to move to a different partition scheme starting with CheapoDC release v2.1.0. As of v2.1.0 the recommended partition scheme is *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)*. This scheme should hopefully provide plenty of application space going forward. The basic configuration of CheapoDC v2.1.0 takes 62% of the available space. In order to fit in the smaller SPIFFS partition the HTML, CSS and JS files used by CheapoDC have been run through a minimizer and additional compression applied to the PNG images. 
