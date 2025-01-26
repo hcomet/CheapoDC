@@ -219,6 +219,8 @@ CDCSetup::CDCSetup(void)
   {
     LOG_ERROR("CDCSetup", "LittleFS Mount Failed");
     return;
+  } else {
+    LOG_ALERT("CDCSETUP", "LittleFS Mounted. Size: " << LittleFS.totalBytes() << " Used: " << LittleFS.usedBytes());
   }
 
   // Set up WiFi

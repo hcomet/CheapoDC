@@ -1,0 +1,116 @@
+<head><title>File Management</title> <link rel="icon" type="image/png" href="/favicon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="./CDCStyle.css">
+</head><body><div class="wrapper">
+    <header><div class="headerGrid">
+      <hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon>
+      <hTitle class="title">File Management</hTitle>
+        <logoutIcon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logoutIcon>
+    </div>
+    </header> 
+    <main>
+        <h2>File List</h2>
+        <div id="filelist">%TMFL%</div>
+        <hr class="footerThr">
+        <h2>File Upload</h2>
+        <div class="fileUpload">
+            <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+                <input type="file" name="file1" id="file1" multiple/><input type="button" name="upload" id="iupload" value="Upload" title="Upload File" onclick="uploadFile()" disabled/>
+                <h3 id="status">Completed: 0&percnt;</h3> <p id="loaded_n_total"><span id="filename"></span><span id="filesize"></span></p>
+            </form>
+        </div>
+    </main>
+
+    <aside>
+        <div class="locName">%LNM%</div><div class="locCoord">%LAT%, %LON%</div><div class="queryLocName">%WUL%</div>
+        <div class="weatherIcon"><img src="%WICON%"></div><div class="weatherDesc">%WDESC%</div>
+        <div class="wReading"><wReadingTerm>Temperature:</wReadingTerm><wReadingValue>%ATPQ%</wReadingValue></div>
+        <div class="wReading"><wReadingTerm>Dew Point:</wReadingTerm><wReadingValue>%DP%</wReadingValue></div>
+        <div class="wReading"><wReadingTerm>Humidity:</wReadingTerm><wReadingValue>%HU%</wReadingValue></div>
+    </aside>
+<footer>
+    <br/><hr class="footerThr">
+ <button type="button" class="bfooter" onclick="document.location='../dashboard'" >Dashboard</button> 
+ <button type="button" class="bfooter" onclick="document.location='../config'">Configuration</button>
+ <button type="button" class="bfooter" onclick="document.location='../otaIndex'">Device Management</button>
+ <button type="button" class="bfooterDisabled" disabled >File Management</button> <!--onclick="document.location='../listFiles'"--> 
+ <hr class="footerBhr">
+ <div class="atribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
+</footer></div>
+<script>
+document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
+var fileListCount = 0;
+var fileListItem = 0;
+function uploadFile() {
+  const fileList = document.getElementById("file1").files;
+  fileListCount = fileList.length;
+  //console.log("Files uploaded: " + fileListCount);
+  postFileToServer( 0 );
+}
+function postFileToServer(fileIndex) {
+  if (fileIndex <= (fileListCount-1)) {
+    const fileList = document.getElementById("file1").files; 
+    document.getElementById("filename").innerHTML =  fileList[fileIndex].name + ": ";
+    var formdata = new FormData();
+    //console.log("File" + fileIndex + ": " + fileList[fileIndex].name);
+    formdata.append("file1", fileList[fileIndex]);
+    var ajax = new XMLHttpRequest();
+    ajax.upload.addEventListener("progress", progressHandler, false);
+    ajax.addEventListener("load", completeHandler, false);
+    ajax.open("POST", "/upload");
+    ajax.send(formdata);
+  } else {
+    alert("Incorrect file index " + fileIndex + " versus max index " + (fileListCount - 1));
+  }
+}
+function progressHandler(event) {
+  document.getElementById("filesize").innerHTML =  event.loaded + " bytes";
+  var percent = (event.loaded / event.total) * 100;
+  document.getElementById("status").innerHTML = "Completed: " + Math.round(percent) + "&percnt;";
+  if (percent >= 100) {
+    document.getElementById("status").innerHTML = "Completed: 100%";
+  }
+}
+function completeHandler(event) {
+  if (fileListItem < (fileListCount - 1) ) {
+    fileListItem += 1;
+    document.getElementById("status").innerHTML = "Files Uploaded: " + (fileListItem + 1) + " of " + fileListCount;
+    postFileToServer(fileListItem);
+  } else {
+    document.getElementById("status").innerHTML = "Upload Complete";
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("filelist").innerHTML = xmlhttp.responseText;
+      }
+    }
+    xmlhttp.open("GET", "/filelist", true);
+    xmlhttp.send();
+    document.getElementById("status").innerHTML = "Files Uploaded: " + (fileListItem + 1);
+    document.getElementById("file1").outerHTML = "<input type=\"file\" name=\"file1\" id=\"file1\" multiple/>";
+    document.getElementById('iupload').disabled = true;
+    document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
+    fileListCount = 0;
+    fileListItem = 0;
+  }
+}
+
+function deleteFile(filename) {
+    if (confirm("Confirm file delete for: " + filename)) {
+        xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("filelist").innerHTML = xmlhttp.responseText;
+            }
+        } 
+        xmlhttp.open("GET", "/delete?file=" + filename, true);
+        xmlhttp.send();
+    }
+}
+function logoutCDC() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/logout", true);
+  xhr.send();
+  setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
+}
+</script></body>

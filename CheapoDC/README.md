@@ -1,9 +1,15 @@
 # Building and installing CheapoDC
 
+## If you are Upgrading from a Previous Release
+
+This note is to highlight the change in recommended partition scheme implemented for release v2.1.0. If you are upgrading from a release prior to v2.1.0 then you will need to switch partition schemes as part of the upgrade. Please read the [Partition Scheme](#partition-scheme) section for the reasons for the change.
+
 ## Changes in CheapoDC V2
 
 1. V2 contains changes to support new library versions:
-   * ESP32 Arduino core version 3.x now supported. Version 2.x should also continue to work but migration to version 3.x is encouraged.
+   * Arduino core for ESP32 version 3.1.x support. Core Version 2.x support now deprecated as of CheapoDC v2.1.0.
+   * Switch to the [ESP32 Asynchronous Networking Organization](https://github.com/ESP32Async) versions of
+   ESPAsyncWebServer and AsyncTCP.
    * ArduinoJson version 7. Version 6 should also continue to work but migration to version 7 is encouraged.
 2. The following libraries are no longer required:
    * EasyLogger - a fixed copy of this library is included in the CheapoDC source to remove a macro definition conflict with ArduinoJSON.
@@ -21,40 +27,46 @@
    * The Weather API URL (***`WAPI`***) API command no longer supports a SET capability.
    * The Weather Icon URL (***`WIURL`***) API command no longer supports a SET capability.
    * The Cloud Coverage (***`CLC`***) API command has been deprecated.
-6. CheapoDC V2 will automatically upgrade the CDCConfig.json on your CheapoDC device when the new firmware version is installed. Previous configuration settings will be maintained. Follow the [V1 to V2 Upgrade Steps](#v1-to-v2-upgrade-steps) below to preserve your
+6. CheapoDC V2 will automatically upgrade the CDCConfig.json on your CheapoDC device when the new firmware version is installed. Previous configuration settings will be maintained. Follow the [Upgrade Steps](#upgrading-to-v21x) below to preserve your
 CheapoDC configuration files.
-7. See the CheapoDC V2 release notes for any other changes.
+7. Change in ESP32 Partition Scheme required for CheapoDC V2.1.x. See [Partition Scheme](#partition-scheme) for details.
+8. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
 
-## Set Up Your Build Environment
+## Setting Up Your Build Environment
 
 1. Install the Arduino IDE.  
-  <u>**NOTE:**</u> Builds have been verified on both the 2.3.3 and 1.8.19 versions of the Arduino IDE. Use of the latest 2.x version of the IDE is preferred.
+  <u>**NOTE:**</u> Version 2.3.4 of the Arduino IDE is a very stable release. As of CheapoDC v2.1.0 verification of
+  builds will only be done on IDE version 2.3.4 or newer.
 2. Add support for ESP32 modules using the Boards Manager in the Arduino IDE.  
   <u>**IMPORTANT:**</u>
-    * Install the boards plugin for ESP32 from Espressif Systems version 3.x. Version 2.x should also work but upgrading to 3.x is encouraged.  
-    <u>**NOTE:**</u> There have been issues reported with ESPAsyncWebServer and ESP Arduino Core 3.1.X. For now do not upgrade past 3.0.7 until resolved.
+    * Install the boards plugin for ESP32 from Espressif Systems version 3.1.x (Arduino core for the ESP32). CheapoDC verification has been done with version 3.1.1.
     * CheapoDC is intended for use on ESP32 devices. The current version has been verified on an ESP32-C3 Supermini board and an ESP32-S3 mini board.
 3. Install the ESP32 Sketch data uploader with support for LittleFS. The CheapoDC uses the LittleFS file system for configuration files and web pages uploaded from the ***CheapoDC/data*** folder. If the data is uploaded using any other file system format, such as SPIFFS, the CheapoDC firmware will not run properly.  
-<u>**NOTE:**</u> The following links provide information on how to install a data uploader plugin with LittleFS support for:
-    * Arduino IDE 1.8.x: https://randomnerdtutorials.com/esp32-littlefs-arduino-ide/
-    * Arduino IDE 2.3.2: https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/
+<u>**NOTE:**</u> The following link provides information on how to install a data uploader plugin with LittleFS support:
+    * Arduino IDE 2.3.2+: https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/
 
 4. Install the following libraries if not already installed:
    * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)  
-     Version: 7.2.0
-   * [ESPAsyncWebSrv by dvarrel](https://github.com/dvarrel/ESPAsyncWebSrv)  
-     Version: 1.2.8
-   * [AsyncTCP by dvarrel](https://github.com/dvarrel/AsyncTCP)  
-     Version: 1.1.4
+     Version: 7.3.0
+   * [ESP Async WebServer by Me-No-Dev](https://github.com/mathieucarbou/ESPAsyncWebServer)  
+     Version: 3.6.0 - [ESP32Async Organization](https://github.com/ESP32Async) version
+   * [Async TCP by Me-No-Dev](https://github.com/mathieucarbou/AsyncTCP)  
+     Version: 3.3.2 - [ESP32Async Organization](https://github.com/ESP32Async) version
    * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
      Version: 1.6.1
 
    <u>**NOTES:**</u>
-   * If newer versions of a library are available then only use new subversions not new major versions.
+   * CheapoDC v2.1.0 has migrated from the [dvarrel](https://github.com/dvarrel) versions of EspAsyncWebServer and AsyncTCP to the [ESP32Async Organization](https://github.com/ESP32Async) versions. ESP32Async Organization looks to be very proactive in maintaining the libraries and also contains members of the Arduino core for ESP32 team helping to keep it in sync. Currently the Arduino Library Manager shows Me-No-Dev as the owner but will likely change to ESP32Async.
+   * If you have other versions of the ESPSyncWebServer or AsyncTCP not from the links above they will need to be uninstalled to prevent issues with the build.
+   * In general, if newer versions of a library are available then only use new subversions not new major versions.
 
-5. Download the latest firmware release from <https://github.com/hcomet/CheapoDC/releases>  
+5. Download the latest firmware release source code from <https://github.com/hcomet/CheapoDC/releases>  
   <u>**NOTE:**</u> After extracting the release to your file system open the CheapDC.ino file in the Arduino IDE. This will open the full set of source files in the IDE. Now configure the firmware before building it.
-  
+
+### IDE Tips:
+* Many ESP32-C3 board (Dev Module, mini, super mini, micro etc..) configurations have *USB CDC On BOOT:* ***"Disabled"***. This needs to be ***"ENABLED"*** or the Serial Monitor will not work.
+* CheapoDC uses *115200 baud* for the Serial Monitor Connection. Leave the default baud rate for the upload.
+* Its good practice to set *Erase All Flash Before Sketch Upload:* ***"Enabled"*** the first time you upload a new project to an ESP32. After that, make sure its set to ***"Disabled"*** to preserve the LittleFS partition content between uploads.
 ## Configure Firmware in the CDCdefines.h file
 
 Edit the ***CDCdefines.h*** file to configure/customize the firmware before building:
@@ -84,13 +96,7 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
     <u>**NOTE:**</u> Uncomment the ```#define``` to enable.  
     Some API SET commands may auto generate post processing actions such as weather queries or power output updates. These may cause long command transactions. If the API client is making many asynchronous calls to the API and which are long transactions then the AsyncTCP queue can be overwhelmed and prevent the ESP32 watchdog timer from getting enough time causing panic crashes. Enabling this queue will cause the post processing actions to be put in a queue that is processed every `CDC_RUNCMDQUEUE_EVERY` milliseconds (default is 10 msec). For situations where API calls are synchronously called (ie: HTML embedded or the INDI driver) the queue is not needed. Which is why the default is disabled. For situations where asynchronous calls are not limited (ie: the Web Sockets javascript client) then it should be enabled. Enabling Web Sockets will automatically enable the queue.  
 
-      If issues with the ESP32 watchdog timer are seen when making many asynchronous parallel API calls even with the queue enabled then either have the client limit the number of asynchronous API calls executed in parallel or increase the asynchronous queue size in AsyncTCP and AsyncWebSocket:
-
-      * In the AsyncTCP.cpp file in your Arduino Libraries folder:  
-    Change  
-    ```_async_queue = xQueueCreate(32, sizeof(lwip_event_packet_t *));```  
-    to  
-    ```_async_queue = xQueueCreate(64, sizeof(lwip_event_packet_t *));```  
+      If issues with the ESP32 watchdog timer are seen when making many asynchronous parallel API calls or WebSocket calls don't complete even with the queue enabled then either have the client limit the number of asynchronous API calls executed in parallel or increase the AsyncWebSocket queue size:
 
       * In the AsyncWebSocket.h file in your Arduino Libraries folder,  
     Change  
@@ -117,44 +123,41 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
   9. The hostname for the CheapoDC may also be changed. This is really only needed if you have multiple CheapoDC controllers on the same network.  Its recommended that this be done in the ***CDCWiFi.json*** file to allow a single firmware image to be used across multiple CheapoDC controllers. To change the hostname in the ***CDCdefines.h*** file:
      * Change the host name. ***DEFAULT: cheapodc***.  
        ```#define CDC_DEFAULT_HOSTNAME "cheapodc"```
-  10. Do not modify any of the ```#define``` values below the line the says ```DO NOT change anything below here```. The Weather Source and OpenWeather API key should be set or changed through the [Web UI](../README.md#web-ui) not in the ***CDCdefines.h*** file.  
+  10. Do not modify any of the ```#define``` values below the line  ```DO NOT change anything below here```. The Weather Source and OpenWeather API key should be set or changed through the [Web UI](../README.md#web-ui) not in the ***CDCdefines.h*** file.  
       <u>**IMPORTANT:**</u>
       * **DO NOT** modify the URLs for API or Icon calls.
 
 ## Build and Run
 
-### V1 to V2 Upgrade Steps
+### Upgrading to V2.1.x
+
+Since v2.1.0 requires a change in the [Partition Scheme](#partition-scheme) upgrades must be done using a USB connection to the device.
 
 #### Upgrade using USB Connected Device
 
-1. Preserve your current CheapoDC configuration and WiFi settings by downloading the CDCConfig.json and CDCWiFi.json files
-from your V1 CDC. This can be done using the Web UI from the [File Management](../README.md#cheapodc-file-management) page.
-Place both files in the CheapoDC/data folder.
-2. Build and upload the new firmware to your V1 device.
+1. Preserve your current CheapoDC configuration and WiFi settings by first downloading the CDCConfig.json and CDCWiFi.json files
+from your CheapoDC. This can be done using the Web UI from the [File Management](../README.md#cheapodc-file-management) page.
+Place both files in the sketch data folder: *CheapoDC/data*.
+2. Build and upload the new firmware to your device.
+   * Make sure to set *Erase All Flash Before Sketch Upload:* ***"Enabled"***  
+   <u>**NOTE:**</u> Make sure to reset this to **"Disabled"** once you are done with the upgrade or the LittleFS partition will be erased with each 
+   firmware upload and you will need upload your sketch data every time.
+   * Make sure to have selected the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme.
 3. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool as indicated step 2. of the
 build steps below.
-4. Your V1 to V2 upgrade should now be complete.
+4. Your V2.1.xQueueCreate upgrade should now be complete.
 
 #### Upgrade using Web OTA Firmware Update
 
-1. After configuring your Arduino IDE use **Sketch->Export Compiled Binary** to build the CheapoDC firmware. A succesful build will create a binary image that should be in a *build* folder created in the *CheapoDC* firmware source code folder. In the *build* folder there should be a subfolder with a name based on the board name ie: *esp32.esp32.lolin_c3_mini*. The firmware image will be in that subfolder and have the name *CheapoDC.ino.bin*.  
-<u>***IMPORTANT***:</u> Make sure your `Board` is set properly. Using Web OTA to upload a incompatible binary image may cause the CheapoDC to become nonresponsive. Recovery may require clearing the flash and using the USB upload method.
-2. Power up your CheapoDC then use a browser to connect to it with the Web UI. Go to the [Device Management](../README.md#cheapodc-device-management) page. Under `Web OTA Firmware Update` use `Choose File` to browse to and select the binary generated in step 1. Click `Update` to upload and install the new firmware.
-3. Any existing *CDCConfig.json* file on the device will be automatically upgraded. However there are several other files that have changed in the V2 firmware and they need to be uploaded using the Web UI [File Management](../README.md#cheapodc-file-management) page. Use `File Upload` to individually upload the following files from the *data* folder in your *CheapoDC* source code folder:
-   * *CDCjs.js*
-   * *CDCws.js*
-   * *CDCStyle.css*
-   * *config.html*
-   * *configws.html*
-   * *dashboard.html*
-   * *otaindex.html*
-   * *listfiles.html*
-4. Your V1 to V2 upgrade should now be complete.
+Due to the change in [Partition Scheme](#partition-scheme) in v2.1.0, upgrades from releases prior to v2.1.0 cannot be done using an OTA firmware upgrade.
 
 ### New Device Build Steps
 
 1. After configuring values in the CDCdefines.h, using the Arduino IDE build and upload the firmware to your ESP32.
-2. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool. Please READMEthe following point before uploading the data files.
+   * Make sure to have selected the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme.  
+   <u>**NOTE:**</u> If the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme is not listed as one of the partition schemes available for your selected ESP32-C3 board type you will need to slect a different board type. Often the AliExpress type boards generally only list a minimal set of partition schemes. If you do not see the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* in the list of available partition schemes for your board the best recommendation is to select a Dev Module board in the Arduino IDE. For the ESP32-C3 that would be the *ESP32C3 Dev Module*.
+
+2. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool. Please READ the following points before uploading the data files.
     * **LittleFS file system formatting MUST be used for the data upload.**
     * these files are needed for the Web UI as well as configuration of the CheapoDC.
     * Modify the CDCWiFi.json file ([see below](#cdcwifijson)) to configure CheapoDC to access your wireless network.
@@ -190,4 +193,32 @@ If no ***CDCWiFi.json*** file is found then the values for WiFi configuration wi
 
 This file is used to save the dew controller configuration between power cycles. If the file is not present then the values defined in the ***CDCdefines.h*** file (the firmware defaults) will be used. The CheapoDC checks for changes to the controller's configuration every 10 seconds and if a change is detected then the full ***CDCdefines.h*** file will be written to the LittleFS file system on the controller.
 
-Controller configuration may be modified via the [Web UI](../README.md/#web-ui) or the [CheapoDC API](../README.md/#cheapodc-api). The [CheapoDC commands](../README.md/#cheapodc-commands) which support a ***Setter*** function also represent the values stored in the ***CDCConfig.json*** file. 
+Controller configuration may be modified via the [Web UI](../README.md/#web-ui) or the [CheapoDC API](../README.md/#cheapodc-api). The [CheapoDC commands](../README.md/#cheapodc-commands) which support a ***Setter*** function also represent the values stored in the ***CDCConfig.json*** file.
+
+## Partition Scheme
+
+The ESP32 Partition Scheme is a term used by the Arduino IDE to select a partition table that defines the flash memory organization and the different kinds of data that will be stored in each partition. The ESP32-C3, which this project uses, generally has 4MB of flash memory with the default partition scheme of *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)*.
+
+The *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)* partition scheme provides two application partitions of 1.2MB to support OTA updates plus a 1.5MB SPIFFS partition used for LittleFS file storage. I selected this as the recommended partition scheme for the initial releases of CheapoDC because:
+
+1. Being a default scheme, it was available for all ESP32-C3 board types.
+2. The initial release of CheapoDC only needed 80% of the application partition space and I felt that future upgrades and fixes wouldn't need a lot more than that.
+3. The other predefined partition schemes didn't provide a good option for larger application size, OTA support and a partition large enough for the LittleFS data CheapoDC needed.
+
+It turns out that I was wrong about the second point. Although I have not added a lot of code to the initial version of CheapoDC the underlying libraries it relies on have changed and expanded in size. A combination of moving to the Arduino core for ESP32 3.1.x,
+Arduino 2.3.x, adopting the ESPAsync Organization version of ESPAsync Web Server plus other new library releases has put the CheapoDC v2.1.0 release at 98.6% of the application space. This is without Debug logging or WebSockets support enabled, which can no longer be enabled.
+
+The only solution is to move to a different partition scheme starting with CheapoDC release v2.1.0. As of v2.1.0 the recommended partition scheme is *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)*. This scheme should hopefully provide plenty of application space going forward. The basic configuration of CheapoDC v2.1.0 takes 62% of the available space. In order to fit in the smaller SPIFFS partition the HTML, CSS and JS files used by CheapoDC have been run through a minimizer and additional compression applied to the PNG images. 
+
+
+### Impact of the change in Partition Scheme
+
+If this is your first time building the CheapoDC then you are not affected. The [new device build instructions](#new-device-build-steps) still apply.
+
+If you are upgrading to v2.1.x from a release prior to v2.1.0 then you are affected. Read and follow the [Upgrading to v2.1.x](#upgrading-to-v21x) instructions.
+
+
+
+
+
+

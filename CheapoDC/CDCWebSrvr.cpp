@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 #include <AsyncTCP.h>
-#include "ESPAsyncWebSrv.h"
+#include <ESPAsyncWebServer.h>
 #include <Update.h>
 #include "FS.h"
 #include <LittleFS.h>
@@ -119,9 +119,8 @@ void handleDoFileUpload(AsyncWebServerRequest *request, const String& filename, 
   file.close();
 
   if (final) {
-    AsyncWebServerResponse *response = request->beginResponse(302, "text/plain", "Please wait while the device reboots");
-    response->addHeader("Refresh", "20");  
-    response->addHeader("Location", "/");
+    AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
+    response->addHeader("Server", "ESP Async Web Server");
     request->send(response);
 
     LOG_DEBUG("handleDoFileUpload","End file." );
@@ -132,21 +131,17 @@ void handleDoFileUpload(AsyncWebServerRequest *request, const String& filename, 
 
 // File download processor
 void processDownload(AsyncWebServerRequest *request ) {
-  AsyncWebParameter* p = request->getParam("file");
-  File file = LittleFS.open(p->value().c_str(), FILE_READ);
+  const AsyncWebParameter* p = request->getParam("file");
 
   LOG_DEBUG("processDownload", "p.name: " << p->name().c_str());
   LOG_DEBUG("processDownload", "p.value: " << p->value().c_str());
-
-  request->send(file, p->value().c_str(), String(), true);
-
-  file.close();
+  request->send(LittleFS, p->value().c_str(), String(), true);
   
 }
 
 // File deletion processor
 void processDelete(AsyncWebServerRequest *request ) {
-  AsyncWebParameter* p = request->getParam("file");
+  const AsyncWebParameter* p = request->getParam("file");
 
   LOG_DEBUG("processDelete", "p.name: " << p->name().c_str());
   LOG_DEBUG("processDelete", "p.value: " << p->value().c_str());
@@ -516,9 +511,6 @@ void setupServers(void) {
   CDCTCPServer->onClient(&handleTCPClient, CDCTCPServer);
   CDCTCPServer->begin();
   
-   #ifdef CDC_ENABLE_WEB_SOCKETS
-  #endif
-
   // Webserver Handlers
   CDCWebServer->on("/CDCStyle.css", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(LittleFS, "/CDCStyle.css", "text/css");
@@ -561,7 +553,7 @@ void setupServers(void) {
 
   #endif
 
-  // non-webseocket javascript can always be served
+  // non-websocket javascript can always be served
   CDCWebServer->on("/CDCjs.js", HTTP_GET, [](AsyncWebServerRequest *request) {
    request->send(LittleFS, "/CDCjs.js", "text/javascript");
   });
@@ -606,7 +598,7 @@ void setupServers(void) {
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
-    request->send_P(200, "text/html", filelist, processor);
+    request->send(200, "text/html", filelist, processor);
   });
 
   // Assorted special function pages and images
@@ -636,7 +628,6 @@ void setupServers(void) {
     return request->requestAuthentication();
   #endif
     processDownload(request);
-    request->send(LittleFS, "/listfiles.html", String(), false, processor);
   });
 
   CDCWebServer->on("/delete", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -645,7 +636,7 @@ void setupServers(void) {
     return request->requestAuthentication();
   #endif
     processDelete(request);
-    request->send_P(200, "text/html", filelist, processor);
+    request->send(200, "text/html", filelist, processor);
   });
 
   CDCWebServer->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
