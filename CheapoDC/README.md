@@ -131,7 +131,9 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
 
 ### Upgrading to V2.1.x
 
-Since v2.1.0 requires a change in the [Partition Scheme](#partition-scheme) upgrades must be done using a USB connection to the device.
+Since v2.1.0 requires a change in the [Partition Scheme](#partition-scheme) upgrades must be done using a USB connection to the device. 
+
+New versions of ESPAsyncWebServer and AsyncTCP libraries are also required for Arduino core of ESP32 version 3.1.x. Please read the [Setting Up Your Build Environment](#setting-up-your-build-environment) section to make sure you have the correct libraries installed in the Arduino IDE. Be sure to have only one version of the AsyncTCP library installed.
 
 #### Upgrade using USB Connected Device
 
