@@ -191,6 +191,12 @@ String processor(const String &var) {
     case CDC_CMD_DCTM:
     case CDC_CMD_SPM: 
     case CDC_CMD_WS:
+    case CDC_CMD_CPM0:
+    case CDC_CMD_CPM1:
+    case CDC_CMD_CPM2:
+    case CDC_CMD_CPM3:
+    case CDC_CMD_CPM4:
+    case CDC_CMD_CPM5:
     {
 #if ARDUINOJSON_VERSION_MAJOR>=7
       JsonDocument doc;

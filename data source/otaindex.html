@@ -1,6 +1,21 @@
+<!DOCTYPE html>
+<html>
 <head><title>Device Management</title> <link rel="icon" type="image/png" href="/favicon.png">
    <link rel="stylesheet" href="./CDCStyle.css">
-</head><body><div class="wrapper">
+   <style>
+      .configline {
+         grid-template-columns: 2fr 3fr 1fr;
+         grid-template-areas: "configItem  configValue configAction"; 
+         border: none;
+      }
+      h3 {
+         margin-top: 10px;
+         margin-bottom: 2px;
+      }
+   </style>
+</head><body>
+   <div id="loader"></div>
+   <div class="wrapper">
    <header><div class="headerGrid">
       <hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon>
       <hTitle class="title">Device Management</hTitle>
@@ -8,6 +23,130 @@
   </div>
   </header>
    <main>
+      <h2>Controller Pin Configuration</h2>
+      <h3>Controller Pin 0</h3>
+      <div class="configline">
+         <configItem>GPIO:</configItem><configValue><div class="cReading"><input type="number" name="CPP0" step="1" min="-1" max="39" class="cInput"
+            id="CPP0I" data-cdc="%CPP0%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPP0" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Pin Mode:</configItem><configValue><div class="cReading"><select name="CPM0" id="CPM0S" data-cdc="%CPM0%">
+            <option id="Disabled" value="0">Disabled</option>
+            <option id="Controller" value="1">Controller</option>
+            </select>
+            </div></configValue>
+            <configAction><button type="button" class="cButton" id="CPM0" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Output:</configItem><configValue><div class="cReading"><input type="number" name="CPO0" disabled class="cInput"
+            id="CPO0I" data-cdc="%CPO0%" /></div></configValue>
+            <configAction><button type="button fn" class="cButton hidden" id="CPO0" disabled>Update</button></configAction>
+      </div>
+      <h3>Controller Pin 1</h3>
+      <div class="configline">
+         <configItem>GPIO:</configItem><configValue><div class="cReading"><input type="number" name="CPP1" step="1" min="-1" max="39" class="cInput"
+            id="CPP1I" data-cdc="%CPP1%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPP1" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Pin Mode:</configItem><configValue><div class="cReading"><select name="CPM1" id="CPM1S" data-cdc="%CPM1%">
+            <option id="Disabled" value="0">Disabled</option>
+            <option id="Controller" value="1">Controller</option>
+            </select>
+            </div></configValue>
+            <configAction><button type="button" class="cButton" id="CPM1" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Output:</configItem><configValue><div class="cReading"><input type="number" disabled class="cInput"
+            id="CPO1I" data-cdc="%CPO1%" /></div></configValue>
+            <configAction><button type="button fn" class="cButton hidden" id="CPO1" disabled>Update</button></configAction>
+      </div>
+      <h3>Controller Pin 2</h3>
+      <div class="configline">
+         <configItem>GPIO:</configItem><configValue><div class="cReading"><input type="number" name="CPP2" step="1" min="-1" max="39" class="cInput"
+            id="CPP2I" data-cdc="%CPP2%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPP2" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Pin Mode:</configItem><configValue><div class="cReading"><select name="CPM2" id="CPM2S" data-cdc="%CPM2%">
+            <option id="Disabled" value="0">Disabled</option>
+            <option id="Controller" value="1">Controller</option>
+            <option id="PWM" value="2">PWM</option>
+            <option id="Boolean" value="3">Boolean</option>
+            </select>
+            </div></configValue>
+            <configAction><button type="button" class="cButton" id="CPM2" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Output:</configItem><configValue><div class="cReading"><input type="number" name="CPO2" step="1" min="0" max="100" class="cInput"
+            id="CPO2I" data-cdc="%CPO2%" /></div></configValue>
+            <configAction><button type="button fn" class="cButton" id="CPO2" disabled>Update</button></configAction>
+      </div>
+      <h3>Controller Pin 3</h3>
+      <div class="configline">
+         <configItem>GPIO:</configItem><configValue><div class="cReading"><input type="number" name="CPP3" step="1" min="-1" max="39" class="cInput"
+            id="CPP3I" data-cdc="%CPP3%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPP3" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Pin Mode:</configItem><configValue><div class="cReading"><select name="CPM3" id="CPM3S" data-cdc="%CPM3%">
+            <option id="Disabled" value="0">Disabled</option>
+            <option id="Controller" value="1">Controller</option>
+            <option id="PWM" value="2">PWM</option>
+            <option id="Boolean" value="3">Boolean</option>
+            </select>
+            </div></configValue>
+            <configAction><button type="button" class="cButton" id="CPM3" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Output:</configItem><configValue><div class="cReading"><input type="number" name="CPO3" step="1" min="0" max="100" class="cInput"
+            id="CPO3I" data-cdc="%CPO3%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPO3" disabled>Update</button></configAction>
+      </div>
+      <h3>Controller Pin 4</h3>
+      <div class="configline">
+         <configItem>GPIO:</configItem><configValue><div class="cReading"><input type="number" name="CPP4" step="1" min="-1" max="39" class="cInput"
+            id="CPP4I" data-cdc="%CPP4%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPP4" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Pin Mode:</configItem><configValue><div class="cReading"><select name="CPM4" id="CPM4S" data-cdc="%CPM4%">
+            <option id="Disabled" value="0">Disabled</option>
+            <option id="Controller" value="1">Controller</option>
+            <option id="PWM" value="2">PWM</option>
+            <option id="Boolean" value="3">Boolean</option>
+            </select>
+            </div></configValue>
+            <configAction><button type="button" class="cButton" id="CPM4" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Output:</configItem><configValue><div class="cReading"><input type="number" name="CPO4" step="1" min="0" max="100" class="cInput"
+            id="CPO4I" data-cdc="%CPO4%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPO4" disabled>Update</button></configAction>
+      </div>
+      <h3>Controller Pin 5</h3>
+      <div class="configline">
+         <configItem>GPIO:</configItem><configValue><div class="cReading"><input type="number" name="CPP5" step="1" min="-1" max="39" class="cInput"
+            id="CPP5I" data-cdc="%CPP5%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPP5" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Pin Mode:</configItem><configValue><div class="cReading"><select name="CPM5" id="CPM5S" data-cdc="%CPM5%">
+            <option id="Disabled" value="0">Disabled</option>
+            <option id="Controller" value="1">Controller</option>
+            <option id="PWM" value="2">PWM</option>
+            <option id="Boolean" value="3">Boolean</option>
+            </select>
+            </div></configValue>
+            <configAction><button type="button" class="cButton" id="CPM5" disabled>Update</button></configAction>
+      </div>
+      <div class="configline">
+         <configItem>Output:</configItem><configValue><div class="cReading"><input type="number" name="CPO5" step="1" min="0" max="100" class="cInput"
+            id="CPO5I" data-cdc="%CPO5%" /></div></configValue>
+            <configAction><button type="button" class="cButton" id="CPO5" disabled>Update</button></configAction>
+      </div>
+      <hr class="footerThr">
    <h2>Web OTA Firmware Update</h2>
    <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
       <input type="file" name="file1" id="file1" value="Choose FW" /><input type="button" name="upload"  id="iupload" value="Update" title="Upload File" onclick="uploadFile()" disabled/>
@@ -71,4 +210,6 @@ function logoutCDC() {
   xhr.send();
   setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
 }
- </script></body>
+ </script>
+ <script src="CDCjs.js"></script></body>
+</html>

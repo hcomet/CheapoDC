@@ -19,12 +19,12 @@
 #include <Arduino.h>
 
 // *************************************************************************************
-// ESP32 C3 Board configuration
+// ESP32 C3 Board configuration defaults
 // *************************************************************************************
-#define CDC_ENABLE_PWM_OUTPUT // comment out to disable output pins (mainly for debugging)
-#define CDC_PWM_OUTPUT_PIN1 0  // set first Output Pin
-#define CDC_PWM_OUTPUT_PIN2 1  // set second Output Pin or comment out to disable
-#define CDC_PWM_CHANNEL 0      // Currently both output Pin 1 an 2 share a channel
+#define CDC_DEFAULT_CONTROLLER_PIN0 0  // set first Controller pin default
+#define CDC_DEFAULT_CONTROLLER_PIN1 1  // set second Controller pin default
+#define CDC_CONTROLLER_PWM_CHANNEL 0      // The PWM Channel used for Dew Controller managed Pins (Don't change)
+#define CONTROLLER_PIN_NOT_CONFIGURED -1  // Used to indicate that a pin has not been configured
 
 // *************************************************************************************
 // Builtin LED or other pin to use for Status LED.
@@ -232,7 +232,26 @@
 #define CDC_CMD_WIFI 42  // WIFI mode AP (Access Point) or STA (Station Mode)
 #define CDC_CMD_IP 43    // IP Address
 #define CDC_CMD_HN 44    // Host name
-#define CDC_CMD_WQEN 45  // Weather Query Enabled (false = 0, true = 1) 
+#define CDC_CMD_WQEN 45  // Weather Query Enabled (false = 0, true = 1)
+#define CDC_CMD_CPP0 46  // Controller Pin 0 to Pin mapping
+#define CDC_CMD_CPP1 47  // Controller Pin 1 to Pin mapping
+#define CDC_CMD_CPP2 48  // Controller Pin 2 to Pin mapping
+#define CDC_CMD_CPP3 49  // Controller Pin 3 to Pin mapping
+#define CDC_CMD_CPP4 50  // Controller Pin 4 to Pin mapping
+#define CDC_CMD_CPP5 51  // Controller Pin 5 to Pin mapping
+#define CDC_CMD_CPM0 52  // Controller Pin 0 Mode (0 = Disabled, 1 = Controller) - GET only
+#define CDC_CMD_CPM1 53  // Controller Pin 1 Mode (0 = Disabled, 1 = Controller) - GET only
+#define CDC_CMD_CPM2 54  // Controller Pin 2 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPM3 55  // Controller Pin 3 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPM4 56  // Controller Pin 4 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPM5 57  // Controller Pin 5 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPO0 58  // Controller Output Pin 0 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO1 59  // Controller Output Pin 1 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO2 60  // Controller Output Pin 2 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO3 61   // Controller Output Pin 3 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO4 62   // Controller Output Pin 4 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO5 63   // Controller Output Pin 5 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_GCPI 64   // Get Controller pin Info (Returns all Controller pins 1 to 6)
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625

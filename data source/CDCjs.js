@@ -89,7 +89,7 @@ function setValue( item ) {
     xhr.onreadystatechange = () => {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
             var jsonResponse = xhr.response;
-            console.log("JSON Response: ", jsonResponse);
+            // console.log("JSON Response: ", jsonResponse);
             var itemId = Object.keys(jsonResponse)[0];
             var inputId = itemId + "I";
             var selectId = itemId + "S";
@@ -151,7 +151,7 @@ function sendValue( itemId ) {
         }
       };
     xhr.send(itemId + "=" + encodeForHTTP(value));
-    console.log("Sending: " + itemId + "=" + encodeForHTTP(value));
+    // console.log("Sending: " + itemId + "=" + encodeForHTTP(value));
     document.getElementById(itemId).disabled = true;
 
     return;
@@ -161,7 +161,7 @@ function setChangeItem( item ) {
     var itemId = item.id;
     var inputId = itemId + "I";
     var selectId = itemId + "S";
-    //console.log(itemId + " - " + inputId );
+    // console.log(itemId + " - " + inputId );
     item.disabled = true;
     //item.onclick = "sendValue(" + itemId + ");";
 
@@ -169,7 +169,7 @@ function setChangeItem( item ) {
         var element = document.getElementById(inputId);
         element.oninput = (event) => { document.getElementById(itemId).disabled = false;
             document.getElementById(itemId).onclick = function() {sendValue(itemId);};};
-
+        // console.log("Found inputID: " + inputId + " type: " + element.type);
         switch (element.type){
             case "number":
                 element.value = removeUnits(element.dataset.cdc);
@@ -194,18 +194,24 @@ function setChangeItem( item ) {
             case "Weather Query": 
             case "Dew Point":
             case "Open-Meteo":
+            case "Disabled":
                 element.value = 0;
                 break;
             case "Manual":
             case "External Input":
             case "Temperature":
             case "OpenWeather":
+            case "Controller":
                 element.value = 1;
                 break;
             case "Off":
             case "Midpoint":
             case "External Source":
+            case "PWM":
                 element.value = 2;
+                break;
+            case "Boolean":
+                element.value = 3;
                 break;
             default:
                 console.log("Bad Select value: " + element.dataset.cdc);
@@ -249,6 +255,49 @@ function setChangeItem( item ) {
                 document.getElementById("HU").className = "cButton hidden";
                 document.getElementById("HUI").disabled = true;
             }
+            break;
+        case "CPP0":
+        case "CPP1":
+        case "CPP2":
+        case "CPP3":
+        case "CPP4":
+        case "CPP5":
+            var pin = itemId.substr(3, 1);
+            if (document.getElementById(inputId).value == -1) {
+                document.getElementById("CPM"+pin).className = "cButton hidden";
+                document.getElementById("CPM"+pin+"S").disabled = true;
+            } else {
+                document.getElementById("CPM"+pin).className = "cButton";
+                document.getElementById("CPM"+pin+"S").disabled = false;
+            }
+            break;
+        case "CPM0":
+        case "CPM1":
+        case "CPM2":
+        case "CPM3":
+        case "CPM4":
+        case "CPM5":
+            var pin = itemId.substr(3, 1);
+            var mode = document.getElementById(selectId).value;
+            switch (mode) {
+                case "0":
+                case "1":
+                    document.getElementById("CPO"+pin).className = "cButton hidden";
+                    document.getElementById("CPO"+pin+"I").disabled = true;
+                    break;
+                case "2":
+                    document.getElementById("CPO"+pin).className = "cButton";
+                    document.getElementById("CPO"+pin+"I").disabled = false;
+                    document.getElementById("CPO"+pin+"I").setAttribute("step", 1);
+                    break;
+                case "3":
+                    document.getElementById("CPO"+pin).className = "cButton";
+                    document.getElementById("CPO"+pin+"I").disabled = false;
+                    document.getElementById("CPO"+pin+"I").setAttribute("step", 100);
+                    break;
+                default:
+                    break; 
+            } 
             break;
         default:
             break;
