@@ -49,7 +49,7 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"LNM", {CDC_CMD_LNM, 1, CDC_UNITS_NONE}},                  // Location name
     {"TMZ", {CDC_CMD_TMZ, 1, CDC_UNITS_SECOND}},                // Location time zone (seconds)
     {"DST", {CDC_CMD_DST, 1, CDC_UNITS_SECOND}},                // Location DST offset (seconds)
-    {"LED", {CDC_CMD_LED, 0, CDC_UNITS_MILLISEC}},              // Status LED Blink every (msec)
+    {"LED", {CDC_CMD_LED, 1, CDC_UNITS_MILLISEC}},              // Status LED GPIO Pin
     {"NTP", {CDC_CMD_NTP, 1, CDC_UNITS_NONE}},                  // NTP serverName
     {"OMIN", {CDC_CMD_OMIN, 1, CDC_UNITS_PERCENT}},             // DC Min output
     {"OMAX", {CDC_CMD_OMAX, 1, CDC_UNITS_PERCENT}},             // DC Max output
@@ -83,20 +83,11 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"CPO3", {CDC_CMD_CPO3, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 3 (Mode dependent: -1, 0 - 100, 0 or 1)
     {"CPO4", {CDC_CMD_CPO4, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 4 (Mode dependent: -1, 0 - 100, 0 or 1)
     {"CPO5", {CDC_CMD_CPO5, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 5 (Mode dependent: -1, 0 - 100, 0 or 1)
-    {"GCPI", {CDC_CMD_GCPI, 0, CDC_UNITS_NONE}}                 // Get Controller pin Info (Returns all Controller pins 1 to 6)
+    {"PWDH", {CDC_CMD_PWDH, 1, CDC_UNITS_NONE}},                 // Password Hash
+    {"LEDH", {CDC_CMD_LEDH, 1, CDC_UNITS_NONE}}                  // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
   };  
 
-bool configUpdated = false;
-
-void resetConfigUpdated() { configUpdated = false; };
-void setConfigUpdated() 
-{ 
-  configUpdated = true;
-  #ifdef CDC_STATUS_LED_BLINK_ON_CONFIG_CHANGE
-  theSetup->statusLEDOn();
-  #endif
-};
-bool getConfigUpdated() { return configUpdated; };
+// ******************************************************************
 
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
 // command queue processor for Web Socket transactions
@@ -371,7 +362,7 @@ cmdResponse getCmdProcessor(const String &var)
   }
   case CDC_CMD_LED:
   {
-    newResponse.response = String(theSetup->getStatusBlinkEvery());
+    newResponse.response = String(theSetup->getStatusLEDPin());
 
     break;
   }
@@ -507,7 +498,16 @@ cmdResponse getCmdProcessor(const String &var)
     newResponse.response = String(theDController->getControllerPinOutput(pin));
     break;
   }
-  
+  case CDC_CMD_PWDH:
+  {
+    newResponse.response = String(theSetup->getPasswordHash());
+    break;
+  }
+  case CDC_CMD_LEDH:
+  {
+    newResponse.response = String(theSetup->getStatusLEDHigh());
+    break;
+  }
   default:
     LOG_ALERT("getCmdProcessor", "GET function not supported for: " << var);
     return newResponse;
@@ -775,7 +775,7 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   case CDC_CMD_LED:
   {
-    theSetup->blinkStatusLEDEvery(newValue.toInt());
+    theSetup->setStatusLEDPin(newValue.toInt());
     break;
   }
   case CDC_CMD_NTP:
@@ -875,6 +875,16 @@ bool setCmdProcessor(const String &var, String newValue)
     }
     break;
   }
+  case CDC_CMD_PWDH:
+  {
+    theSetup->setPasswordHash(newValue);
+    break;
+  }
+  case CDC_CMD_LEDH:
+  {
+    theSetup->setStatusLEDHigh(newValue.toInt());
+    break;
+  }
   case CDC_CMD_FW:
     return false;  // Set FW not supported but stored in the CDCConfig file for versioning  
     break;
@@ -888,7 +898,7 @@ bool setCmdProcessor(const String &var, String newValue)
 
   if (CDCCommands.at(var.c_str()).saveToConfig)
   {
-    setConfigUpdated();
+    theSetup->setConfigUpdated();
   };
   return true;
 }

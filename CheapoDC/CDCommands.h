@@ -32,10 +32,6 @@ cmdResponse getCmdProcessor(const String &var);
 // Process CDC set commands
 bool setCmdProcessor(const String &var, String newValue);
 
-void setConfigUpdated();
-void resetConfigUpdated();
-bool getConfigUpdated();
-
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
 // Additional operations queue for keeping longer processes from impacting command responses
 

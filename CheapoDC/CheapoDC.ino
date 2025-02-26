@@ -177,16 +177,29 @@ void setup()
   sleep(1);
   Serial.begin(115200);
   sleep(1);
-  LOG_ALERT("setup","Initializing CheapoDC.");
+  LOG_ALERT("setup","Initializing " << programName << ". FW: " << programVersion);
 
   theDController = new dewController();
   theSetup = new CDCSetup();
+  /* 
   theSetup->setWeatherQueryEnabled( false );
-
+   */
   LOG_DEBUG("Main-setup", "Load CheapoDC configuration");
   if (!theSetup->LoadConfig())
   {
     LOG_ERROR("Main-setup", "Load Configuration Failure. Will continue on defaults.");
+  }
+
+  // initialize status LED as an output.
+
+  // pinMode(CDC_DEFAULT_STATUS_LED_PIN, OUTPUT);
+  theSetup->blinkStatusLEDEvery(CDC_DEFAULT_STATUS_BLINK);
+  theSetup->statusLEDOn();
+
+  LOG_DEBUG("Main-setup", "Setup WiFi");
+  if (!theSetup->setupWiFi())
+  {
+    LOG_ERROR("Main-setup", "Wifi connection failure");
   }
 
   if (theSetup->getInWiFiAPMode())
@@ -194,9 +207,11 @@ void setup()
     theDController->setControllerMode(OFF);
   }
 
+  
   // Adjust Timezone etc....
   configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
   now();
+  
 
   #if LOG_LEVEL == LOG_LEVEL_DEBUG
   struct tm lTime;

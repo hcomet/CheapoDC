@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head><title>File Management</title> <link rel="icon" type="image/png" href="/favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="./CDCStyle.css">
@@ -35,7 +37,7 @@
  <button type="button" class="bfooter" onclick="document.location='../otaIndex'">Device Management</button>
  <button type="button" class="bfooterDisabled" disabled >File Management</button> <!--onclick="document.location='../listFiles'"--> 
  <hr class="footerBhr">
- <div class="atribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
+ <div class="attribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
 </footer></div>
 <script>
 document.getElementById('file1').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
@@ -114,3 +116,4 @@ function logoutCDC() {
   setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
 }
 </script></body>
+</html>

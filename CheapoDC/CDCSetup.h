@@ -73,9 +73,13 @@ class CDCSetup
 {
     public:
                 CDCSetup(void);
+        bool setupWiFi(void);
         bool LoadConfig(void);
         bool SaveConfig(void);
         bool queryWeather(void);
+        void resetConfigUpdated() { this->_configUpdated = false; };
+        bool getConfigUpdated() { return this->_configUpdated; };
+        void setConfigUpdated() { this->_configUpdated = true; this->statusLEDOn();};
 
         // status LED
         void    blinkStatusLED();
@@ -88,6 +92,9 @@ class CDCSetup
         int     getStatusBlinkEvery();
 
         // getters
+        const char*     getPasswordHash() {return this->_passwordHash;};
+        int             getStatusLEDPin() {return this->_statusLEDPin;};
+        int             getStatusLEDHigh() {return (int)this->_statusLEDHigh;};
         CDCLocation     getLocation() {return this->_location;};
         float           getAmbientTemperatureWQ() {return this->_currentWeather.ambientTemperature;};
         float           getAmbientTemperatureExternal() {return this->_ambientTemperatureExternal;};
@@ -114,6 +121,9 @@ class CDCSetup
         const char*     getIPAddress() {return this->_IPAddress;};
 
         // setters
+        void    setPasswordHash( String pwdHash );
+        void    setStatusLEDPin( int pin );
+        void    setStatusLEDHigh( int highValue );
         void    setWeatherSource( weatherSource newWeatherSource );
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};
         void    setWeatherQueryIconURL( String newURL ) {strlcpy(this->_weatherIconURL, newURL.c_str(), sizeof(this->_weatherIconURL));};
@@ -153,9 +163,10 @@ class CDCSetup
         
         
      private:
-        bool _setupWiFi(void);
         bool _connectWiFi(void);
         void _loadDefaults(void);
+        void _writeStatusLED(uint8_t value);
+        int _readStatusLED(void);
 
         CDCWiFiConfig   _wifiConfig;
         bool            _inWiFiAPMode;
@@ -169,13 +180,16 @@ class CDCSetup
         char            _weatherAPIKey[64];
         int             _queryWeatherEvery;
         int             _controllerUpdateEvery; // in minutes
+        int             _statusLEDPin;
         int             _statusBlinkEvery;
         bool            _statusLEDEnabled;
         int             _statusLEDDelay;
         bool            _statusLEDDelayEnabled;
+        bool            _statusLEDHigh;
         char            _NTPServer[64];
         char            _IPAddress[16];
         weatherData     _currentWeather;
-                        
+        char            _passwordHash[64];
+        bool            _configUpdated;            
 };
 #endif 

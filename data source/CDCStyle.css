@@ -26,18 +26,24 @@
     vertical-align: top;
     }
 
-
   .danger {
     color: var(--color-danger);
     cursor: pointer;
     text-decoration: underline;
   }
 
+  button.bfooter {
+    margin: auto 5px;
+  }
+
+  button.reboot {
+    margin: auto 30px;
+  }
+
   input[type=submit], 
   input[type=file]::file-selector-button,
   input[type=button],
-  button.bfooter,
-  button.reboot {
+  button {
     display: inline-block;
     padding: 5px 10px;
     font-size: 12px;
@@ -49,27 +55,30 @@
     background-color: var(--color-primary);
     border: color(var(--color-darkGrey));
     border-radius: 5px;
-    box-shadow: 0 4px #999;
   }
   
   input[type=submit]:hover, 
   input[type=file]::file-selector-button:hover,
   input[type=button]:hover,
-  button.bfooter:hover,
-  button.reboot:hover {background-color: var(--color-hover)}
+  button:hover
+  {background-color: var(--color-hover)}
   
   input[type=submit]:active, 
   input[type=file]::file-selector-button:active,
-  button.bfooter:active {
+  input[type=button]:active,
+  button:active
+  {
     background-color: var(--color-hover);
-    box-shadow: 0 2px #666;
-    transform: translateY(4px);
+    border: color(#000);
+    border-width: 3px;
+    transform: scale(0.95);
   }
 
   input[type=button]:disabled,
-  button.bfooterDisabled {
-    background-color: var(--color-grey);
-    color: var(--color-darkGrey);
+  button:disabled
+  {
+    background-color: var(--color-lightGrey);
+    color: var(--color-grey);
     display: inline-block;
     padding: 5px 10px;
     font-size: 12px;
@@ -78,7 +87,6 @@
     outline-color: var(--color-darkGrey);
     border: color(var(--color-darkGrey));
     border-radius: 5px;
-    box-shadow: 0 4px #999;
   }
 
   table.main {
@@ -199,29 +207,20 @@
 
   .weatherIcon {
     width: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px auto;
     background-color: var(--color-hover);
     border-radius: 5px;
   }
 
   .weatherDesc {
     max-width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px auto;
     text-align: center;
   }
 
   .locName, .locCoord, .queryLocName {
     max-width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin: 5px auto;
     text-align: center;
   }
 
@@ -252,10 +251,7 @@
   .wReading {
     max-width: 200px;
     display: grid;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin: 5px auto;
     grid-gap: 5px;
     grid-template-columns: 2fr 1fr;
     grid-template-areas:
@@ -273,11 +269,10 @@
 
   hr.confighr {
     border-bottom: 1px solid var(--color-lightGrey);
-    margin: 0px;
-    padding: 0px;
+    margin: 15px auto 0px;
   }
 
-  .atribution {
+  .attribution {
     color: var(--color-grey);
   }
 
@@ -316,11 +311,9 @@
   .dashboard {
     display: grid;
     vertical-align: bottom;
-    padding-left: 0px;
-    margin-left: 0;
     height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin: 2px auto 2px 2px;
+    padding-left: 0px;
     grid-gap: 5px;
     grid-template-columns: 6fr 4fr 1fr;
     grid-template-areas:
@@ -400,10 +393,8 @@
     border: 1px solid var(--color-lightGrey);
     vertical-align: bottom;
     padding-left: 0px;
-    margin-left: 0;
     height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin: 2px auto 2px 0px;
     grid-gap: 5px;
     grid-template-columns: 3fr 3fr 2fr 1fr;
     grid-template-areas:
@@ -414,11 +405,9 @@
     display: grid;
     border: 1px solid var(--color-lightGrey);
     vertical-align: bottom;
-    padding-left: 0px;
-    margin-left: 0;
     height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    padding-left: 0px;
+    margin: 2px auto 2px 0px;
     grid-gap: 5px;
     grid-template-columns: 3fr 3fr 2fr 1fr;
     grid-template-areas:
@@ -453,17 +442,17 @@
     width: 395px;
   }
 
-  button.cButton {
-    max-height: 25px;
-    float: right;
-    margin-right: 2px;
-  }
-
   ul.no-bullets {
     list-style-type: none; /* Remove bullets */
     padding: 0; /* Remove padding */
     margin: 0; /* Remove margins */
     display: inline;
+  }
+
+  button.cButton {
+    max-height: 23px;
+    float: right;
+    margin-right: 2px;
   }
 
   button.cButton.hidden {
@@ -481,6 +470,43 @@
   .cReadiing > select {
     width: 50px;
   }
+
+  .twocolconfig {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-areas: "configcol1 configcol2";
+    grid-gap: 10px;
+    margin: 2px auto 2px 0;
+ }
+ .configcol1 {
+  grid-area: configcol1;
+  padding: 5px;
+}
+.configcol2 {
+  grid-area: configcol2;
+  padding: 5px;
+}
+.twocolconfig .configline {
+  grid-template-columns: 30% 50% 20%;
+  grid-template-areas: "configItem  configValue configAction"; 
+  border: none;
+  max-width: 18em;
+}
+.twocolconfig .cReading>select, .twocolconfig .cReading>input {
+  max-width: 10em;
+}
+h3 {
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+form#passwordForm {
+  text-align: right;
+  margin-right: 15px;
+}
+form#uploadForm {
+  margin-left: 30px;
+}
+
 
   /* Center the loader */
   #loader {
@@ -534,10 +560,8 @@
     border: 1px solid var(--color-lightGrey);
     vertical-align: bottom;
     padding-left: 0px;
-    margin-left: 0;
     height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin: 2px auto 2px 0px;
     grid-gap: 5px;
     grid-template-columns: 4fr 2fr 2fr 1fr;
     grid-template-areas:

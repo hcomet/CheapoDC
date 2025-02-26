@@ -33,7 +33,7 @@
 // 0.2 second blink (100ms on/100ms off) is fall back to Access Point Mode - CDC_WIFI_AP_STATUS_BLINK
 // Blink will continue for 10 seconds then turn off - CDC_STATUS_LED_DELAY
 // *************************************************************************************
-#define CDC_STATUS_LED 8                      // Pin to use for Status LED
+#define CDC_DEFAULT_STATUS_LED_PIN 8                      // Pin to use for Status LED
 #define CDC_DEFAULT_STATUS_BLINK 500          // every x millisec
 #define CDC_WIFI_AP_STATUS_BLINK 100          // every x millisec
 #define CDC_STATUS_LED_DELAY 10               // time until status LED is turned off in seconds (0 = infinite delay)
@@ -54,9 +54,10 @@
 #define CDC_ENABLE_WEB_AUTH              // Uncomment this line to enable Basic Web Authentication
 #define CDC_DEFAULT_WEB_ID "admin"       // Change to change logon ID
 #define CDC_DEFAULT_WEB_PASSWORD "admin" // Change to change logon password
+#define CDC_DEFAULT_WEB_REALM "CheapoDC" // Change to change logon realm
 
 // *************************************************************************************
-// Web Socket support
+// Web Socket support - Has been deprecated
 // Read the README.md in https://github.com/hcomet/CheapoDC/tree/main/CheapoDC for
 // changes needed to AsyncTCP.cpp and AsyncWebSocket.h  before enabling Web Sockets
 // When Web Sockets are enabled then the post processing queue is also enabled so that  
@@ -64,7 +65,7 @@
 // asyncWebSocket implementation will not handle long transactions that block and cause 
 // watchdog process timeouts.
 // *************************************************************************************
-//#define CDC_ENABLE_WEB_SOCKETS      // Uncomment this line to enable Web Sockets
+//#define CDC_ENABLE_WEB_SOCKETS      // Do not uncomment has been deprecated
 
 // Command post processing queue support
 // Some API commands may auto generate post processing actions such as weather queries or 
@@ -217,7 +218,7 @@
 #define CDC_CMD_LNM 27   // Location name
 #define CDC_CMD_TMZ 28   // Location time zone (seconds)
 #define CDC_CMD_DST 29   // Location DST offset (seconds)
-#define CDC_CMD_LED 30   // Status LED Blink rate (x/1000 msec)
+#define CDC_CMD_LED 30   // Status LED GPIO pin
 #define CDC_CMD_NTP 31   // NTP serverName
 #define CDC_CMD_OMIN 32  // DC Min output
 #define CDC_CMD_OMAX 33  // DC Max output
@@ -251,7 +252,8 @@
 #define CDC_CMD_CPO3 61   // Controller Output Pin 3 (Mode dependent: -1, 0 - 100, 0 or 1)
 #define CDC_CMD_CPO4 62   // Controller Output Pin 4 (Mode dependent: -1, 0 - 100, 0 or 1)
 #define CDC_CMD_CPO5 63   // Controller Output Pin 5 (Mode dependent: -1, 0 - 100, 0 or 1)
-#define CDC_CMD_GCPI 64   // Get Controller pin Info (Returns all Controller pins 1 to 6)
+#define CDC_CMD_PWDH 64   // Password Hash
+#define CDC_CMD_LEDH 65   // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625

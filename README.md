@@ -1,14 +1,30 @@
 ![CheapoDC Logo](images/logo.png)
 
-The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini. Parts required include the ESP32-C3 mini, one or two MOSFET modules, a 12V to 5V buck converter, some protoboard, a couple of RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that controls 2 dew heater straps. Details on how to build the CheapoDC firmware as well as information about the latest firmware release may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md). Hardware details can be found in the [Hardware](/README.md#hardware) section of this document.
+The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini.
+Parts required include the ESP32-C3 mini, a MOSFET module for each output, a 12V to 5V buck converter, some protoboard,
+ RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that
+controls 2 dew heater straps. Details on how to build the CheapoDC firmware as well as information about the latest
+firmware release may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md). Hardware details
+can be found in the [Hardware](/README.md#hardware) section of this document.
 
-A primary goal was to keep the build simple with minimal components. This is done by leveraging the ESP32 WiFi capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API or the [Open-Meteo](https://open-meteo.com/) API may be used to retrieve ambient temperature, humidity and dew point for the controller's geographic location. This is then used to calculate CheapoDC's power output. No additional components, such as temperature or humidity probes, are required. The responsiveness and aggressiveness of the controller can be adjusted through several configuration settings. CheapoDC works best with internet connectivity to support the weather service queries but it can also be used in a limited way without internet access.
+A primary goal was to keep the build simple with minimal components. This is done by leveraging the ESP32 WiFi
+capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API
+or the [Open-Meteo](https://open-meteo.com/) API may be used to retrieve ambient temperature, humidity and dew point
+for the controller's geographic location. This is then used to calculate CheapoDC's power output. No additional
+components, such as temperature or humidity probes, are required. The responsiveness and aggressiveness of the
+controller can be adjusted through several configuration settings. CheapoDC works best with internet connectivity to
+support the weather service queries but it can also be used in a limited way without internet access.
 
-Although the CheapoDC supports two dew strap outputs, the output levels are not individually controlled. Two separate MOSFET modules are used but the PWM output for the two ESP32 pins driving the MOSFETs are tied to the same PWM channel.
+The CheapoDC may be set up using a basic configuration with two dew strap outputs or it may be configured with up to
+four additional outputs. Each CheapoDC Output is controlled by a separate MOSFET module tied to one of the ESP32's
+GPIO pins. The pins may be configured to be managed either automatically using the CheapoDC dew control algorithm
+or manually via the Web UI or API. Dew control algorithm managed pins and thus dew strap outputs are all tied to the
+same ESP32 PWM channel and will have the same output.
 
-# How the Controller Works
+# How the Dew Control Algorithm Works
 
-When working in Automated mode, the controller will periodically calculate the power output to the dew straps using the calculations below. The default output calculation or update period is 1 minute.
+When working in Automated mode, the controller will periodically calculate the power output to the dew straps using the
+calculations below. The default output calculation or update period is 1 minute.
 
 ## Controller Power Output Calculation
 
@@ -112,7 +128,12 @@ The Temperature Mode selects how the Reference Temperature will be determined fo
 
 ## Hardware
 
-One of the goals with the CheapoDC is to for it to be relatively easy to assemble. Although some soldering will be required the number of connections is minimized by using common modules.
+One of the goals with the CheapoDC is for it to be relatively easy to assemble. Although some soldering will be
+required the number of connections is minimized by using common modules. This section focuses on what is required
+to build a basic two dew strap controller commonly needed for a primary telescope and secondary guide scope.
+
+If you need additional dew controller outputs or the ability remotely control the power to another device then that
+information is covered [here]().
 
 ### Component list
 
@@ -131,6 +152,11 @@ In my implementation I used a red LED connected to the same pin as the onboard L
 
 ![Wiring Diagram](images/wiring.jpg)
 
+The default configuration for the basic dual output controller uses Controller Pins 0 and 1 mapped to GPIO pins 0 and 1.
+If you cannot use these GPIO pins then they may be changed using the Web UI on the [Device Management](#cheapodc-device-management)
+page or the default values may be changed in the [CDCDefines.h](CheapoDC/README.md#configure-firmware-in-the-cdcdefinesh-file) file
+before building the firmware.
+
 ### Working Implementation
 
 Assembled in a 6 inch long piece of 2"x1" aluminum channel. This also has Pin 8, which is the status LED, connected to an extra LED on the left side for external visibility. The ESP32-C3 is also mounted in some protoboard to make the wiring easier. If you plan to use a small case like this, use silicone hookup wire. The extra flexibility of silicone wire will save a lot of frustration. I used 22 awg wire for the 5V and 3.3V ESP32 connections and 18 awg wire for the 12V connections.
@@ -143,25 +169,25 @@ Two completed CheapoDCs from the outside.
 
 ## Firmware
 
-How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md). One of the pre-build configuration items is to pick and configure a weather service.
+How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md).
 
-### Weather Service
+## Weather Service
 
 The current temperature and humidity for your location may be obtained by either using one of the two CheapoDC integrated open weather service APIs or may be be provided from an external client through the CheapoDC API. Dew point is calculated based on the temperature and humidity values. The Weather Source may be set using the [Web UI](#cheapodc-configuration) or through the [API](#cheapodc-api). CheapoDC defaults to using Open-Meteo.
 
-#### [Open-Meteo](https://open-meteo.com/)
+### [Open-Meteo](https://open-meteo.com/)
 
-Use of the Open-Meteo API does not require any registration for current weather queries. The free level allows for 10,000 API calls per day. Weather updates seem to be regular at a 15 minute interval. AT a 5 minute query interval several CHeapoDCs can be running at the same time without issue.
+Open-Meteo is the default service configured for CheapoDC. Use of the Open-Meteo API does not require any registration for current weather queries. The free level allows for 10,000 API calls per day. Weather updates seem to be regular at a 15 minute interval. While using a 5 minute query interval, several CheapoDCs can be running at the same time without issue.
 
-#### [OpenWeather](https://openweathermap.org/)
+### [OpenWeather](https://openweathermap.org/)
 
  In order to use the OpenWeather API a registered account and API key is required. The account is free and allows for up to 60 queries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up).
 
-#### External Source
+### External Source
 
  When the Weather Source is set to External Source the temperature and humidity values for your location must be set via the CheapoDC API. This allows for integration with other weather services or personal weather stations.
 
-#### Which Weather Service to use?
+### Which Weather Service to use?
 
 Both services require a location using Latitude and Longitude which you can set using the CheapoDC [Web UI](/README.md#web-ui) or [CHeapoDC API](#cheapodc-api). Both sources will use weather stations close to the provided coordinates. OpenWeather provides the name of the weather station used in its response. Open-Meteo does not. If run side-by-side with the same co-ordinates they provide slightly different results. You may want to check which service provides the best results for your location.
 
@@ -177,19 +203,32 @@ The Web UI has 4 main pages, a dashboard, a configuration page, a device managem
 
 ![CheapoDC Dashboard](images/dashboard.jpg)  
 
-The Dashboard provides a summary of the current location, weather, contoller output and settings. Internet connectivity is required for current weather information and the weather icon.
+The Dashboard provides a summary of the current location, weather, controller output and settings. Internet connectivity is required for current weather information and the weather icon.
 
 ### CheapoDC Configuration
 
 ![CheapoDC Configuration](images/configuration.jpg)  
 
-CheapoDC can be configured to support Web Sockets for the [CheapoDC API](/README.md#cheapodc-api). By default Web Socket support is Disabled but if it is Enabled then the configuration page will use the [Web Sockets API](/README.md#web-sockets-api) to display and update configuration data. Otherwise, by default the configuration page will use the basic [Web API](/README.md#web-api) utilizing the HTTP POST method.
+CheapoDC Configuration page is where dew controller parameters may be set. These include the [Controller Mode](#controller-mode), [Temperature Mode](#temperature-mode), [Set Point Mode](#set-point-mode) and [variables](#variables) that affect dew controller output.
+
+The Location and Time Zone may also be set here.
 
 ### CheapoDC Device Management
 
 ![CheapoDC Device Management](images/devicemgmt.jpg)  
 
-The Device Management page provides the ability to do Over-The-Air (OTA) firmware updates. It also allows for remote Reboot of the CheapoDC.
+The Device Management page is where the Controller Output Pin to GPIO Pin mappings and Output Modes is set. The CheapoDC can support up to 6 Controller Output Pins, Pin 0 through Pin 5. Pins 0 and 1 may only be used as dew controller outputs while Pins 2 through 5 may be set to any of the supported Output Modes:
+
+|Output Mode|Description|Supported Output Pins|
+|-----------|---------------------|-----------|
+|Disabled|Output is disabled. The default. GPIO pin mapping set to -1.|Pin 0 through Pin 5|
+|Controller|Output is controlled by the dew controller.|Pin 0 through Pin 5|
+|PWM|Output is manually controlled using PWM and output may be set from 0% to 100%.|Pin 2 through Pin 5|
+|Boolean|Output is manually controlled and may be either Off/0% or On/100%.|Pin 2 through Pin 5|
+
+Note that a Controller Output Pin to GPIO Pin mapping must be set before an Output Mode may be selected. These settings may be controlled via the Web UI or the API.
+
+The Device Management page also provides the ability to do Over-The-Air (OTA) firmware updates as well as remote Reboot of the CheapoDC.
 
 ### CheapoDC File Management
 
@@ -211,7 +250,7 @@ CheapoDC supports three API mechanisms:
 
 1. TCP API using JSON syntax
 2. Basic Web API utilizing HTTP POST
-3. Web Sockets API using JSON syntax
+3. Web Sockets API - Deprecated in release v2.2.0.
 
 The APIs use the same commands which are listed in the top of [CDCommands.cpp](/CheapoDC/CDCommands.cpp). Commands are 2 to 4 character strings. For each command there is a map indicating:
 
@@ -234,12 +273,14 @@ The table below provides a list of the commands but the code is the final correc
 * Floats are truncated to 2 decimal places.
 * All commands except **QN** support getter API methods.
 * The **QN** command is a setter only command. It requires a value that is not Null. "NA" works.
-* Commands supporting a setter method are identified.
+* Commands supporting a **Setter** method are identified.
 * The **ATPQ** and **HU** commands are only setter commands when Weather Source is set to External Source.
 * Date and time responses are in local time based on the Time Zone Offset and DST Offset values.
-* The **CLC** command has been depricated.
+* Controller Pin commands: CPP#, CPM# and CPO# are independent API commands where the # must be one of 0, 1, 2, 3, 4 or 5.
+* Controller Pin command CPP# allows a Controller Pin to be mapped to -1 for Disabled or GPIO 0 through 39. Which actual GPIO pin to choose is ESP32 module dependent.
 * Using an invalid command or trying a setter on a command not supporting a setter will return an error.
 * Strictly speaking command values are always treated as Strings since the values are always enclosed in quotes in the JSON. Conversion to appropriate type is handled internally.
+* The **CLC** command has been deprecated.
 
 ### CheapoDC Commands
 
@@ -291,6 +332,9 @@ The table below provides a list of the commands but the code is the final correc
 |    IP    |&cross;|  None    | String [16] |   IP Address|
 |    HN    |&cross;|  None | String [16] |   Host name |
 |    WQEN    |&check;|  None | Bool | Web Query Enabled<br>False = 0<br>True = 1|
+|   CPP#   |&check;|  None    | Integer |Controller Pin 0 to GPIO pin mapping<br>-1 to 39<br>-1 = Disabled|
+|    CPM#    |&check;|  None    | ENUM |Controller Pin Mode <br>Disabled = 0<br>Controller = 1<br>PWM = 2<br>Boolean = 3|
+|CPO#|&check;|&percnt;|Integer|Controller Pin Output<br>Output Mode dependent.<br>Set - PWM, Boolean<br>Get - all modes
 
 ### TCP API
 
@@ -332,9 +376,7 @@ success has HTTP status code of 200.
 
 ### Web Sockets API
 
-The Web Sockets API uses the same JSON formatted Send/Response strings as the TCP API. Strings do not need to be terminated with a newline character.
-
-**NOTE:** Read the information about modifying the message queue size in AsyncTCP.cpp and AsyncWebSocket.h.
+Deprecated in release v2.2.0.
 
 ## Configuration Files
 

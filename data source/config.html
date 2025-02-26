@@ -1,7 +1,8 @@
-<head>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
     <title>CheapoDC Configuration</title>
     <link rel="icon" type="image/png" href="/favicon.png">
-    <!--    <meta http-equiv="refresh" content="30"> -->
     <link rel="stylesheet" href="./CDCStyle.css">
 </head>
 
@@ -191,6 +192,7 @@
                 </configComment>
                 <configAction><button type="button" class="cButton hidden" id="CTP">Update</button></configAction>
             </div>
+         <hr class="confighr">
             <h2>Weather Query Configuration</h2>
             <div class="configline">
                 <configItem>Weather Query Every:</configItem>
@@ -268,6 +270,7 @@
                 </configComment>
                 <configAction><button type="button" class="cButton hidden" id="LWUT">Update</button></configAction>
             </div>
+            <hr class="confighr">
             <h2>Location and Time Configuration</h2>
             <div class="configline">
                 <configItem>My Location Name:</configItem>
@@ -339,6 +342,7 @@
                 </configComment>
                 <configAction><button type="button" class="cButton" id="NTP">Update</button></configAction>
             </div>
+            <hr class="confighr">
             <h2>Dew Controller Information</h2>
             <div class="configline">
                 <configItem>Up Time:</configItem>
@@ -393,9 +397,9 @@
             <button type="button" class="bfooter" onclick="document.location='../otaIndex'">Device Management</button>
             <button type="button" class="bfooter" onclick="document.location='../listFiles'">File Management</button>
             <hr class="footerBhr">
-            <div class="atribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space:
+            <div class="attribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space:
                 %LFS%)</div>
         </footer>
     </div>
-</body>
-<script src="CDCjs.js"></script>
+    <script src="CDCjs.js"></script></body>
+</html>    

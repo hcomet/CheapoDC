@@ -15,7 +15,7 @@
 
 dewController::dewController(void)
 {
-    // Initilize all Controller pins as disabled
+    // Initialize all Controller pins as disabled
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
     for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
     {
@@ -25,19 +25,18 @@ dewController::dewController(void)
     }
 
     // If defaults set in CDCdefines.h for PIN0 and PIN1 then configure
-#ifdef CDC_DEFAULT_CONTROLLER_PIN0 // PIN0 is required before PIN1
+#ifdef CDC_DEFAULT_CONTROLLER_PIN0 
     LOG_DEBUG("dewController", "Controller Pin 0: " << CDC_DEFAULT_CONTROLLER_PIN0);
   
     this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinPin = CDC_DEFAULT_CONTROLLER_PIN0;
     this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;
-
+#endif // CDC_DEFAULT_CONTROLLER_PIN0
 #ifdef CDC_DEFAULT_CONTROLLER_PIN1
     LOG_DEBUG("dewController", "Contorller Pin 1: " << CDC_DEFAULT_CONTROLLER_PIN1);
 
     this->_controllerPinSettings[CONTROLLER_PIN1].controllerPinPin = CDC_DEFAULT_CONTROLLER_PIN1;
     this->_controllerPinSettings[CONTROLLER_PIN1].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;
 #endif // CDC_DEFAULT_CONTROLLER_PIN1
-#endif // CDC_DEFAULT_CONTROLLER_PIN0
 
     this->_currentControllerMode = CDC_DEFAULT_CONTROLLER_MODE;
     this->_currentTemperatureMode = CDC_DEFAULT_TEMPERATURE_MODE;
@@ -84,6 +83,18 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
       return true;
     }
 
+    if ((pin < 0) || (pin > 39))
+    {
+        LOG_ERROR("setControllerPinPin", "Invalid pin number: " << pin);
+        return false;
+    }
+
+    if (pin == theSetup->getStatusLEDPin())
+    {
+      LOG_ERROR("setControllerPinPin", "Cannot set Controller Pin " << controllerPin << " to same as LED Status Pin: " << pin);
+      return false;
+    }
+
     for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
     {
         if ((this->_controllerPinSettings[i].controllerPinPin == pin) && (i != controllerPin))
@@ -91,12 +102,6 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
             LOG_ERROR("setControllerPinPin", "Pin " << pin << " already assigned to controller pin " << i);
             return false;
         }
-    }
-
-    if ((pin < 0) || (pin > 39))
-    {
-        LOG_ERROR("setControllerPinPin", "Invalid pin number: " << pin);
-        return false;
     }
 
     if ((this->_controllerEnabled) && ((this->_controllerPinSettings[controllerPin].controllerPinMode != CONTROLLER_PIN_MODE_DISABLED) || 
@@ -148,7 +153,7 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
         return false;
       }
       this->_controllerPinSettings[controllerPin].controllerPinPin = savedPinPin;
-      return true;
+      return this->setControllerPinMode(controllerPin, mode);
     }
 
     switch (mode)

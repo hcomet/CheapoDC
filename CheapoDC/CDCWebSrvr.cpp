@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <WebAuthentication.h>
 #include <Update.h>
 #include "FS.h"
 #include <LittleFS.h>
@@ -23,13 +24,18 @@ size_t content_len;
 AsyncWebServer * CDCWebServer;
 
 #ifdef CDC_ENABLE_WEB_SOCKETS
+// Web Socket support has been deprecated 
+#error Web Socket Support in CheapoDC has been Deprecated 
 AsyncWebSocket * CDCWebSocket;
 #endif
 AsyncServer * CDCTCPServer;
 
 #ifdef CDC_ENABLE_WEB_AUTH
+AsyncAuthenticationMiddleware * basicAuth;
 const char* http_username = CDC_DEFAULT_WEB_ID;
 const char* http_password = CDC_DEFAULT_WEB_PASSWORD;
+String digestHash = generateDigestHash(http_username, http_password, "CheapoDC");
+
 #endif
 
 const char* filelist = "%TMFL%";
@@ -501,6 +507,18 @@ void setupServers(void) {
 
   // Create Server objects
   CDCWebServer = new AsyncWebServer(CDC_DEFAULT_WEBSRVR_PORT);
+  #ifdef CDC_ENABLE_WEB_AUTH
+  basicAuth = new AsyncAuthenticationMiddleware();
+  basicAuth->setUsername(CDC_DEFAULT_WEB_ID);
+  //basicAuth->setPassword(http_password);
+  basicAuth->setRealm("CheapoDC");
+  basicAuth->setPasswordHash(theSetup->getPasswordHash());
+  basicAuth->setAuthFailureMessage("Authentication Failed");
+  basicAuth->setAuthType(AsyncAuthType::AUTH_DIGEST);
+  //basicAuth->generateHash();
+  CDCWebServer->addMiddleware(basicAuth);
+  #endif
+
   #ifdef CDC_ENABLE_WEB_SOCKETS
   // Enable Websockets on the web server for Websocket API
   CDCWebSocket = new AsyncWebSocket( CDC_DEFAULT_WEBSOCKET_URL);
@@ -550,7 +568,7 @@ void setupServers(void) {
 
   // No websockets so only enable the non-websocket config
   CDCWebServer->on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -564,9 +582,13 @@ void setupServers(void) {
    request->send(LittleFS, "/CDCjs.js", "text/javascript");
   });
 
+  CDCWebServer->on("/md5.min.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+   request->send(LittleFS, "/md5.min.js", "text/javascript");
+  });
+
   // dashboard is default page
   CDCWebServer->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -574,7 +596,7 @@ void setupServers(void) {
   });
 
   CDCWebServer->on("/dashboard", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -583,7 +605,7 @@ void setupServers(void) {
 
   // Device management
   CDCWebServer->on("/otaIndex", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -592,7 +614,7 @@ void setupServers(void) {
 
   // File management
   CDCWebServer->on("/listFiles", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -600,7 +622,7 @@ void setupServers(void) {
   });
 
   CDCWebServer->on("/filelist", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -629,7 +651,7 @@ void setupServers(void) {
   });
 
   CDCWebServer->on("/download", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -637,7 +659,7 @@ void setupServers(void) {
   });
 
   CDCWebServer->on("/delete", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -646,7 +668,7 @@ void setupServers(void) {
   });
 
   CDCWebServer->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -663,7 +685,7 @@ void setupServers(void) {
 
   // Handling the Firmware Web OTA Update
   CDCWebServer->on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -679,7 +701,7 @@ void setupServers(void) {
 
   // Handle file uploads
   CDCWebServer->on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -691,7 +713,7 @@ void setupServers(void) {
 
   // Handle SET commands sent via HTTP_POST
   CDCWebServer->on("/setvalue", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
@@ -701,13 +723,37 @@ void setupServers(void) {
 
   // Handle GET commands sent via HTTP_GET
   CDCWebServer->on("/getvalue", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
+  #ifdef xCDC_ENABLE_WEB_AUTH
     if(!request->authenticate(http_username, http_password))
     return request->requestAuthentication();
   #endif
     request->send(200, "text/plain", handleGetValue(request));
     } 
   );
+
+  // Handle SET Password
+  CDCWebServer->on("/setpassword", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if ((request->hasParam("newpassword", true)) && (request->hasParam("oldpassword", true))) {
+      const AsyncWebParameter* nP = request->getParam("newpassword", true);
+      const AsyncWebParameter* oP = request->getParam("oldpassword", true);
+      //http_password = p->value().c_str();
+      //basicAuth->setPassword(nP->value().c_str());
+      //basicAuth->generateHash();
+      if (oP->value().equals(String(theSetup->getPasswordHash()))) 
+      {
+        theSetup->setPasswordHash(nP->value().c_str());
+        basicAuth->setPasswordHash(theSetup->getPasswordHash());
+        LOG_ALERT("/setpassword", "Parameter: " << nP->value().c_str() << ":" << oP->value().c_str());
+        request->send(200, "text/plain", "Password set");
+      } else {
+        LOG_ALERT("/setpassword", "Old password wrong: " << oP->value() << " vs " << theSetup->getPasswordHash());
+        request->send(200, "text/plain", "Password not set");
+      }
+    } else {
+      LOG_ALERT("/setpassword", "No newpassword parameter.");
+      request->send(200, "text/plain", "Password not set");
+    }
+  });
 
   CDCWebServer->onNotFound([](AsyncWebServerRequest *request){request->send(404);});
   CDCWebServer->begin();

@@ -71,13 +71,14 @@ CheapoDC configuration files.
 
 Edit the ***CDCdefines.h*** file to configure/customize the firmware before building:
 
-  1. Set the ESP32 pins to be used for PWM output. ***DEFAULT: 0 & 1***.  
+  1. Set the ESP32 GPIO pins to be used for Controller Pins 0 & 1. ***DEFAULT: 0 & 1***.  
      ```#define CDC_DEFAULT_CONTROLLER_PIN0 0```  
      ```#define CDC_DEFAULT_CONTROLLER_PIN1 1```
-  2. Set the PWM channel to use. ***DEFAULT: 0***.  
-     ```#define CDC_CONTROLLER_PWM_CHANNEL 0```
+  2. Set the PWM channel to use for Controller Pins. ***DEFAULT: 0***.  
+     ```#define CDC_CONTROLLER_PWM_CHANNEL 0```  
+     <u>**NOTE:**</u> Changing this value may have a negative impact on CheapoDC operation. If using additional Controller Pins 2 through 5 then PWM channels 1 through 4 are reserved for their use.
   3. Set the pin for the status LED on you ESP32. ***DEFAULT: 8***.  
-     ```#define CDC_STATUS_LED 8```  
+     ```#define CDC_DEFAULT_STATUS_LED_PIN 8```  
      <u>**NOTE:**</u> Some ESP32-C3 modules have the Status LED wired so that setting the status pin high is off or reversed. Uncomment this line to reverse the High/Low setting for the status LED pin.  
      ```//#define CDC_REVERSE_HIGH_LOW```
   4. Enable/Disable Basic Web Authentication. ***DEFAULT: Enabled***.  
