@@ -84,7 +84,9 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"CPO4", {CDC_CMD_CPO4, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 4 (Mode dependent: -1, 0 - 100, 0 or 1)
     {"CPO5", {CDC_CMD_CPO5, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 5 (Mode dependent: -1, 0 - 100, 0 or 1)
     {"PWDH", {CDC_CMD_PWDH, 1, CDC_UNITS_NONE}},                 // Password Hash
-    {"LEDH", {CDC_CMD_LEDH, 1, CDC_UNITS_NONE}}                  // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
+    {"LEDH", {CDC_CMD_LEDH, 1, CDC_UNITS_NONE}},                  // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
+    {"FWUP", {CDC_CMD_FWUP, 0, CDC_UNITS_NONE}},                 // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
+    {"UURL", {CDC_CMD_UURL, 1, CDC_UNITS_NONE}}                   // Update URL - points to the HTTP OTA update manifest.json
   };  
 
 // ******************************************************************
@@ -508,6 +510,16 @@ cmdResponse getCmdProcessor(const String &var)
     newResponse.response = String(theSetup->getStatusLEDHigh());
     break;
   }
+  case CDC_CMD_FWUP:
+  {
+    newResponse.response = String(httpFirmwareUpdateAvailable());
+    break;
+  }
+  case CDC_CMD_UURL:
+  {
+    newResponse.response = String(theSetup->getHttpOTAURL());
+    break;
+  }
   default:
     LOG_ALERT("getCmdProcessor", "GET function not supported for: " << var);
     return newResponse;
@@ -521,9 +533,15 @@ cmdResponse getCmdProcessor(const String &var)
 //************************************************************************************************
 // Process CDC set commands
 //************************************************************************************************
-bool setCmdProcessor(const String &var, String newValue)
+bool setCmdProcessor(const String &var, String newValue, cmdCaller caller)
 {
   int command;
+
+  if ((caller < 0) || ( caller >= MAXCMDCALLERS))
+  {
+    LOG_DEBUG("setCmdProcessor", "Invalid SET command caller: " << caller);
+    return false;
+  }
 
   if (CDCCommands.count(var.c_str()) == 0)
   {
@@ -877,6 +895,10 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   case CDC_CMD_PWDH:
   {
+    // Not allowed via TCPAPI for security reasons
+    if (caller == TCPAPI) {
+      return false;
+    }
     theSetup->setPasswordHash(newValue);
     break;
   }
@@ -885,8 +907,17 @@ bool setCmdProcessor(const String &var, String newValue)
     theSetup->setStatusLEDHigh(newValue.toInt());
     break;
   }
-  case CDC_CMD_FW:
-    return false;  // Set FW not supported but stored in the CDCConfig file for versioning  
+  case CDC_CMD_UURL:
+  {
+    if (caller != LOADCONFIG) {
+      return false;
+    }
+    theSetup->setHttpOTAURL(newValue);
+    break;
+  }
+  // Commands that have values in the configuration file but cannot be set 
+  case CDC_CMD_FW:      // Set FW not supported but stored in the CDCConfig file for versioning 
+    return false;   
     break;
   default:
   {
@@ -896,7 +927,7 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   }
 
-  if (CDCCommands.at(var.c_str()).saveToConfig)
+  if ((caller != LOADCONFIG) && (CDCCommands.at(var.c_str()).saveToConfig))
   {
     theSetup->setConfigUpdated();
   };

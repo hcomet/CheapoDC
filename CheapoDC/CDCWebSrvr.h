@@ -20,4 +20,7 @@ class CDCTCPServer;
 
 void setupServers(void);
 
+const char* httpFirmwareUpdateAvailable(void);
+void updateFirmware(void);
+
 #endif

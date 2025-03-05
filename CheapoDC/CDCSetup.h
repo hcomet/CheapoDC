@@ -9,8 +9,7 @@
 #define MY_CDCSETUP_H
 
 #include <Arduino.h>
-//#include <ESP32Time.h>
-//#include <TimeLib.h>
+#include <ArduinoJson.h>
 #include "CDCdefines.h"
 #include "CDCvars.h"
 
@@ -80,6 +79,8 @@ class CDCSetup
         void resetConfigUpdated() { this->_configUpdated = false; };
         bool getConfigUpdated() { return this->_configUpdated; };
         void setConfigUpdated() { this->_configUpdated = true; this->statusLEDOn();};
+        bool backupConfig();  // Call before overwriting data partition
+        bool restoreConfig(); // Must be called after overwriting data partition
 
         // status LED
         void    blinkStatusLED();
@@ -119,6 +120,7 @@ class CDCSetup
         bool            getInWiFiAPMode() {return this->_inWiFiAPMode;};
         const char*     getWiFiHostname() {return this->_wifiConfig.hostname;};
         const char*     getIPAddress() {return this->_IPAddress;};
+        const char*     getHttpOTAURL() {return this->_httpOTAURL;};
 
         // setters
         void    setPasswordHash( String pwdHash );
@@ -141,6 +143,7 @@ class CDCSetup
         void    setLocationTimeZone( int timezone);
         void    setLocationDST( int DSTOffset );
         void    calculateAndSetDewPoint();
+        void    setHttpOTAURL( String url ) {strlcpy(this->_httpOTAURL, url.c_str(), sizeof(this->_httpOTAURL));};
 
         // Time related helpers
         // All return in local time based on time values in CDCLocation
@@ -190,6 +193,12 @@ class CDCSetup
         char            _IPAddress[16];
         weatherData     _currentWeather;
         char            _passwordHash[64];
-        bool            _configUpdated;            
+        bool            _configUpdated; 
+        char            _httpOTAURL[256];
+#if ARDUINOJSON_VERSION_MAJOR>=7
+	JsonDocument    _backupDoc;
+#else
+	DynamicJsonDocument _backupDoc(1024);
+#endif           
 };
 #endif 

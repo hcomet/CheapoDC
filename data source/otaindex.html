@@ -253,14 +253,26 @@
             </div>
          </div>
          <hr class="confighr">
-         <h2>Web OTA Firmware Update</h2>
-         <form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+         <h2>Firmware Update</h2>
+         <h3>Update Progress</h3>
+         <p id="status" class="in30">No active update.</p>
+         <p id="loaded_n_total" class="in30"><span id="filename"></span><span id="filesize"></span></p>
+         <p id="otaerror" class="in30 errorText" display="hidden"></p>
+         <h3>Web Update</h3>
+         <div id="fwUpdateAvailable" display="none" class="in30">Release %FWUP% available. Password required.
+           <!-- <input type="password" name="FWUP" class="cInput"  id="FWUPI" placeholder="Enter Password"/>
+            <button type="button" class="cButton" id="FWUP" disabled>Update</button> -->
+            <input type="password" name="HTTPOTA" id="HTTPOTAPWD" placeholder="Enter Password"/>
+            <input type="button" name="HTTPUPDATE" id="iupdate" value="Update" onclick="httpOTAUpload()" disabled />
+         </div>
+         <div id="fwUpdateNotAvailable" class="in30" display="block">No update available. Currently at latest version.</div>
+         <p class="in30">Please read the HTTP OTA Update <a href="https://github.com/hcomet/CheapoDC#http-ota-faq" target="_blank">FAQ</a></p>
+         <h3>Manual Update</h3>
+         <form id="uploadOTAFileForm" method="POST" action="/upload" class="in30" enctype="multipart/form-data">
             <input type="file" name="file1" id="file1" value="Choose FW" /><input type="button" name="upload"
-               id="iupload" value="Update" title="Upload File" onclick="uploadFile()" disabled />
-            <h3 id="status">Completed: 0&percnt;</h3>
-            <p id="loaded_n_total"><span id="filename"></span><span id="filesize"></span></p>
-         </form>
-         <hr class="confighr">
+               id="iupload" value="Update" title="Upload File" onclick="fileOTAUpload()" disabled />
+            </form>
+         <hr class="confighr" >
          <h2>Reboot Device</h2>
          <button type="button" class="reboot" onclick="rebootDevice()">Reboot</button>
       </main>
@@ -277,71 +289,13 @@
       </footer>
    </div>
    <script>
+      // otaindex.html specific JS
+      window.onload=function() {httpOTAAvailability("%FWUP%");};
       document.getElementById('file1').addEventListener('change', function () { document.getElementById('iupload').disabled = false; });
       document.getElementById('oldpassword').addEventListener('input', function () { checkPasswordUpdate() });
       document.getElementById('newpassword').addEventListener('input', function () { checkPasswordUpdate() });
       document.getElementById('confpassword').addEventListener('input', function () { checkPasswordUpdate() });
-      function uploadFile() {
-         var file = document.getElementById("file1").files[0];
-         document.getElementById("filename").innerHTML = document.getElementById("file1").value.replace(/.*[\/\\]/, '') + ": ";
-         var formdata = new FormData();
-         formdata.append("file1", file);
-         var ajax = new XMLHttpRequest();
-         ajax.upload.addEventListener("progress", progressHandler, false);
-         ajax.open("POST", "/update");
-         ajax.send(formdata);
-      }
-      function progressHandler(event) {
-         document.getElementById("filesize").innerHTML = event.loaded + " bytes";
-         var percent = (event.loaded / event.total) * 100;
-         document.getElementById("status").innerHTML = "Completed: " + Math.round(percent) + "&percnt;";
-         if (percent >= 100) {
-            document.getElementById("status").innerHTML = "Completed: 100&percnt; Wait for Reload.";
-            document.getElementById("iupload").disabled = true;
-            setTimeout(function () { location.reload(); }, 5000);
-         }
-      }
-      function rebootDevice() {
-         if (confirm("Confirm Reboot")) {
-            xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("GET", "/reboot", true);
-            xmlhttp.send();
-         }
-      }
-      function logoutCDC() {
-         var xhr = new XMLHttpRequest();
-         xhr.open("GET", "/logout", true);
-         xhr.send();
-         setTimeout(function () { window.open("/dashboard", "_self"); }, 1000);
-      }
-
-      function checkPasswordUpdate() {
-         console.log("Checking Passwords");
-         if ((document.getElementById("newpassword").value != "") &&
-            (document.getElementById("newpassword").value == document.getElementById("confpassword").value) &&
-            (document.getElementById("oldpassword").value != "")) {
-            document.getElementById('passwordButton').disabled = false;
-         } else {
-            document.getElementById('passwordButton').disabled = true;
-         }
-      }
-      function changePassword() {
-         // MD5(user:realm:pass)
-         var newPassword = MD5.generate("admin:CheapoDC:" + document.getElementById("newpassword").value);
-         var oldPassword = MD5.generate("admin:CheapoDC:" + document.getElementById("oldpassword").value);
-         var confPassword = MD5.generate("admin:CheapoDC:" + document.getElementById("confpassword").value);
-         if (newPassword != confPassword) {
-            alert("New Passwords do not match");
-            document.getElementById('passwordButton').disabled = true;
-            return;
-         }
-         var xhr = new XMLHttpRequest();
-         document.getElementById("loader").style.display = "block";
-         xhr.open("POST", "/setpassword", true);
-         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-         xhr.send("newpassword=" + encodeForHTTP(newPassword) + "&oldpassword=" + encodeForHTTP(oldPassword));
-         setTimeout(function () { location.reload(); }, 1000);
-      }
+      document.getElementById('HTTPOTAPWD').addEventListener('input', function () { document.getElementById('iupdate').disabled = false; });
    </script>
    <script src="CDCjs.js"></script>
 </body>

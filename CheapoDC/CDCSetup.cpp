@@ -207,6 +207,7 @@ CDCSetup::CDCSetup(void)
 {
   LOG_DEBUG("CDCSetup", "Starting setup");
   // Load defaults
+  
   this->_loadDefaults();
 
   // Disable Weather queries until we are ready
@@ -374,6 +375,9 @@ void CDCSetup::_loadDefaults(void)
   memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
   memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
 
+  memset(this->_httpOTAURL, '\0', sizeof(this->_httpOTAURL));
+  strlcpy(this->_httpOTAURL, CDC_DEFAULT_HTTP_OTA_URL, sizeof(this->_httpOTAURL));
+
   this->resetConfigUpdated();
   
   LOG_DEBUG("_loadDefaults", "Loading CDCSetup defaults: completed.");
@@ -431,7 +435,7 @@ bool CDCSetup::LoadConfig(void)
         bool loadValue = pos->second.saveToConfig;
 
         if (loadValue)
-          setCmdProcessor(String(kv.key().c_str()), String(kv.value().as<const char *>()));
+          setCmdProcessor(String(kv.key().c_str()), String(kv.value().as<const char *>()), LOADCONFIG);
       }
       if (String(kv.key().c_str()).compareTo(String("WAPI")) == 0)
       {
@@ -547,7 +551,7 @@ bool CDCSetup::setupWiFi(void)
   StaticJsonDocument<512> doc;
 #endif
 
-  File file = LittleFS.open(CDC_WIFI_CONFIG);
+  File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_READ);
   if (!file)
   {
     LOG_ERROR("setupWiFi", "Failed to open: " << CDC_WIFI_CONFIG);
@@ -1068,4 +1072,45 @@ int CDCSetup::getMinute()
 void    CDCSetup::setPasswordHash( String pwdHash ) 
 {
   strlcpy(this->_passwordHash, pwdHash.c_str(), sizeof(this->_passwordHash));
+}
+
+bool CDCSetup::backupConfig() {
+  File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_READ);
+  if (!file)
+  {
+    LOG_ERROR("backupConfig", "Failed to open: " << CDC_WIFI_CONFIG);
+    return false;
+  }
+  else
+  {
+    DeserializationError error = deserializeJson(this->_backupDoc, file);
+    if (error)
+    {
+      LOG_ERROR("backupConfig", "Failed to deserialize: " << CDC_WIFI_CONFIG);
+      return false;
+    }
+
+  }
+  file.close();
+  LittleFS.end();
+  return true;
+}
+
+bool CDCSetup::restoreConfig() {
+  if (!LittleFS.begin(false))
+  {
+    return false;
+  }
+
+  File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_WRITE);
+  if (serializeJson(this->_backupDoc, file) == 0)
+  {
+    LOG_ERROR("restoreConfig", "Failed to serialize config to: " << CDC_WIFI_CONFIG);
+    file.close();
+    return false;
+  }
+  file.close();
+
+  this->setConfigUpdated();
+  return this->SaveConfig();
 }

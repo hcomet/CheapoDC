@@ -165,6 +165,15 @@
 #define CDC_DEFAULT_WEBSOCKET_URL "/ws"
 #define CDC_DEFAULT_TCP_SERVER_PORT 58000 // Port used for the TCP based API
 
+// For Web based updates using HTTP OTA
+//#define CDC_ENABLE_HTTP_OTA   // Comment out to disable HTTP OTA Support if enabled esp32FOTA library is required
+#define CDC_DEFAULT_HTTP_OTA_URL "https://hcomet.github.io//httpota/CheapoDC/manifest.json" // URL for Web based firmware updates
+#ifdef CDC_ENABLE_HTTP_OTA
+#define CDC_NO_FW_UPDATE_RESPONSE "NOFWUPDATE"
+#else
+#define CDC_NO_FW_UPDATE_RESPONSE "NOSUPPORT"
+#endif  // CDC_ENABLE_HTTP_OTA
+
 // units - HTML Escaped
 #define CDC_UNITS_DEGREES "&deg;"
 #define CDC_UNITS_DEGREES_C "&deg;C"
@@ -254,6 +263,8 @@
 #define CDC_CMD_CPO5 63   // Controller Output Pin 5 (Mode dependent: -1, 0 - 100, 0 or 1)
 #define CDC_CMD_PWDH 64   // Password Hash
 #define CDC_CMD_LEDH 65   // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
+#define CDC_CMD_FWUP 66   // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
+#define CDC_CMD_UURL 67   // Update URL - points to the HTTP OTA update manifest.json
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625

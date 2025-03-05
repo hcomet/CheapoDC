@@ -323,4 +323,133 @@ function logoutCDC() {
     xhr.open("GET", "/logout", true);
     xhr.send();
     setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
-  }
+}
+
+function httpOTAAvailability( value) {
+    if (value == "NOSUPPORT") {
+        document.getElementById("fwUpdateNotAvailable").style.display = "block";
+        document.getElementById("fwUpdateNotAvailable").innerHTML = "Not supported.";
+        document.getElementById("fwUpdateAvailable").style.display = "none";
+    } else {
+        if (value != "NOFWUPDATE") {
+            document.getElementById("fwUpdateAvailable").style.display = "block";
+            document.getElementById("fwUpdateNotAvailable").style.display = "none";
+        } else {
+            document.getElementById("fwUpdateNotAvailable").style.display = "block";
+            document.getElementById("fwUpdateNotAvailable").innerHTML = "No update available. Currently at latest version.";
+            document.getElementById("fwUpdateAvailable").style.display = "none";
+        }
+    }
+}
+function updateOTAError(message) {
+    var errorElement = document.getElementById("otaerror");
+    console.log("OTA update error: " + message)
+    if (message=="") {
+        document.getElementById("otaerror").style.display = "hidden";
+    } else {
+        document.getElementById("otaerror").style.display = "block";
+    }
+    document.getElementById("otaerror").innerHTML = message;
+ }
+
+function httpOTAUpload() {
+    var password = MD5.generate("admin:CheapoDC:" + document.getElementById("HTTPOTAPWD").value);
+    var xhr = new XMLHttpRequest();
+    var source = new EventSource('/events');
+    console.log("Set up HTTP OTA");
+    if (!!window.EventSource) {
+       source.addEventListener('open', (e) => {console.log("Events Connected");document.getElementById("status").innerHTML = "HTTP OTA Connected."});
+       source.addEventListener('status', (e) => {console.log("status" + e.data);document.getElementById("filename").innerHTML = e.data});
+       source.addEventListener('error', (e) => {if (e.target.readyState != EventSource.OPEN) {updateOTAError("Events Disconnected");}else{updateOTAError(e.data);}});
+       source.addEventListener('message', (e) => {console.log("message" + e.data);document.getElementById("status").innerHTML = e.data;});
+       source.addEventListener('progress', (e) => {httpOTAProgress(e.data);});
+       source.addEventListener('reboot', (e) => {otaReboot(e.data);});
+       console.log("EventSource: " + source.url + " State: " + source.readyState );
+    } else {
+       console.log("something is broken");
+    }
+    xhr.open("POST", "/updatehtml", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("password=" + encodeForHTTP(password));
+    console.log("Sent OTA request");
+ }
+ function httpOTAProgress( value ) {
+    
+    if (value > 0) {
+        document.getElementById("filesize").innerHTML = " " + value + "&percnt; ";
+    } else {
+        document.getElementById("filesize").innerHTML = " ";
+    }
+
+ }
+ function otaReboot( message ) {
+    if (message == "Refresh") {
+        setTimeout(function () { location.reload(); }, 5000);
+    }
+ }
+ function fileOTAUpload() {
+    var file = document.getElementById("file1").files[0];
+    document.getElementById("filename").innerHTML = document.getElementById("file1").value.replace(/.*[\/\\]/, '') + ": ";
+    var formdata = new FormData();
+    formdata.append("method", "file");
+    formdata.append("file1", file);
+    var ajax = new XMLHttpRequest();
+    ajax.upload.addEventListener("progress", progressHandler, false);
+    ajax.open("POST", "/update");
+    ajax.send(formdata);
+ }
+
+ function progressHandler(event) {
+    document.getElementById("filesize").innerHTML = event.loaded + " bytes";
+    var percent = (event.loaded / event.total) * 100;
+    document.getElementById("status").innerHTML = "Completed: " + Math.round(percent) + "&percnt;";
+    if (percent >= 100) {
+       document.getElementById("status").innerHTML = "Completed: 100&percnt; Wait for Reload.";
+       document.getElementById("iupload").disabled = true;
+       setTimeout(function () { location.reload(); }, 5000);
+    }
+ }
+
+ function rebootDevice() {
+    if (confirm("Confirm Reboot")) {
+       xmlhttp = new XMLHttpRequest();
+       xmlhttp.open("GET", "/reboot", true);
+       xmlhttp.send();
+    }
+ }
+
+ function logoutCDC() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/logout", true);
+    xhr.send();
+    setTimeout(function () { window.open("/dashboard", "_self"); }, 1000);
+ }
+
+ function checkPasswordUpdate() {
+    console.log("Checking Passwords");
+    if ((document.getElementById("newpassword").value != "") &&
+       (document.getElementById("newpassword").value == document.getElementById("confpassword").value) &&
+       (document.getElementById("oldpassword").value != "")) {
+       document.getElementById('passwordButton').disabled = false;
+    } else {
+       document.getElementById('passwordButton').disabled = true;
+    }
+ }
+
+ function changePassword() {
+    // MD5(user:realm:pass)
+    var newPassword = MD5.generate("admin:CheapoDC:" + document.getElementById("newpassword").value);
+    var oldPassword = MD5.generate("admin:CheapoDC:" + document.getElementById("oldpassword").value);
+    var confPassword = MD5.generate("admin:CheapoDC:" + document.getElementById("confpassword").value);
+    if (newPassword != confPassword) {
+       alert("New Passwords do not match");
+       document.getElementById('passwordButton').disabled = true;
+       return;
+    }
+    var xhr = new XMLHttpRequest();
+    document.getElementById("loader").style.display = "block";
+    xhr.open("POST", "/setpassword", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("newpassword=" + encodeForHTTP(newPassword) + "&oldpassword=" + encodeForHTTP(oldPassword));
+    setTimeout(function () { location.reload(); }, 1000);
+ }

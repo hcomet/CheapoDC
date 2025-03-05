@@ -503,11 +503,12 @@ form#passwordForm {
   text-align: right;
   margin-right: 15px;
 }
-form#uploadForm {
+.in30 {
   margin-left: 30px;
 }
-
-
+.errorText {
+  color: var(--color-error);
+}
   /* Center the loader */
   #loader {
     position: absolute;

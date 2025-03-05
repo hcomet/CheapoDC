@@ -20,7 +20,7 @@
 #endif
 
 char programName[] = "CheapoDC"; // Program name
-char programVersion[] = "2.2.0B";  // program version
+char programVersion[] = "2.2.0";  // program version
 
 CDCSetup *theSetup; // main setup class
 dewController *theDController;
@@ -290,6 +290,10 @@ void loop()
 
       // call save config file timer
       saveConfigTimer(secCount);
+      // Check for ask to do HTTP OTA Update
+#ifdef CDC_ENABLE_HTTP_OTA
+      updateFirmware();
+#endif
       // End Seconds check
 
       // Do minute timer items
