@@ -14,14 +14,14 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <map>
-#include <esp_task_wdt.h>
+//#include <esp_task_wdt.h>
 #include "CDCdefines.h"
 #include "CDCEasyLogger.h"
 #include "CDCSetup.h"
 #include "CDCWebSrvr.h"
 #include "CDCommands.h"
 #ifdef CDC_ENABLE_HTTP_OTA
-#include <esp32FOTA.hpp>
+#include "CDCesp32FOTA.hpp"
 #endif
 
 size_t content_len;
@@ -797,9 +797,6 @@ void setupServers(void) {
     if ((request->hasParam("newpassword", true)) && (request->hasParam("oldpassword", true))) {
       const AsyncWebParameter* nP = request->getParam("newpassword", true);
       const AsyncWebParameter* oP = request->getParam("oldpassword", true);
-      //http_password = p->value().c_str();
-      //basicAuth->setPassword(nP->value().c_str());
-      //basicAuth->generateHash();
       if (oP->value().equals(String(theSetup->getPasswordHash()))) 
       {
         theSetup->setPasswordHash(nP->value().c_str());
@@ -813,6 +810,29 @@ void setupServers(void) {
     } else {
       LOG_ALERT("/setpassword", "No newpassword parameter.");
       request->send(200, "text/plain", "Password not set");
+    }
+  });
+
+  // Handle WiFi configuration
+  // Allow fetching of WiFi configuration file
+  CDCWebServer->on("/CDCWiFi.json", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(LittleFS, "/CDCWiFi.json", "text/html");
+  });
+
+  // Handle WiFi update
+  CDCWebServer->on("/setwifi", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (request->hasParam("wifi", true)) {
+      const AsyncWebParameter* p = request->getParam("wifi", true);
+      if (!theSetup->saveWiFiConfig(p->value())) {
+        LOG_ALERT("/setwifi", "Failed to save wifi configuration.");
+        request->send(200, "text/plain", "Wifi not set");
+      } else {
+        LOG_ALERT("/setwifi", "Parameter: " << p->value().c_str());
+        request->send(200, "text/plain", "Wifi set");
+      }
+    } else {
+      LOG_ALERT("/setwifi", "No wifi parameter.");
+      request->send(200, "text/plain", "Wifi not set");
     }
   });
 

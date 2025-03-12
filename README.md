@@ -3,9 +3,7 @@
 The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini.
 Parts required include the ESP32-C3 mini, a MOSFET module for each output, a 12V to 5V buck converter, some protoboard,
  RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that
-controls 2 dew heater straps. Details on how to build the CheapoDC firmware as well as information about the latest
-firmware release may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md). Hardware details
-can be found in the [Hardware](/README.md#hardware) section of this document.
+controls 2 dew heater straps.
 
 A primary goal was to keep the build simple with minimal components. This is done by leveraging the ESP32 WiFi
 capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API
@@ -17,9 +15,19 @@ support the weather service queries but it can also be used in a limited way wit
 
 The CheapoDC may be set up using a basic configuration with two dew strap outputs or it may be configured with up to
 four additional outputs. Each CheapoDC Output is controlled by a separate MOSFET module tied to one of the ESP32's
-GPIO pins. The pins may be configured to be managed either automatically using the CheapoDC dew control algorithm
+GPIO pins. The four additional outputs may be configured to be managed either automatically using the CheapoDC dew control algorithm, along with two main dew controller outputs,
 or manually via the Web UI or API. Dew control algorithm managed pins and thus dew strap outputs are all tied to the
 same ESP32 PWM channel and will have the same output.
+
+CheapoDC hardware build details can be found in the [Hardware](/README.md#hardware) section of this document. 
+
+CheapoDC firmware may installed on your device using one of the following methods:
+
+* Using the Arduino IDE: Details on how to build the CheapoDC firmware as well as information about the latest
+firmware release may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md).
+* WebFlash: A web based utility that allows for the installation of the latest firmware directly to your ESP32-C3 based device.
+
+CheapoDC also supports web based Over-the-air (OTA) upgrades of the firmware using the CheapoDC Web UI.
 
 # How the Dew Control Algorithm Works
 
@@ -173,7 +181,7 @@ How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md).
 
 ## Weather Service
 
-The current temperature and humidity for your location may be obtained by either using one of the two CheapoDC integrated open weather service APIs or may be be provided from an external client through the CheapoDC API. Dew point is calculated based on the temperature and humidity values. The Weather Source may be set using the [Web UI](#cheapodc-configuration) or through the [API](#cheapodc-api). CheapoDC defaults to using Open-Meteo.
+The current temperature and humidity for your location may be obtained by either using one of the two CheapoDC integrated open weather service APIs or may be be provided from an external client through the CheapoDC API. Dew point is calculated based on the temperature and humidity values. The Weather Source may be set using the [Web UI](#cheapodc-controller-configuration) or through the [API](#cheapodc-api). CheapoDC defaults to using Open-Meteo.
 
 ### [Open-Meteo](https://open-meteo.com/)
 
@@ -205,7 +213,7 @@ The Web UI has 4 main pages, a dashboard, a configuration page, a device managem
 
 The Dashboard provides a summary of the current location, weather, controller output and settings. Internet connectivity is required for current weather information and the weather icon.
 
-### CheapoDC Configuration
+### CheapoDC Controller Configuration
 
 ![CheapoDC Configuration](images/configuration.jpg)  
 
@@ -217,7 +225,13 @@ The Location and Time Zone may also be set here.
 
 ![CheapoDC Device Management](images/devicemgmt.jpg)  
 
-The Device Management page is where the Controller Output Pin to GPIO Pin mappings and Output Modes is set. The CheapoDC can support up to 6 Controller Output Pins, Pin 0 through Pin 5. Pins 0 and 1 may only be used as dew controller outputs while Pins 2 through 5 may be set to any of the supported Output Modes:
+The Device Management page is where device level configuration is done for the CheapoDC. This includes:
+
+#### Controller Output Configuration
+
+Used to configure GPIO Pin mappings for outputs as well as setting the Output Mode for each output. The CheapoDC can support up to 6 Controller Output Pins, Pin 0 through Pin 5. Pins 0 and 1 may only be used as dew controller outputs while Pins 2 through 5 may be set to any of the supported Output Modes:
+
+##### Output Modes
 
 |Output Mode|Description|Supported Output Pins|
 |-----------|---------------------|-----------|
@@ -228,7 +242,24 @@ The Device Management page is where the Controller Output Pin to GPIO Pin mappin
 
 Note that a Controller Output Pin to GPIO Pin mapping must be set before an Output Mode may be selected. These settings may be controlled via the Web UI or the API.
 
-The Device Management page also provides the ability to do Over-The-Air (OTA) firmware updates as well as remote Reboot of the CheapoDC.
+#### Change Password
+
+Changing the default password of ***admin*** to your own password is recommended.
+
+#### Status LED Configuration
+
+Used to change the Status LED pin mapping from the default of GPIO 8. Also used to set the active High Value to ***1*** or ***0***.
+
+#### Firmware Update
+
+CheapoDC supports two methods for updating firmware. 
+
+1. Web Update: Will indicate when a new release is available and then allow for an HTTP based OTA update. This will update both the firmware and data partitions while preserving your configuration settings. No software or Arduino IDE knowledge is required for this update method.
+2. Manual Update: Allows for an OTA update to firmware that has been compiled and built on your own machine. This only updates the data partition. You will need to manually update the files in the data partition using the [File Management UI](#cheapodc-file-management). At least Arduino IDE knowledge is required for this method.
+
+#### Reboot Device
+
+To remotely reboot the CheapoDC.
 
 ### CheapoDC File Management
 
@@ -271,7 +302,8 @@ The table below provides a list of the commands but the code is the final correc
 
 * String maximum lengths are identified in the table.
 * Floats are truncated to 2 decimal places.
-* All commands except **QN** support getter API methods.
+* All commands except **QN** and **PWDH** support getter API methods.
+* For security reasons, **PWDH** does not allow a getter API but it also restricts the setter to the Web API and HTTP POST method. It also requires that the current Password digest hash be submitted as a second parameter.
 * The **QN** command is a setter only command. It requires a value that is not Null. "NA" works.
 * Commands supporting a **Setter** method are identified.
 * The **ATPQ** and **HU** commands are only setter commands when Weather Source is set to External Source.
@@ -316,7 +348,8 @@ The table below provides a list of the commands but the code is the final correc
 |    LNM   |&check;|  None    | String [32] |   Location name|
 |    TMZ   |&check;|  Seconds    | Integer |   Location time zone (seconds)|
 |    DST   |&check;|  Seconds    | Integer |   Location DST offset (seconds)|
-|    LED   |&check;|  mSeconds    | Integer |   Status LED Blink every|
+|    LED   |&check;|  None    | Integer |   Status LED GPIO pin
+|LEDH|&check;|None|Integer|Status LED High value.<br>1 or 0.|
 |    NTP   |&check;|  None    | String [64] |   NTP serverName|
 |   OMIN   |&check;|  &percnt;    | Integer |   DC Min output (0 to Max-1)|
 |   OMAX   |&check;|  &percnt;    | Integer |   DC Max output (Min+1 to 100)|
@@ -334,7 +367,9 @@ The table below provides a list of the commands but the code is the final correc
 |    WQEN    |&check;|  None | Bool | Web Query Enabled<br>False = 0<br>True = 1|
 |   CPP#   |&check;|  None    | Integer |Controller Pin 0 to GPIO pin mapping<br>-1 to 39<br>-1 = Disabled|
 |    CPM#    |&check;|  None    | ENUM |Controller Pin Mode <br>Disabled = 0<br>Controller = 1<br>PWM = 2<br>Boolean = 3|
-|CPO#|&check;|&percnt;|Integer|Controller Pin Output<br>Output Mode dependent.<br>Set - PWM, Boolean<br>Get - all modes
+|CPO#|&check;|&percnt;|Integer|Controller Pin Output<br>Output Mode dependent.<br>Set - PWM, Boolean<br>Get - all modes|
+|PWDH|&check;|None|String[32]|Change the [Digest access authentication](https://en.wikipedia.org/wiki/Digest_access_authentication#:~:text=In%20contrast%2C%20basic%20access%20authentication,It%20uses%20the%20HTTP%20protocol.) MD5 Password Hash. |
+|FWUP|&cross;|None|Integer|Returns new FW release availability:<br>x.y.z = update available<br>NOFWUPDATE = no update<br>NOSUPPORT = Web Update not supported
 
 ### TCP API
 
@@ -386,4 +421,13 @@ See the Configuration Files section in [Building and Installing CheapoDC](./Chea
 
 An INDI driver is now available in the master branch as of INDI release 2.0.7, April 1, 2024. Details should become available on the [INDI website devices list](https://www.indilib.org/aux/cheapodc-dew-controller.html) as well as the [StellarMate website devices list](https://www.stellarmate.com/devices.html).
 
-Driver version 1.1 supports the latest versions of the CheapoDC firmware adding support for Weather Device integration.
+Driver version 1.2 supports the latest versions of the CheapoDC firmware adding support for the four Additional Controller Outputs.
+
+# Third Party Acknowledgements
+
+* Two libraries are bundled into CheapoDC:
+  * esp32FOTA from Chris Joyce provides the Web Update capability for HTTP OTA updates. The original library may be
+  found at [https://github.com/chrisjoyce911/esp32FOTA](https://github.com/chrisjoyce911/esp32FOTA). esp32FOTA also bundles in a semantic version parsing library, [semver](https://github.com/h2non/semver.c), from h2non.
+  * EasyLogger from Alex Skov Jensen provides the debug logging macros. The original library may be
+  found at [https://github.com/x821938/EasyLogger](https://github.com/x821938/EasyLogger).
+* The WebFlash capability uses [ESP Web Tools](https://esphome.github.io/esp-web-tools/) from [Home Assistant](https://www.home-assistant.io/).

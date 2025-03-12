@@ -73,6 +73,7 @@ class CDCSetup
     public:
                 CDCSetup(void);
         bool setupWiFi(void);
+        bool saveWiFiConfig( String wifiConfigJson );
         bool LoadConfig(void);
         bool SaveConfig(void);
         bool queryWeather(void);
@@ -196,9 +197,9 @@ class CDCSetup
         bool            _configUpdated; 
         char            _httpOTAURL[256];
 #if ARDUINOJSON_VERSION_MAJOR>=7
-	JsonDocument    _backupDoc;
+	JsonDocument    _backupWiFiConfig;
 #else
-	DynamicJsonDocument _backupDoc(1024);
+	DynamicJsonDocument _backupWiFiConfig(1024);
 #endif           
 };
 #endif 

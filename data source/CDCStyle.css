@@ -335,40 +335,35 @@
     margin-bottom: 0px;
   }
 
+  configItem, configValue, configComment, configAction {
+    padding: 0px;
+    margin: auto;
+    vertical-align: bottom;
+  }
+
   configItem {
     grid-area: configItem;
     text-align: right;
-    font-weight: bold;
-    vertical-align: bottom;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-right: 0px;
   }
 
   configValue {
     grid-area: configValue;
     text-align: left;
-    vertical-align: bottom;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-left: 0px;
   }
 
   configComment {
     grid-area: configComment;
     text-align: left;
-    vertical-align: bottom;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-left: 0px;
   }
 
   configAction {
     grid-area: configAction;
     text-align: center;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    vertical-align: middle;
+    margin-left: 0px;
   }
   
   .config {
@@ -388,28 +383,24 @@
     .config {max-width: 60%}
   }
 
-  .configline {
+  .configline, .urlconfig {
     display: grid;
-    border: 1px solid var(--color-lightGrey);
+    border: none;
     vertical-align: bottom;
     padding-left: 0px;
-    height: auto;
     margin: 2px auto 2px 0px;
     grid-gap: 5px;
     grid-template-columns: 3fr 3fr 2fr 1fr;
+  }
+
+  .configline {
+    height: 23px;
     grid-template-areas:
       "configItem  configValue configComment configAction"; 
   }
 
   .urlconfig {
-    display: grid;
-    border: 1px solid var(--color-lightGrey);
-    vertical-align: bottom;
     height: auto;
-    padding-left: 0px;
-    margin: 2px auto 2px 0px;
-    grid-gap: 5px;
-    grid-template-columns: 3fr 3fr 2fr 1fr;
     grid-template-areas:
       "configItem  configValue configValue configValue"
       ". configComment configComment configAction"; 
@@ -429,13 +420,19 @@
 
   .cReading > select, .cReading > input {
     margin: 0px;
-    padding: 0px;
-    width: 180px;
     border-color: var(--color-lightGrey);
     border-width: 1px;
     outline-offset: 1px;
     outline-color: #6369a7;
     box-shadow: none;
+  }
+
+  .cReading > select {
+    width: 190px;
+  }
+  .cReading > input {
+    width: 180px;
+    padding-left: 5px;
   }
 
   .cReading.url >  input {
@@ -467,10 +464,6 @@
     width: 50px;
   }
 
-  .cReadiing > select {
-    width: 50px;
-  }
-
   .twocolconfig {
     display: grid;
     grid-template-columns: 50% 50%;
@@ -492,8 +485,11 @@
   border: none;
   max-width: 18em;
 }
-.twocolconfig .cReading>select, .twocolconfig .cReading>input {
-  max-width: 10em;
+.twocolconfig .cReading>select {
+  width: 135px;
+}
+.twocolconfig .cReading>input {
+  width: 125px;
 }
 h3 {
   margin-top: 10px;
@@ -506,9 +502,33 @@ form#passwordForm {
 .in30 {
   margin-left: 30px;
 }
+.dwn10 {
+  margin-top: 10px;
+}
+.mb10 {
+  margin-bottom: 10px;
+}
+.mb5 {
+  margin-bottom: 5px;
+}
 .errorText {
   color: var(--color-error);
 }
+
+
+.filelist {
+  display: grid;
+  border: 1px solid var(--color-lightGrey);
+  vertical-align: bottom;
+  padding-left: 0px;
+  height: auto;
+  margin: 2px auto 2px 0px;
+  grid-gap: 5px;
+  grid-template-columns: 4fr 2fr 2fr 1fr;
+  grid-template-areas:
+    "fileItem fileAction1 fileAction2 ."; 
+}
+
   /* Center the loader */
   #loader {
     position: absolute;
@@ -554,17 +574,4 @@ form#passwordForm {
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
-  }
-
-  .filelist {
-    display: grid;
-    border: 1px solid var(--color-lightGrey);
-    vertical-align: bottom;
-    padding-left: 0px;
-    height: auto;
-    margin: 2px auto 2px 0px;
-    grid-gap: 5px;
-    grid-template-columns: 4fr 2fr 2fr 1fr;
-    grid-template-areas:
-      "fileItem fileAction1 fileAction2 ."; 
   }

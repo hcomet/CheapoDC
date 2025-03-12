@@ -2,9 +2,9 @@
 <html lang="en">
 
 <head>
-   <title>Device Management</title>
+   <title>CheapoDC Device Management</title>
    <link rel="icon" type="image/png" href="/favicon.png">
-   <link rel="stylesheet" href="./CDCStyle.css">
+   <link rel="stylesheet" href="./CDCStyle.css?v=1.1">
 </head>
 
 <body>
@@ -19,10 +19,10 @@
          </div>
       </header>
       <main>
-         <h2>Controller Pin Configuration</h2>
+         <h2>Controller Output Configuration</h2>
          <div class="twocolconfig">
             <div class="configcol1">
-               <h3>Controller Pin 0</h3>
+               <h3>Controller Output 0</h3>
                <div class="configline">
                   <configItem>GPIO:</configItem>
                   <configValue>
@@ -43,7 +43,7 @@
                   <configAction><button type="button" class="cButton" id="CPM0" disabled>Update</button></configAction>
                </div>
                <div class="configline">
-                  <configItem>Output:</configItem>
+                  <configItem>Output (&percnt;):</configItem>
                   <configValue>
                      <div class="cReading"><input type="number" name="CPO0" disabled class="cInput" id="CPO0I"
                            data-cdc="%CPO0%" /></div>
@@ -53,7 +53,7 @@
                </div>
             </div>
             <div class="configcol2">
-               <h3>Controller Pin 1</h3>
+               <h3>Controller Output 1</h3>
                <div class="configline">
                   <configItem>GPIO:</configItem>
                   <configValue>
@@ -74,7 +74,7 @@
                   <configAction><button type="button" class="cButton" id="CPM1" disabled>Update</button></configAction>
                </div>
                <div class="configline">
-                  <configItem>Output:</configItem>
+                  <configItem>Output (&percnt;):</configItem>
                   <configValue>
                      <div class="cReading"><input type="number" disabled class="cInput" id="CPO1I" data-cdc="%CPO1%" />
                      </div>
@@ -86,7 +86,7 @@
          </div>
          <div class="twocolconfig">
             <div class="configcol1">
-               <h3>Controller Pin 2</h3>
+               <h3>Controller Output 2</h3>
                <div class="configline">
                   <configItem>GPIO:</configItem>
                   <configValue>
@@ -109,7 +109,7 @@
                   <configAction><button type="button" class="cButton" id="CPM2" disabled>Update</button></configAction>
                </div>
                <div class="configline">
-                  <configItem>Output:</configItem>
+                  <configItem>Output (&percnt;):</configItem>
                   <configValue>
                      <div class="cReading"><input type="number" name="CPO2" step="1" min="0" max="100" class="cInput"
                            id="CPO2I" data-cdc="%CPO2%" /></div>
@@ -119,7 +119,7 @@
                </div>
             </div>
             <div class="configcol2">
-               <h3>Controller Pin 3</h3>
+               <h3>Controller Output 3</h3>
                <div class="configline">
                   <configItem>GPIO:</configItem>
                   <configValue>
@@ -142,7 +142,7 @@
                   <configAction><button type="button" class="cButton" id="CPM3" disabled>Update</button></configAction>
                </div>
                <div class="configline">
-                  <configItem>Output:</configItem>
+                  <configItem>Output (&percnt;):</configItem>
                   <configValue>
                      <div class="cReading"><input type="number" name="CPO3" step="1" min="0" max="100" class="cInput"
                            id="CPO3I" data-cdc="%CPO3%" /></div>
@@ -153,7 +153,7 @@
          </div>
          <div class="twocolconfig">
             <div class="configcol1">
-               <h3>Controller Pin 4</h3>
+               <h3>Controller Output 4</h3>
                <div class="configline">
                   <configItem>GPIO:</configItem>
                   <configValue>
@@ -176,7 +176,7 @@
                   <configAction><button type="button" class="cButton" id="CPM4" disabled>Update</button></configAction>
                </div>
                <div class="configline">
-                  <configItem>Output:</configItem>
+                  <configItem>Output (&percnt;):</configItem>
                   <configValue>
                      <div class="cReading"><input type="number" name="CPO4" step="1" min="0" max="100" class="cInput"
                            id="CPO4I" data-cdc="%CPO4%" /></div>
@@ -185,7 +185,7 @@
                </div>
             </div>
             <div class="configcol2">
-               <h3>Controller Pin 5</h3>
+               <h3>Controller Output 5</h3>
                <div class="configline">
                   <configItem>GPIO:</configItem>
                   <configValue>
@@ -208,7 +208,7 @@
                   <configAction><button type="button" class="cButton" id="CPM5" disabled>Update</button></configAction>
                </div>
                <div class="configline">
-                  <configItem>Output:</configItem>
+                  <configItem>Output (&percnt;):</configItem>
                   <configValue>
                      <div class="cReading"><input type="number" name="CPO5" step="1" min="0" max="100" class="cInput"
                            id="CPO5I" data-cdc="%CPO5%" /></div>
@@ -217,6 +217,69 @@
                </div>
             </div>
          </div>
+         <hr class="confighr">
+         <h2>Wifi Configuration</h2>
+      <div class="twocolconfig">
+         <div class="configcol1">
+            <h3>Network Information</h3>
+            <div class="configline">
+               <configItem>WiFi Mode:</configItem>
+               <configValue>
+                  <div class="cReading"><input type="text" name="WIFI" class="cInput" id="WIFII" disabled
+                     data-cdc="%WIFI%" /></div>
+               </configValue>
+               <configAction><button type="button" class="cButton hidden" id="WIFI">Update</button></configAction>
+            </div>
+            <div class="configline">
+               <configItem>Hostname:</configItem>
+               <configValue>
+                  <div class="cReading"><input type="text" name="HN" class="cInput" id="HNI" disabled
+                     data-cdc="%HN%" /></div>
+               </configValue>
+               <configAction><button type="button" class="cButton hidden" id="HN">Update</button></configAction>
+            </div>
+            <div class="configline">
+               <configItem>IP Address:</configItem>
+               <configValue>
+                  <div class="cReading"><input type="text" name="IP" class="cInput" id="IPI" disabled
+                     data-cdc="%IP%" /></div>
+               </configValue>
+               <configAction><button type="button" class="cButton hidden" id="IP">Update</button>
+               </configAction>
+            </div>
+         </div>
+         <div class="configcol2">
+            <h3>Configure WiFi</h3>
+            <div class="configline">
+               <configItem>Name:</configItem>
+               <configValue>
+                  <div class="cReading"><select name="wifiName" id="wifiName"></select></div>
+               </configValue>
+               <configAction><button type="button" class="cButton hidden" disabled>Update</button></configAction>
+            </div>
+            <div class="configline">
+               <configItem>SSID:</configItem>
+               <configValue>
+                  <div class="cReading"><input type="text" name="wifiSSID" id="wifiSSID"  class="cInput"/>
+                  </div>
+               </configValue>
+               <configAction><button type="button" class="cButton hidden" disabled>Update</button></configAction>
+            </div>
+            <div class="configline">
+               <configItem>Password:</configItem>
+               <configValue>
+                  <div class="cReading"><input type="password" name="wifiPassword" id="wifiPassword"  class="cInput"/>
+                  </div>
+               </configValue>
+               <configAction><button type="button" class="cButton" id="wifiButton" disabled>Update</button></configAction>
+            </div>
+            <div class="configline">
+               <configItem></configItem>
+               <configValue><input type="checkbox" id="wifiPwdCheck" onclick="showWifiPassword()">Show Password</configValue>
+               <configAction></configAction>
+            </div>
+         </div>
+      </div>
          <hr class="confighr">
          <h2>Change Password</h2>
          <form id="passwordForm" method="POST" action="/setpassword">
@@ -258,28 +321,30 @@
          <p id="status" class="in30">No active update.</p>
          <p id="loaded_n_total" class="in30"><span id="filename"></span><span id="filesize"></span></p>
          <p id="otaerror" class="in30 errorText" display="hidden"></p>
-         <h3>Web Update</h3>
-         <div id="fwUpdateAvailable" display="none" class="in30">Release %FWUP% available. Password required.
+         <h3>Web OTA Update</h3>
+         <div id="fwUpdateAvailable" display="none" class="in30 dwn10">Release %FWUP% available. Your password is required.
            <!-- <input type="password" name="FWUP" class="cInput"  id="FWUPI" placeholder="Enter Password"/>
             <button type="button" class="cButton" id="FWUP" disabled>Update</button> -->
             <input type="password" name="HTTPOTA" id="HTTPOTAPWD" placeholder="Enter Password"/>
             <input type="button" name="HTTPUPDATE" id="iupdate" value="Update" onclick="httpOTAUpload()" disabled />
          </div>
          <div id="fwUpdateNotAvailable" class="in30" display="block">No update available. Currently at latest version.</div>
-         <p class="in30">Please read the HTTP OTA Update <a href="https://github.com/hcomet/CheapoDC#http-ota-faq" target="_blank">FAQ</a></p>
-         <h3>Manual Update</h3>
-         <form id="uploadOTAFileForm" method="POST" action="/upload" class="in30" enctype="multipart/form-data">
+         <p class="in30">Please read the Web OTA Update&nbsp;<a href="https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html" target="_blank">FAQ</a>.</p>
+         <h3>Manual OTA Update</h3>
+         <form id="uploadOTAFileForm" method="POST" action="/upload" class="in30 dwn10" enctype="multipart/form-data">
             <input type="file" name="file1" id="file1" value="Choose FW" /><input type="button" name="upload"
                id="iupload" value="Update" title="Upload File" onclick="fileOTAUpload()" disabled />
             </form>
          <hr class="confighr" >
          <h2>Reboot Device</h2>
+         <p class="in30">Uptime: %UPT%  (HHH:MM:SS:MSec)</p>
          <button type="button" class="reboot" onclick="rebootDevice()">Reboot</button>
+         
       </main>
       <footer>
          <hr class="footerThr">
          <button type="button" class="bfooter" onclick="document.location='../dashboard'">Dashboard</button>
-         <button type="button" class="bfooter" onclick="document.location='../config'">Configuration</button>
+         <button type="button" class="bfooter" onclick="document.location='../config'">Controller Configuration</button>
          <button type="button" class="bfooterDisabled" disabled>Device Management</button>
          <!-- onclick="document.location='../otaIndex'"-->
          <button type="button" class="bfooter" onclick="document.location='../listFiles'">File Management</button>
@@ -290,12 +355,13 @@
    </div>
    <script>
       // otaindex.html specific JS
-      window.onload=function() {httpOTAAvailability("%FWUP%");};
+      window.onload=function() {httpOTAAvailability("%FWUP%");loadWifi();};
       document.getElementById('file1').addEventListener('change', function () { document.getElementById('iupload').disabled = false; });
       document.getElementById('oldpassword').addEventListener('input', function () { checkPasswordUpdate() });
       document.getElementById('newpassword').addEventListener('input', function () { checkPasswordUpdate() });
       document.getElementById('confpassword').addEventListener('input', function () { checkPasswordUpdate() });
       document.getElementById('HTTPOTAPWD').addEventListener('input', function () { document.getElementById('iupdate').disabled = false; });
+
    </script>
    <script src="CDCjs.js"></script>
 </body>

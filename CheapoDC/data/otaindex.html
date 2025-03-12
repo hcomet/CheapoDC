@@ -1,1 +1,335 @@
-<!DOCTYPE html><html lang="en"><head><title>Device Management</title><link rel="icon" type="image/png" href="/favicon.png"><link rel="stylesheet" href="./CDCStyle.css"></head><body><div id="loader"></div><div class="config"><header><div class="headerGrid"><hicon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick='window.location.href="https://github.com/hcomet/CheapoDC"'></hicon><htitle class="title">Device Management</htitle><logouticon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logouticon></div></header><main><h2>Controller Pin Configuration</h2><div class="twocolconfig"><div class="configcol1"><h3>Controller Pin 0</h3><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="CPP0" step="1" min="-1" max="39" class="cInput" id="CPP0I" data-cdc="%CPP0%"></div></configvalue><configaction><button type="button" class="cButton" id="CPP0" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Mode:</configitem><configvalue><div class="cReading"><select name="CPM0" id="CPM0S" data-cdc="%CPM0%"><option id="Disabled" value="0">Disabled</option><option id="Controller" value="1">Controller</option></select></div></configvalue><configaction><button type="button" class="cButton" id="CPM0" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Output:</configitem><configvalue><div class="cReading"><input type="number" name="CPO0" disabled="disabled" class="cInput" id="CPO0I" data-cdc="%CPO0%"></div></configvalue><configaction><button type="button fn" class="cButton hidden" id="CPO0" disabled="disabled">Update</button></configaction></div></div><div class="configcol2"><h3>Controller Pin 1</h3><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="CPP1" step="1" min="-1" max="39" class="cInput" id="CPP1I" data-cdc="%CPP1%"></div></configvalue><configaction><button type="button" class="cButton" id="CPP1" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Mode:</configitem><configvalue><div class="cReading"><select name="CPM1" id="CPM1S" data-cdc="%CPM1%"><option id="Disabled" value="0">Disabled</option><option id="Controller" value="1">Controller</option></select></div></configvalue><configaction><button type="button" class="cButton" id="CPM1" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Output:</configitem><configvalue><div class="cReading"><input type="number" disabled="disabled" class="cInput" id="CPO1I" data-cdc="%CPO1%"></div></configvalue><configaction><button type="button fn" class="cButton hidden" id="CPO1" disabled="disabled">Update</button></configaction></div></div></div><div class="twocolconfig"><div class="configcol1"><h3>Controller Pin 2</h3><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="CPP2" step="1" min="-1" max="39" class="cInput" id="CPP2I" data-cdc="%CPP2%"></div></configvalue><configaction><button type="button" class="cButton" id="CPP2" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Mode:</configitem><configvalue><div class="cReading"><select name="CPM2" id="CPM2S" data-cdc="%CPM2%"><option id="Disabled" value="0">Disabled</option><option id="Controller" value="1">Controller</option><option id="PWM" value="2">PWM</option><option id="Boolean" value="3">Boolean</option></select></div></configvalue><configaction><button type="button" class="cButton" id="CPM2" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Output:</configitem><configvalue><div class="cReading"><input type="number" name="CPO2" step="1" min="0" max="100" class="cInput" id="CPO2I" data-cdc="%CPO2%"></div></configvalue><configaction><button type="button fn" class="cButton" id="CPO2" disabled="disabled">Update</button></configaction></div></div><div class="configcol2"><h3>Controller Pin 3</h3><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="CPP3" step="1" min="-1" max="39" class="cInput" id="CPP3I" data-cdc="%CPP3%"></div></configvalue><configaction><button type="button" class="cButton" id="CPP3" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Mode:</configitem><configvalue><div class="cReading"><select name="CPM3" id="CPM3S" data-cdc="%CPM3%"><option id="Disabled" value="0">Disabled</option><option id="Controller" value="1">Controller</option><option id="PWM" value="2">PWM</option><option id="Boolean" value="3">Boolean</option></select></div></configvalue><configaction><button type="button" class="cButton" id="CPM3" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Output:</configitem><configvalue><div class="cReading"><input type="number" name="CPO3" step="1" min="0" max="100" class="cInput" id="CPO3I" data-cdc="%CPO3%"></div></configvalue><configaction><button type="button" class="cButton" id="CPO3" disabled="disabled">Update</button></configaction></div></div></div><div class="twocolconfig"><div class="configcol1"><h3>Controller Pin 4</h3><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="CPP4" step="1" min="-1" max="39" class="cInput" id="CPP4I" data-cdc="%CPP4%"></div></configvalue><configaction><button type="button" class="cButton" id="CPP4" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Mode:</configitem><configvalue><div class="cReading"><select name="CPM4" id="CPM4S" data-cdc="%CPM4%"><option id="Disabled" value="0">Disabled</option><option id="Controller" value="1">Controller</option><option id="PWM" value="2">PWM</option><option id="Boolean" value="3">Boolean</option></select></div></configvalue><configaction><button type="button" class="cButton" id="CPM4" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Output:</configitem><configvalue><div class="cReading"><input type="number" name="CPO4" step="1" min="0" max="100" class="cInput" id="CPO4I" data-cdc="%CPO4%"></div></configvalue><configaction><button type="button" class="cButton" id="CPO4" disabled="disabled">Update</button></configaction></div></div><div class="configcol2"><h3>Controller Pin 5</h3><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="CPP5" step="1" min="-1" max="39" class="cInput" id="CPP5I" data-cdc="%CPP5%"></div></configvalue><configaction><button type="button" class="cButton" id="CPP5" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Mode:</configitem><configvalue><div class="cReading"><select name="CPM5" id="CPM5S" data-cdc="%CPM5%"><option id="Disabled" value="0">Disabled</option><option id="Controller" value="1">Controller</option><option id="PWM" value="2">PWM</option><option id="Boolean" value="3">Boolean</option></select></div></configvalue><configaction><button type="button" class="cButton" id="CPM5" disabled="disabled">Update</button></configaction></div><div class="configline"><configitem>Output:</configitem><configvalue><div class="cReading"><input type="number" name="CPO5" step="1" min="0" max="100" class="cInput" id="CPO5I" data-cdc="%CPO5%"></div></configvalue><configaction><button type="button" class="cButton" id="CPO5" disabled="disabled">Update</button></configaction></div></div></div><hr class="confighr"><h2>Change Password</h2><form id="passwordForm" method="POST" action="/setpassword"><input type="password" name="newpassword" id="newpassword" placeholder="New Password" required> <input type="password" name="confpassword" id="confpassword" placeholder="Confirm New Password" required> <input type="password" name="oldpassword" id="oldpassword" placeholder="Current Password" required><button type="button" id="passwordButton" onclick="changePassword()" disabled="disabled">Update</button></form><br><hr class="confighr"><h2>Status LED Configuration</h2><div class="twocolconfig"><div class="configcol1"><div class="configline"><configitem>GPIO:</configitem><configvalue><div class="cReading"><input type="number" name="LED" step="1" min="-1" max="39" class="cInput" id="LEDI" data-cdc="%LED%"></div></configvalue><configaction><button type="button" class="cButton" id="LED" disabled="disabled">Update</button></configaction></div></div><div class="configcol2"><div class="configline"><configitem>High Value:</configitem><configvalue><div class="cReading"><select name="LEDH" id="LEDHS" data-cdc="%LEDH%" value="%LEDH%"><option id="0" value="0">0</option><option id="1" value="1">1</option></select></div></configvalue><configaction><button type="button" class="cButton" id="LEDH" disabled="disabled">Update</button></configaction></div></div></div><hr class="confighr"><h2>Firmware Update</h2><h3>Update Progress</h3><p id="status" class="in30">No active update.</p><p id="loaded_n_total" class="in30"><span id="filename"></span><span id="filesize"></span></p><p id="otaerror" class="in30 errorText" display="hidden"></p><h3>Web Update</h3><div id="fwUpdateAvailable" display="none" class="in30">Release %FWUP% available. Password required. <input type="password" name="HTTPOTA" id="HTTPOTAPWD" placeholder="Enter Password"> <input type="button" name="HTTPUPDATE" id="iupdate" value="Update" onclick="httpOTAUpload()" disabled="disabled"></div><div id="fwUpdateNotAvailable" class="in30" display="block">No update available. Currently at latest version.</div><p class="in30">Please read the HTTP OTA Update<a href="https://github.com/hcomet/CheapoDC#http-ota-faq" target="_blank">FAQ</a></p><h3>Manual Update</h3><form id="uploadOTAFileForm" method="POST" action="/upload" class="in30" enctype="multipart/form-data"><input type="file" name="file1" id="file1" value="Choose FW"><input type="button" name="upload" id="iupload" value="Update" title="Upload File" onclick="fileOTAUpload()" disabled="disabled"></form><hr class="confighr"><h2>Reboot Device</h2><button type="button" class="reboot" onclick="rebootDevice()">Reboot</button></main><footer><hr class="footerThr"><button type="button" class="bfooter" onclick='document.location="../dashboard"'>Dashboard</button><button type="button" class="bfooter" onclick='document.location="../config"'>Configuration</button><button type="button" class="bfooterDisabled" disabled="disabled">Device Management</button><button type="button" class="bfooter" onclick='document.location="../listFiles"'>File Management</button><hr class="footerBhr"><div class="attribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW%<br>(Heap: %HP%, File space: %LFS%)</div></footer></div><script>window.onload=function(){httpOTAAvailability("%FWUP%")},document.getElementById("file1").addEventListener("change",function(){document.getElementById("iupload").disabled=!1}),document.getElementById("oldpassword").addEventListener("input",function(){checkPasswordUpdate()}),document.getElementById("newpassword").addEventListener("input",function(){checkPasswordUpdate()}),document.getElementById("confpassword").addEventListener("input",function(){checkPasswordUpdate()}),document.getElementById("HTTPOTAPWD").addEventListener("input",function(){document.getElementById("iupdate").disabled=!1})</script><script src="CDCjs.js"></script></body></html>
+<!doctype html>
+<html lang=en>
+<head>
+<title>CheapoDC Device Management</title>
+<link rel=icon type=image/png href=/favicon.png>
+<link rel=stylesheet href="./CDCStyle.css?v=1.1">
+</head>
+<body>
+<div id=loader></div>
+<div class=config>
+<header>
+<div class=headerGrid>
+<hIcon class=logo><img src=/cheapo.png alt=CheapoDC onclick='window.location.href="https://github.com/hcomet/CheapoDC"'></hIcon>
+<hTitle class=title>Device Management</hTitle>
+<logoutIcon onclick=logoutCDC()><img src=/logout.png alt=Logout></logoutIcon>
+</div>
+</header>
+<main>
+<h2>Controller Output Configuration</h2>
+<div class=twocolconfig>
+<div class=configcol1>
+<h3>Controller Output 0</h3>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPP0 step=1 min=-1 max=39 class=cInput id=CPP0I data-cdc="%CPP0%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPP0 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Mode:</configItem>
+<configValue>
+<div class=cReading><select name=CPM0 id=CPM0S data-cdc="%CPM0%">
+<option id=Disabled value=0>Disabled</option>
+<option id=Controller value=1>Controller</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=CPM0 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Output (&percnt;):</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPO0 disabled class=cInput id=CPO0I data-cdc="%CPO0%"></div>
+</configValue>
+<configAction><button type="button fn" class="cButton hidden" id=CPO0 disabled>Update</button>
+</configAction>
+</div>
+</div>
+<div class=configcol2>
+<h3>Controller Output 1</h3>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPP1 step=1 min=-1 max=39 class=cInput id=CPP1I data-cdc="%CPP1%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPP1 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Mode:</configItem>
+<configValue>
+<div class=cReading><select name=CPM1 id=CPM1S data-cdc="%CPM1%">
+<option id=Disabled value=0>Disabled</option>
+<option id=Controller value=1>Controller</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=CPM1 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Output (&percnt;):</configItem>
+<configValue>
+<div class=cReading><input type=number disabled class=cInput id=CPO1I data-cdc="%CPO1%">
+</div>
+</configValue>
+<configAction><button type="button fn" class="cButton hidden" id=CPO1 disabled>Update</button>
+</configAction>
+</div>
+</div>
+</div>
+<div class=twocolconfig>
+<div class=configcol1>
+<h3>Controller Output 2</h3>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPP2 step=1 min=-1 max=39 class=cInput id=CPP2I data-cdc="%CPP2%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPP2 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Mode:</configItem>
+<configValue>
+<div class=cReading><select name=CPM2 id=CPM2S data-cdc="%CPM2%">
+<option id=Disabled value=0>Disabled</option>
+<option id=Controller value=1>Controller</option>
+<option id=PWM value=2>PWM</option>
+<option id=Boolean value=3>Boolean</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=CPM2 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Output (&percnt;):</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPO2 step=1 min=0 max=100 class=cInput id=CPO2I data-cdc="%CPO2%"></div>
+</configValue>
+<configAction><button type="button fn" class=cButton id=CPO2 disabled>Update</button>
+</configAction>
+</div>
+</div>
+<div class=configcol2>
+<h3>Controller Output 3</h3>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPP3 step=1 min=-1 max=39 class=cInput id=CPP3I data-cdc="%CPP3%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPP3 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Mode:</configItem>
+<configValue>
+<div class=cReading><select name=CPM3 id=CPM3S data-cdc="%CPM3%">
+<option id=Disabled value=0>Disabled</option>
+<option id=Controller value=1>Controller</option>
+<option id=PWM value=2>PWM</option>
+<option id=Boolean value=3>Boolean</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=CPM3 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Output (&percnt;):</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPO3 step=1 min=0 max=100 class=cInput id=CPO3I data-cdc="%CPO3%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPO3 disabled>Update</button></configAction>
+</div>
+</div>
+</div>
+<div class=twocolconfig>
+<div class=configcol1>
+<h3>Controller Output 4</h3>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPP4 step=1 min=-1 max=39 class=cInput id=CPP4I data-cdc="%CPP4%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPP4 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Mode:</configItem>
+<configValue>
+<div class=cReading><select name=CPM4 id=CPM4S data-cdc="%CPM4%">
+<option id=Disabled value=0>Disabled</option>
+<option id=Controller value=1>Controller</option>
+<option id=PWM value=2>PWM</option>
+<option id=Boolean value=3>Boolean</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=CPM4 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Output (&percnt;):</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPO4 step=1 min=0 max=100 class=cInput id=CPO4I data-cdc="%CPO4%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPO4 disabled>Update</button></configAction>
+</div>
+</div>
+<div class=configcol2>
+<h3>Controller Output 5</h3>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPP5 step=1 min=-1 max=39 class=cInput id=CPP5I data-cdc="%CPP5%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPP5 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Mode:</configItem>
+<configValue>
+<div class=cReading><select name=CPM5 id=CPM5S data-cdc="%CPM5%">
+<option id=Disabled value=0>Disabled</option>
+<option id=Controller value=1>Controller</option>
+<option id=PWM value=2>PWM</option>
+<option id=Boolean value=3>Boolean</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=CPM5 disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Output (&percnt;):</configItem>
+<configValue>
+<div class=cReading><input type=number name=CPO5 step=1 min=0 max=100 class=cInput id=CPO5I data-cdc="%CPO5%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=CPO5 disabled>Update</button></configAction>
+</div>
+</div>
+</div>
+<hr class=confighr>
+<h2>Wifi Configuration</h2>
+<div class=twocolconfig>
+<div class=configcol1>
+<h3>Network Information</h3>
+<div class=configline>
+<configItem>WiFi Mode:</configItem>
+<configValue>
+<div class=cReading><input name=WIFI class=cInput id=WIFII disabled data-cdc="%WIFI%"></div>
+</configValue>
+<configAction><button type=button class="cButton hidden" id=WIFI>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Hostname:</configItem>
+<configValue>
+<div class=cReading><input name=HN class=cInput id=HNI disabled data-cdc="%HN%"></div>
+</configValue>
+<configAction><button type=button class="cButton hidden" id=HN>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>IP Address:</configItem>
+<configValue>
+<div class=cReading><input name=IP class=cInput id=IPI disabled data-cdc="%IP%"></div>
+</configValue>
+<configAction><button type=button class="cButton hidden" id=IP>Update</button>
+</configAction>
+</div>
+</div>
+<div class=configcol2>
+<h3>Configure WiFi</h3>
+<div class=configline>
+<configItem>Name:</configItem>
+<configValue>
+<div class=cReading><select name=wifiName id=wifiName></select></div>
+</configValue>
+<configAction><button type=button class="cButton hidden" disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>SSID:</configItem>
+<configValue>
+<div class=cReading><input name=wifiSSID id=wifiSSID class=cInput>
+</div>
+</configValue>
+<configAction><button type=button class="cButton hidden" disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem>Password:</configItem>
+<configValue>
+<div class=cReading><input type=password name=wifiPassword id=wifiPassword class=cInput>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=wifiButton disabled>Update</button></configAction>
+</div>
+<div class=configline>
+<configItem></configItem>
+<configValue><input type=checkbox id=wifiPwdCheck onclick=showWifiPassword()>Show Password</configValue>
+<configAction></configAction>
+</div>
+</div>
+</div>
+<hr class=confighr>
+<h2>Change Password</h2>
+<form id=passwordForm method=POST action=/setpassword>
+<input type=password name=newpassword id=newpassword placeholder="New Password" required>
+<input type=password name=confpassword id=confpassword placeholder="Confirm New Password" required>
+<input type=password name=oldpassword id=oldpassword placeholder="Current Password" required>
+<button type=button id=passwordButton onclick=changePassword() disabled>Update</button>
+</form> <br>
+<hr class=confighr>
+<h2>Status LED Configuration</h2>
+<div class=twocolconfig>
+<div class=configcol1>
+<div class=configline>
+<configItem>GPIO:</configItem>
+<configValue>
+<div class=cReading><input type=number name=LED step=1 min=-1 max=39 class=cInput id=LEDI data-cdc="%LED%"></div>
+</configValue>
+<configAction><button type=button class=cButton id=LED disabled>Update</button></configAction>
+</div>
+</div>
+<div class=configcol2>
+<div class=configline>
+<configItem>High Value:</configItem>
+<configValue>
+<div class=cReading><select name=LEDH id=LEDHS data-cdc="%LEDH%" value="%LEDH%">
+<option id=0 value=0>0</option>
+<option id=1 value=1>1</option>
+</select>
+</div>
+</configValue>
+<configAction><button type=button class=cButton id=LEDH disabled>Update</button></configAction>
+</div>
+</div>
+</div>
+<hr class=confighr>
+<h2>Firmware Update</h2>
+<h3>Update Progress</h3>
+<p id=status class=in30>No active update.</p>
+<p id=loaded_n_total class=in30><span id=filename></span><span id=filesize></span></p>
+<p id=otaerror class="in30 errorText" display=hidden></p>
+<h3>Web OTA Update</h3>
+<div id=fwUpdateAvailable display=none class="in30 dwn10">Release %FWUP% available. Your password is required.
+<input type=password name=HTTPOTA id=HTTPOTAPWD placeholder="Enter Password">
+<input type=button name=HTTPUPDATE id=iupdate value=Update onclick=httpOTAUpload() disabled>
+</div>
+<div id=fwUpdateNotAvailable class=in30 display=block>No update available. Currently at latest version.</div>
+<p class=in30>Please read the Web OTA Update&nbsp;<a href=https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html target=_blank>FAQ</a>.</p>
+<h3>Manual OTA Update</h3>
+<form id=uploadOTAFileForm method=POST action=/upload class="in30 dwn10" enctype=multipart/form-data>
+<input type=file name=file1 id=file1 value="Choose FW"><input type=button name=upload id=iupload value=Update title="Upload File" onclick=fileOTAUpload() disabled>
+</form>
+<hr class=confighr>
+<h2>Reboot Device</h2>
+<p class=in30>Uptime: %UPT% (HHH:MM:SS:MSec)</p>
+<button type=button class=reboot onclick=rebootDevice()>Reboot</button>
+</main>
+<footer>
+<hr class=footerThr>
+<button type=button class=bfooter onclick='document.location="../dashboard"'>Dashboard</button>
+<button type=button class=bfooter onclick='document.location="../config"'>Controller Configuration</button>
+<button type=button class=bfooterDisabled disabled>Device Management</button>
+<button type=button class=bfooter onclick='document.location="../listFiles"'>File Management</button>
+<hr class=footerBhr>
+<div class=attribution>Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br>(Heap: %HP%, File space: %LFS%)</div>
+</footer>
+</div>
+<script>window.onload=function(){httpOTAAvailability("%FWUP%"),loadWifi()},document.getElementById("file1").addEventListener("change",(function(){document.getElementById("iupload").disabled=!1})),document.getElementById("oldpassword").addEventListener("input",(function(){checkPasswordUpdate()})),document.getElementById("newpassword").addEventListener("input",(function(){checkPasswordUpdate()})),document.getElementById("confpassword").addEventListener("input",(function(){checkPasswordUpdate()})),document.getElementById("HTTPOTAPWD").addEventListener("input",(function(){document.getElementById("iupdate").disabled=!1}))</script>
+<script src=CDCjs.js></script>
+</body>
+</html>

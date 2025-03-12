@@ -166,7 +166,7 @@
 #define CDC_DEFAULT_TCP_SERVER_PORT 58000 // Port used for the TCP based API
 
 // For Web based updates using HTTP OTA
-//#define CDC_ENABLE_HTTP_OTA   // Comment out to disable HTTP OTA Support if enabled esp32FOTA library is required
+#define CDC_ENABLE_HTTP_OTA   // Comment out to disable HTTP OTA Support if enabled esp32FOTA library is required
 #define CDC_DEFAULT_HTTP_OTA_URL "https://hcomet.github.io//httpota/CheapoDC/manifest.json" // URL for Web based firmware updates
 #ifdef CDC_ENABLE_HTTP_OTA
 #define CDC_NO_FW_UPDATE_RESPONSE "NOFWUPDATE"

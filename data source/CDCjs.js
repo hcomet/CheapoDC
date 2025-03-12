@@ -356,22 +356,21 @@ function httpOTAUpload() {
     var password = MD5.generate("admin:CheapoDC:" + document.getElementById("HTTPOTAPWD").value);
     var xhr = new XMLHttpRequest();
     var source = new EventSource('/events');
-    console.log("Set up HTTP OTA");
+    //console.log("Set up HTTP OTA");
     if (!!window.EventSource) {
-       source.addEventListener('open', (e) => {console.log("Events Connected");document.getElementById("status").innerHTML = "HTTP OTA Connected."});
-       source.addEventListener('status', (e) => {console.log("status" + e.data);document.getElementById("filename").innerHTML = e.data});
+       source.addEventListener('open', (e) => {document.getElementById("status").innerHTML = "HTTP OTA Connected."});
+       source.addEventListener('status', (e) => {document.getElementById("filename").innerHTML = e.data});
        source.addEventListener('error', (e) => {if (e.target.readyState != EventSource.OPEN) {updateOTAError("Events Disconnected");}else{updateOTAError(e.data);}});
-       source.addEventListener('message', (e) => {console.log("message" + e.data);document.getElementById("status").innerHTML = e.data;});
+       source.addEventListener('message', (e) => {document.getElementById("status").innerHTML = e.data;});
        source.addEventListener('progress', (e) => {httpOTAProgress(e.data);});
        source.addEventListener('reboot', (e) => {otaReboot(e.data);});
-       console.log("EventSource: " + source.url + " State: " + source.readyState );
     } else {
        console.log("something is broken");
     }
     xhr.open("POST", "/updatehtml", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send("password=" + encodeForHTTP(password));
-    console.log("Sent OTA request");
+    //console.log("Sent OTA request");
  }
  function httpOTAProgress( value ) {
     
@@ -426,7 +425,6 @@ function httpOTAUpload() {
  }
 
  function checkPasswordUpdate() {
-    console.log("Checking Passwords");
     if ((document.getElementById("newpassword").value != "") &&
        (document.getElementById("newpassword").value == document.getElementById("confpassword").value) &&
        (document.getElementById("oldpassword").value != "")) {
@@ -453,3 +451,121 @@ function httpOTAUpload() {
     xhr.send("newpassword=" + encodeForHTTP(newPassword) + "&oldpassword=" + encodeForHTTP(oldPassword));
     setTimeout(function () { location.reload(); }, 1000);
  }
+ 
+async function loadWifi() {
+    var wifiJson = {};
+    var wifiInfo = [];
+    var response;
+    var wifiSelect = document.getElementById("wifiName");
+    var wifiSSID = document.getElementById("wifiSSID");
+    var wifiPassword = document.getElementById("wifiPassword");
+    var option;
+    document.getElementById("wifiButton").disabled = true;
+    document.getElementById("wifiPwdCheck").checked = false;
+    document.getElementById("wifiPassword").type = "password";
+    document.getElementById("loader").style.display = "block";
+    try {
+      response = await fetch(`CDCWiFi.json`);
+      if (!response.ok) {
+         throw new Error(`Response status: ${response.status}`);
+         wifiJson = {};
+         wifiInfo = [];
+      } else {
+         wifiJson = await response.json();
+         wifiInfo = wifiJson.wifi;
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+    
+    for (var i = wifiSelect.options.length-1; i >= 0; i--) {
+      wifiSelect.remove(i);
+    }
+    for (var i = 0; i < wifiInfo.length; i++) {
+        option = document.createElement("option");
+        option.text = wifiInfo[i].ssid;
+        option.value = i;
+        wifiSelect.add(option, wifiSelect[i]);
+    }
+    
+    option = document.createElement("option");
+    option.text = "Add Wifi";
+    option.value = wifiInfo.length;
+    wifiSelect.add(option, wifiSelect[wifiInfo.length]);
+    if (wifiInfo.length == 0) {
+      wifiSSID.value = "";
+      wifiSSID.placeholder = "Enter SSID";
+      wifiPassword.value = "";
+      wifiPassword.placeholder = "Enter Password";
+    } else {
+        wifiSSID.value = wifiInfo[0].ssid;  
+        wifiPassword.value = wifiInfo[0].password;
+    }
+    document.getElementById("loader").style.display = "none";
+    wifiSelect.addEventListener("change", function() {
+        var index = wifiSelect.value;
+        document.getElementById("wifiPassword").type = "password";
+        document.getElementById("wifiPwdCheck").checked = false;
+        if (index == wifiInfo.length) {
+            wifiSSID.value = "";
+            wifiSSID.placeholder = "Enter SSID";
+            wifiPassword.value = "";
+            wifiPassword.placeholder = "Enter Password";
+            return;
+        }
+        wifiSSID.value = wifiInfo[index].ssid;
+        wifiPassword.value = wifiInfo[index].password;
+    });
+    wifiSSID.addEventListener("input", function() {document.getElementById("wifiButton").disabled = false;  });
+    wifiPassword.addEventListener("input", function() {document.getElementById("wifiButton").disabled = false;  });
+    document.getElementById("wifiButton").addEventListener("click", function() {updateWifi(wifiSelect, wifiSSID, wifiPassword, wifiInfo, wifiJson);});
+}
+ 
+function updateWifi(wifiSelect, wifiSSID, wifiPassword, wifiInfo, wifiJson) {
+    var index = wifiSelect.value;
+    let newWifiJson = {...wifiJson};
+    document.getElementById("loader").style.display = "block";
+    if (index == wifiInfo.length) {
+        var newWifi = {};
+        newWifi.ssid = wifiSSID.value;
+        newWifi.password = wifiPassword.value;
+        wifiInfo.push(newWifi);
+    } else {
+        wifiInfo[index].ssid = wifiSSID.value;
+        wifiInfo[index].password = wifiPassword.value;
+    }
+    var newWifiInfo = [];
+
+    for (var i = 0; i < wifiInfo.length; i++) {
+        if (wifiInfo[i].ssid == "") {
+            continue;
+        }
+        newWifiInfo.push(wifiInfo[i]);
+    }
+    newWifiJson.wifi = newWifiInfo;
+
+    var xhr = new XMLHttpRequest();
+    document.getElementById("loader").style.display = "block";
+    xhr.open("POST", "/setwifi", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            //document.getElementById("loader").style.display = "none";
+            loadWifi();
+        }
+    };
+    xhr.send("wifi=" + encodeForHTTP(JSON.stringify(newWifiJson)));
+}
+function showWifiPassword() {
+  var x = document.getElementById("wifiPassword");
+  var wifiSelect = document.getElementById("wifiName");
+  if (wifiSelect.value == wifiSelect.options.length-1) {
+    if (x.type === "password") {
+      x.type = "text";
+    } else {
+      x.type = "password";
+    }
+  } else {
+   document.getElementById("wifiPwdCheck").checked = false;
+  }
+}

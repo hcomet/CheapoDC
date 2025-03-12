@@ -1083,7 +1083,7 @@ bool CDCSetup::backupConfig() {
   }
   else
   {
-    DeserializationError error = deserializeJson(this->_backupDoc, file);
+    DeserializationError error = deserializeJson(this->_backupWiFiConfig, file);
     if (error)
     {
       LOG_ERROR("backupConfig", "Failed to deserialize: " << CDC_WIFI_CONFIG);
@@ -1103,7 +1103,7 @@ bool CDCSetup::restoreConfig() {
   }
 
   File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_WRITE);
-  if (serializeJson(this->_backupDoc, file) == 0)
+  if (serializeJson(this->_backupWiFiConfig, file) == 0)
   {
     LOG_ERROR("restoreConfig", "Failed to serialize config to: " << CDC_WIFI_CONFIG);
     file.close();
@@ -1113,4 +1113,36 @@ bool CDCSetup::restoreConfig() {
 
   this->setConfigUpdated();
   return this->SaveConfig();
+}
+
+bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
+  JsonDocument doc, filter;
+  DeserializationError error = deserializeJson(doc, wifiConfigJson, DeserializationOption::Filter(filter));
+  if (error)
+  {
+    LOG_ERROR("saveWiFiConfig", "Failed to deserialize and parse: " << wifiConfigJson.c_str());
+    return false;
+  }
+  error = deserializeJson(this->_backupWiFiConfig, wifiConfigJson);
+  if (error)
+  {
+    LOG_ERROR("saveWiFiConfig", "Failed to deserialize: " << wifiConfigJson.c_str());
+    return false;
+  } else {
+    File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_WRITE);
+    if (!file)
+    {
+      LOG_ERROR("saveWiFiConfig", "Failed to open: " << CDC_WIFI_CONFIG);
+      return false;
+    }
+    if (!file.print(wifiConfigJson.c_str()))
+    {
+      LOG_ERROR("saveWiFiConfig", "Failed to write to config to: " << wifiConfigJson.c_str());
+      file.close();
+      return false;
+    }
+    file.close();
+  }
+  
+  return true;  
 }

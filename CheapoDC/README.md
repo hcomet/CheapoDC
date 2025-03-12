@@ -1,3 +1,11 @@
+# WebFlash as an Option
+
+If you are using an [ESP32-C3 SuperMini](https://michiel.vanderwulp.be/domotica/Modules/ESP32-C3-SuperMini/) or any other ESP32-C3 module then the easiest way to load firmware on the device is to use [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html). You can select between **New Install** or **Upgrade**. **New Install** will flash both the firmware and data partitions for a new device. All other configuration can then be done through the [Web UI](../README.md#web-ui). **Upgrade** will only flash the firmware partition after which you will need to manually upload the new release data partition files. Go to the [WebFlash page](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) for details.
+
+If you prefer to build the firmware yourself using the Arduino IDE please continue on to [Building and Installing CheapoDC](#building-and-installing-cheapodc)
+
+Note that as of CheapoDC v2.2.0, the Web UI supports an semiautomatic web-based upgrade that preserves your configuration files while upgrading the firmware and data partitions. See the documentation on [Web Update](../WebUpdate.md) for details.
+
 # Building and installing CheapoDC
 
 ## If you are Upgrading from a Previous Release
@@ -14,9 +22,15 @@ This note is to highlight the change in recommended partition scheme implemented
 2. The following libraries are no longer required:
    * EasyLogger - a fixed copy of this library is included in the CheapoDC source to remove a macro definition conflict with ArduinoJSON.
    * ESP32Time.
-3. The Weather Source is now runtime selectable and is no longer a build configuration option. The Weather Source may now be set through the Web UI or API. Open-Meteo is now the default Weather Source.
+3. As of V2.2.0, all major itens that were previously required to be configured at compile can now be configured through at runtime. This includes:
+   * Weather Source: The Weather Source may now be set through the Web UI or API. Open-Meteo is now the default Weather Source.
+   * Output to GPIO Pin mapping. All controller outputs may be configured using the Web UI or API. This includes the original two core dew controller outputs as well as the four new additional outputs added in V2.2.0.
+   * Status LED GPIO Pin. The pin used for the status LED as well as whether or not it is active High or Low may be configured through the Web UI or API.
+   * Change Password. The user Id remains **admin** but the password may now be changed in the Web UI. Password security has been improved by moving to using a [Digest access authentication](https://en.wikipedia.org/wiki/Digest_access_authentication#:~:text=In%20contrast%2C%20basic%20access%20authentication,It%20uses%20the%20HTTP%20protocol.) MD5 Password Hash.
 4. A new Weather Source has been added to support integration with personal weather stations or other weather services. When the Weather Source is set to ***External Source*** the local ambient temperature and humidity may be set through the API. The Dew Point and dew controller power output will then be calculated based on these externally set values.
 5. API changes:
+   * ***`CPPx`***, ***`CPMx`*** and ***`CPOx`*** API commands added to allow outputs **x = 0 to 5** to be configured for GPIO Pin mapping, Output Mode and Output Power respectively.
+   * The ***`LED`*** API command changed to set the GPIO pin for the Status LED while ***`LEDH`*** sets the value of High to 1 or 0.
    * The Weather Source (***`WS`***) API command now supports a SET capability. This API command has also been changed
    to use an integer value to specify the Weather Source:  
    `[Open-Meteo = 0, OpenWeather = 1, External Source = 2]`  
@@ -27,10 +41,12 @@ This note is to highlight the change in recommended partition scheme implemented
    * The Weather API URL (***`WAPI`***) API command no longer supports a SET capability.
    * The Weather Icon URL (***`WIURL`***) API command no longer supports a SET capability.
    * The Cloud Coverage (***`CLC`***) API command has been deprecated.
-6. CheapoDC V2 will automatically upgrade the CDCConfig.json on your CheapoDC device when the new firmware version is installed. Previous configuration settings will be maintained. Follow the [Upgrade Steps](#upgrading-to-v21x) below to preserve your
+6. Support for the Web Sockets based API has been deprecated and removed in V2.2.0. The TCP API continues to be supported and used by the INDI driver.
+7. CheapoDC V2 will automatically upgrade the CDCConfig.json on your CheapoDC device when the new firmware version is installed. Previous configuration settings will be maintained. Follow the [Upgrade Steps](#upgrading-to-v21x) below to preserve your
 CheapoDC configuration files.
-7. Change in ESP32 Partition Scheme required for CheapoDC V2.1.x. See [Partition Scheme](#partition-scheme) for details.
-8. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
+8. Change in ESP32 Partition Scheme required for CheapoDC V2.1.x. See [Partition Scheme](#partition-scheme) for details.
+9. As of V2.2.0, CheapDC now supports firmware and data partition upgrades using the Web UI and HTTP OTA. See the documentation on [Web Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
+10. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
 
 ## Setting Up Your Build Environment
 
@@ -40,18 +56,18 @@ CheapoDC configuration files.
 2. Add support for ESP32 modules using the Boards Manager in the Arduino IDE.  
   <u>**IMPORTANT:**</u>
     * Install the boards plugin for ESP32 from Espressif Systems version 3.1.x (Arduino core for the ESP32). CheapoDC verification has been done with version 3.1.1.
-    * CheapoDC is intended for use on ESP32 devices. The current version has been verified on an ESP32-C3 Supermini board and an ESP32-S3 mini board.
+    * CheapoDC is intended for use on ESP32 devices. The current version has been verified on an [ESP32-C3 SuperMini](https://michiel.vanderwulp.be/domotica/Modules/ESP32-C3-SuperMini/) board..
 3. Install the ESP32 Sketch data uploader with support for LittleFS. The CheapoDC uses the LittleFS file system for configuration files and web pages uploaded from the ***CheapoDC/data*** folder. If the data is uploaded using any other file system format, such as SPIFFS, the CheapoDC firmware will not run properly.  
 <u>**NOTE:**</u> The following link provides information on how to install a data uploader plugin with LittleFS support:
     * Arduino IDE 2.3.2+: https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/
 
 4. Install the following libraries if not already installed:
    * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)  
-     Version: 7.3.0
-   * [ESP Async WebServer by Me-No-Dev](https://github.com/mathieucarbou/ESPAsyncWebServer)  
-     Version: 3.6.0 - [ESP32Async Organization](https://github.com/ESP32Async) version
-   * [Async TCP by Me-No-Dev](https://github.com/mathieucarbou/AsyncTCP)  
-     Version: 3.3.2 - [ESP32Async Organization](https://github.com/ESP32Async) version
+     Version: 7.3.1
+   * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)  
+     Version: 3.7.2
+   * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)  
+     Version: 3.3.6
    * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
      Version: 1.6.1
 
@@ -69,43 +85,27 @@ CheapoDC configuration files.
 * Its good practice to set *Erase All Flash Before Sketch Upload:* ***"Enabled"*** the first time you upload a new project to an ESP32. After that, make sure its set to ***"Disabled"*** to preserve the LittleFS partition content between uploads.
 ## Configure Firmware in the CDCdefines.h file
 
-Edit the ***CDCdefines.h*** file to configure/customize the firmware before building:
+As of V2.2.0 changes to the ***CDCdefines.h*** file are not required since all key items can now be modified at runtime and are saved to the [CDCConfig.json](#cdcconfigjson). If you do wish to to configure/customize the firmware before building the following items may be modified in the ***CDCdefines.h*** file:
 
-  1. Set the ESP32 GPIO pins to be used for Controller Pins 0 & 1. ***DEFAULT: 0 & 1***.  
+  1. Set the default ESP32 GPIO pins to be used for Controller Pins 0 & 1. ***DEFAULT: 0 & 1***.  
      ```#define CDC_DEFAULT_CONTROLLER_PIN0 0```  
-     ```#define CDC_DEFAULT_CONTROLLER_PIN1 1```
+     ```#define CDC_DEFAULT_CONTROLLER_PIN1 1```  
+     _*May be changed through the Web UI or API_
   2. Set the PWM channel to use for Controller Pins. ***DEFAULT: 0***.  
      ```#define CDC_CONTROLLER_PWM_CHANNEL 0```  
-     <u>**NOTE:**</u> Changing this value may have a negative impact on CheapoDC operation. If using additional Controller Pins 2 through 5 then PWM channels 1 through 4 are reserved for their use.
+     <u>**NOTE:**</u> Changing this value may have a negative impact on CheapoDC operation. PWM channels 1 through 4 are reserved for the use of the additional Controller Pins 2 through 5.
   3. Set the pin for the status LED on you ESP32. ***DEFAULT: 8***.  
      ```#define CDC_DEFAULT_STATUS_LED_PIN 8```  
+     _*May be changed through the Web UI or API_  
      <u>**NOTE:**</u> Some ESP32-C3 modules have the Status LED wired so that setting the status pin high is off or reversed. Uncomment this line to reverse the High/Low setting for the status LED pin.  
-     ```//#define CDC_REVERSE_HIGH_LOW```
-  4. Enable/Disable Basic Web Authentication. ***DEFAULT: Enabled***.  
-     ```#define CDC_ENABLE_WEB_AUTH```  
-     <u>**NOTE:**</u> Comment out the ```#define``` to disable.
-  5. Change the Web Authentication ID and Password. ***DEFAULT: Admin, Admin***.  
+     ```//#define CDC_REVERSE_HIGH_LOW```  
+     _*May be changed through the Web UI or API_
+  4. Change the Web Authentication ID and Password. ***DEFAULT: Admin, Admin***.  
       ```#define CDC_DEFAULT_WEB_ID "admin"```  
       ```#define CDC_DEFAULT_WEB_PASSWORD "admin"```  
+      _*Password ay be changed through the Web UI_  
       <u>**NOTE:**</u> Web Authentication is the only security for OTA firmware updates.
-  6. Enable/Disable Web Socket API support. ***DEFAULT: Disabled***.  
-     ```// #define CDC_ENABLE_WEB_SOCKETS```  
-    <u>**NOTE:**</u> Uncomment the ```#define``` to enable.  
-    Web Socket API support is not needed to use the CheapoDC or the associated INDILIB driver. If the Web Socket API support is enabled then the command post processing is also enabled. See item 7. below for details.
-  7. Enable/Disable Command post processing queue support ***DEFAULT: Disabled***.  
-     ```// #define CDC_ENABLE_WEB_SOCKETS```  
-    <u>**NOTE:**</u> Uncomment the ```#define``` to enable.  
-    Some API SET commands may auto generate post processing actions such as weather queries or power output updates. These may cause long command transactions. If the API client is making many asynchronous calls to the API and which are long transactions then the AsyncTCP queue can be overwhelmed and prevent the ESP32 watchdog timer from getting enough time causing panic crashes. Enabling this queue will cause the post processing actions to be put in a queue that is processed every `CDC_RUNCMDQUEUE_EVERY` milliseconds (default is 10 msec). For situations where API calls are synchronously called (ie: HTML embedded or the INDI driver) the queue is not needed. Which is why the default is disabled. For situations where asynchronous calls are not limited (ie: the Web Sockets javascript client) then it should be enabled. Enabling Web Sockets will automatically enable the queue.  
-
-      If issues with the ESP32 watchdog timer are seen when making many asynchronous parallel API calls or WebSocket calls don't complete even with the queue enabled then either have the client limit the number of asynchronous API calls executed in parallel or increase the AsyncWebSocket queue size:
-
-      * In the AsyncWebSocket.h file in your Arduino Libraries folder,  
-    Change  
-    ```#define WS_MAX_QUEUED_MESSAGES 32```  
-    to  
-    ```#define WS_MAX_QUEUED_MESSAGES 64```  
-
-  8. Set up the WiFi configuration.  The CheapoDC may operate in either Access Point (AP) mode or Station (ST) mode. The CheapoDC defaults to AP mode when it cannot connect to an access point.
+  5. Set up the WiFi configuration.  The CheapoDC may operate in either Access Point (AP) mode or Station (ST) mode. The CheapoDC defaults to AP mode when it cannot connect to an access point.
      * AP Mode settings must be configured in the ***CDCdefines.h*** file:
        * Change AP mode SSID. ***DEFAULT: cheapodc***.  
          ```#define CDC_DEFAULT_WIFI_AP_SSID "cheapodc"```  
@@ -119,51 +119,74 @@ Edit the ***CDCdefines.h*** file to configure/customize the firmware before buil
       * WiFi TX Power setting may be optionally modified if you are having issues with an ESP32-C3 board connecting to your WiFi gateway. Set the WiFi TX Power:
         * Enable setting WiFi Tx Power. ***DEFAULT: Disabled***.  
           ```//#define CDC_ENABLE_WIFI_TX_POWER_MOD WIFI_POWER_8_5dBm ```  
-          Uncomment to enable. If enabled the default value sets TX power to 8.5dbm. Any of the `wifi_power_t` values found [here](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFiGeneric.h#L51-L67) may be used.
+          Uncomment to enable. If enabled the default value sets TX power to 8.5dbm. Any of the `wifi_power_t` values found [here](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFiGeneric.h#L51-L67) may be used. Extensive testing with WiFi TX Power settings has NOT been done.
 
-  9. The hostname for the CheapoDC may also be changed. This is really only needed if you have multiple CheapoDC controllers on the same network.  Its recommended that this be done in the ***CDCWiFi.json*** file to allow a single firmware image to be used across multiple CheapoDC controllers. To change the hostname in the ***CDCdefines.h*** file:
+  6. The hostname for the CheapoDC may also be changed. This is really only needed if you have multiple CheapoDC controllers on the same network.  Its recommended that this be done in the ***CDCWiFi.json*** file to allow a single firmware image to be used across multiple CheapoDC controllers. To change the hostname in the ***CDCdefines.h*** file:
      * Change the host name. ***DEFAULT: cheapodc***.  
        ```#define CDC_DEFAULT_HOSTNAME "cheapodc"```
-  10. Do not modify any of the ```#define``` values below the line  ```DO NOT change anything below here```. The Weather Source and OpenWeather API key should be set or changed through the [Web UI](../README.md#web-ui) not in the ***CDCdefines.h*** file.  
+  7. As of firmware V2.2.0, CheapoDC supports a [Web Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) capability. This is enabled by default but can be disabled by commenting out the following line:  
+      ```#define CDC_ENABLE_HTTP_OTA```
+  8. Do not modify any of the ```#define``` values below the line  ```DO NOT change anything below here```. The Weather Source and OpenWeather API key should be set or changed through the [Web UI](../README.md#web-ui) not in the ***CDCdefines.h*** file.  
       <u>**IMPORTANT:**</u>
       * **DO NOT** modify the URLs for API or Icon calls.
 
-## Build and Run
+## Build and Configure a New Device
 
-### Upgrading to V2.1.x
+### Build and Install the Firmware
 
-Since v2.1.0 requires a change in the [Partition Scheme](#partition-scheme) upgrades must be done using a USB connection to the device. 
+1. After [configuring the Arduino IDE](#setting-up-your-build-environment), build and upload the firmware to your ESP32.  
+   Make sure to have selected the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme.  
+   <u>**NOTE:**</u> If the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme is not listed as one of the partition schemes available for your selected ESP32-C3 board type you will need to select a different board type. Often the AliExpress type boards only list a minimal set of partition schemes. If you do not see the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* in the list of available partition schemes for your board the best recommendation is to select a Dev Module board in the Arduino IDE. For the ESP32-C3 that would be the *ESP32C3 Dev Module*.
+
+2. Modify the CDCWiFi.json file ([see below](#cdcwifijson)) in the sketch ***CheapoDC/data*** folder to configure CheapoDC to connect to your wireless network.
+
+3. Upload the files in the ***CheapoDC/data*** folder using the Sketch data uploading tool. Please READ the following points before uploading the data files.  
+   * **LittleFS file system formatting MUST be used for the data upload.**
+   * These files are needed for the Web UI as well as configuration of the CheapoDC.
+  
+### Device Configuration 
+
+Browse to the CheapoDC Web UI at http://cheapodc.localto configure your device. When prompted login using the default userid and password: admin, admin. You should be on the 
+[Dashboard](../README.md#cheapodc-dashboard) page.
+
+* Go to the [Device Management](../README.md#cheapodc-device-management) page by clicking on the button at the bottom of the page.
+* Configure the controller outputs. Output 0 and 1 are always dew controller outputs and by default mapped to GPIO pins 0 and 1. Outputs 2 to 5 may be configured as Controller, PWM or Boolean. They are Disabled by default. Outputs **must** be mapped to a GPIO pin first before an [Output Mode](../README.md#output-modes) may be set.  
+  For the ESP32-C3 SuperMini GPIO pins 0, 1, 3, 5, 6 and 7 have been validated.
+* Change your password.
+* Change the Status LED GPIO pin and High Value setting if needed.
+* Go to the [Controller Configuration](../README.md#cheapodc-controller-configuration) page to set up the parameters for dew controller, weather query and your location. Dew controller parameters are explained in the [Dew Controller Algorithm](../README.md#how-the-dew-control-algorithm-works) explanation.
+
+Your CheapoDC should now be ready to use.
+
+## Upgrading from a previous release
+
+Note that v2.1.0 required a change in the [Partition Scheme](#partition-scheme) and upgrades from a pre-V2.1.0 release must be done using a USB connection to the device.
 
 New versions of ESPAsyncWebServer and AsyncTCP libraries are also required for Arduino core of ESP32 version 3.1.x. Please read the [Setting Up Your Build Environment](#setting-up-your-build-environment) section to make sure you have the correct libraries installed in the Arduino IDE. Be sure to have only one version of the AsyncTCP library installed.
 
-#### Upgrade using USB Connected Device
+### Upgrade using USB Connected Device
 
 1. Preserve your current CheapoDC configuration and WiFi settings by first downloading the CDCConfig.json and CDCWiFi.json files
 from your CheapoDC. This can be done using the Web UI from the [File Management](../README.md#cheapodc-file-management) page.
-Place both files in the sketch data folder: *CheapoDC/data*.
+Place both files in the sketch data folder: ***CheapoDC/data***.
 2. Build and upload the new firmware to your device.
-   * Make sure to set *Erase All Flash Before Sketch Upload:* ***"Enabled"***  
-   <u>**NOTE:**</u> Make sure to reset this to **"Disabled"** once you are done with the upgrade or the LittleFS partition will be erased with each 
-   firmware upload and you will need upload your sketch data every time.
+   * If upgrading from a pre-V2.1.0 release, make sure to set *Erase All Flash Before Sketch Upload:* ***"Enabled"***  
+   <u>**NOTE:**</u> Make sure to reset this to **"Disabled"** once you are done with the upgrade or the LittleFS partition will be erased with each
+   firmware upload and you will need to upload your sketch data every time.
    * Make sure to have selected the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme.
-3. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool as indicated step 2. of the
-build steps below.
-4. Your V2.1.xQueueCreate upgrade should now be complete.
+3. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool. Make sure to use an upload tool for the LittlFS filesystem.
+4. Your upgrade should now be complete.
 
-#### Upgrade using Web OTA Firmware Update
+### Upgrade using the Web UI Manual OTA Update
 
-Due to the change in [Partition Scheme](#partition-scheme) in v2.1.0, upgrades from releases prior to v2.1.0 cannot be done using an OTA firmware upgrade.
+If upgrading from a release prior to v2.1.0, an OTA firmware upgrade cannot be used. Go back to the [USB connected upgrade](#upgrade-using-usb-connected-device).
 
-### New Device Build Steps
+If upgrading from V2.1.0 or newer then use **Manual Update** on the Web UI [Device Management](../README.md#cheapodc-device-management) page. 
 
-1. After configuring values in the CDCdefines.h, using the Arduino IDE build and upload the firmware to your ESP32.
-   * Make sure to have selected the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme.  
-   <u>**NOTE:**</u> If the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme is not listed as one of the partition schemes available for your selected ESP32-C3 board type you will need to slect a different board type. Often the AliExpress type boards generally only list a minimal set of partition schemes. If you do not see the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* in the list of available partition schemes for your board the best recommendation is to select a Dev Module board in the Arduino IDE. For the ESP32-C3 that would be the *ESP32C3 Dev Module*.
-
-2. Upload the files in the CheapoDC/data folder using the Sketch data uploading tool. Please READ the following points before uploading the data files.
-    * **LittleFS file system formatting MUST be used for the data upload.**
-    * these files are needed for the Web UI as well as configuration of the CheapoDC.
-    * Modify the CDCWiFi.json file ([see below](#cdcwifijson)) to configure CheapoDC to access your wireless network.
+* Generate the firmware binary image using the Arduino IDE and selecting `Sketch->Export Compiled Binary`. This will create a ***CheapoDC.ino.bin*** file under a ***build*** folder created in your sketch folder. 
+* Use the **Manual Update** `Choose File` in the Web UI to select the new bin file. Then click `Update` to flash the CheapoDC to the new version.
+* After the reboot, go to the [File Managemet](../README.md#cheapodc-file-management) page to upload the new release data files. Use `Choose Files` to browse to the ***CheapoDC/data*** folder in your sketch folder. Then select all files **EXCEPT** the CDCWiFi.json file. Then click `Upload`.
+* Your upgrade should now be complete.
 
 ## Configuration Files
 
