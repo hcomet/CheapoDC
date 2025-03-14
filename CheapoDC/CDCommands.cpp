@@ -65,24 +65,24 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"IP", {CDC_CMD_IP, 0, CDC_UNITS_NONE}},                    // IP Address
     {"HN", {CDC_CMD_HN, 0, CDC_UNITS_NONE}},                    // Host name
     {"WQEN", {CDC_CMD_WQEN, 0, CDC_UNITS_NONE}},                // Weather Query Enabled (false = 0, true = 1) 
-    {"CPP0", {CDC_CMD_CPP0, 1, CDC_UNITS_NONE}},                // Controller Pin 0 to Pin mapping
-    {"CPP1", {CDC_CMD_CPP1, 1, CDC_UNITS_NONE}},                // Controller Pin 1 to Pin mapping
-    {"CPP2", {CDC_CMD_CPP2, 1, CDC_UNITS_NONE}},                // Controller Pin 2 to Pin mapping
-    {"CPP3", {CDC_CMD_CPP3, 1, CDC_UNITS_NONE}},                // Controller Pin 3 to Pin mapping
-    {"CPP4", {CDC_CMD_CPP4, 1, CDC_UNITS_NONE}},                // Controller Pin 4 to Pin mapping
-    {"CPP5", {CDC_CMD_CPP5, 1, CDC_UNITS_NONE}},                // Controller Pin 5 to Pin mapping
-    {"CPM0", {CDC_CMD_CPM0, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Pin 0 Mode (0 = Disabled, 1 = Controller) - GET only  
-    {"CPM1", {CDC_CMD_CPM1, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Pin 1 Mode (0 = Disabled, 1 = Controller) - GET only
-    {"CPM2", {CDC_CMD_CPM2, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Pin 2 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
-    {"CPM3", {CDC_CMD_CPM3, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Pin 3 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
-    {"CPM4", {CDC_CMD_CPM4, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Pin 4 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
-    {"CPM5", {CDC_CMD_CPM5, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Pin 5 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
-    {"CPO0", {CDC_CMD_CPO0, 0, CDC_UNITS_PERCENT}},             // Controller Output Pin 0 (Mode dependent: -1, 0 - 100) - GET only 
-    {"CPO1", {CDC_CMD_CPO1, 0, CDC_UNITS_PERCENT}},             // Controller Output Pin 1 (Mode dependent: -1, 0 - 100) - GET only 
-    {"CPO2", {CDC_CMD_CPO2, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 2 (Mode dependent: -1, 0 - 100, 0 or 1)
-    {"CPO3", {CDC_CMD_CPO3, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 3 (Mode dependent: -1, 0 - 100, 0 or 1)
-    {"CPO4", {CDC_CMD_CPO4, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 4 (Mode dependent: -1, 0 - 100, 0 or 1)
-    {"CPO5", {CDC_CMD_CPO5, 0, CDC_UNITS_PERCENT}},                // Controller Output Pin 5 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPP0", {CDC_CMD_CPP0, 1, CDC_UNITS_NONE}},                // Controller Output 0 to Pin mapping
+    {"CPP1", {CDC_CMD_CPP1, 1, CDC_UNITS_NONE}},                // Controller Output 1 to Pin mapping
+    {"CPP2", {CDC_CMD_CPP2, 1, CDC_UNITS_NONE}},                // Controller Output 2 to Pin mapping
+    {"CPP3", {CDC_CMD_CPP3, 1, CDC_UNITS_NONE}},                // Controller Output 3 to Pin mapping
+    {"CPP4", {CDC_CMD_CPP4, 1, CDC_UNITS_NONE}},                // Controller Output 4 to Pin mapping
+    {"CPP5", {CDC_CMD_CPP5, 1, CDC_UNITS_NONE}},                // Controller Output 5 to Pin mapping
+    {"CPM0", {CDC_CMD_CPM0, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 0 Mode (0 = Disabled, 1 = Controller) - GET only  
+    {"CPM1", {CDC_CMD_CPM1, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 1 Mode (0 = Disabled, 1 = Controller) - GET only
+    {"CPM2", {CDC_CMD_CPM2, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 2 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPM3", {CDC_CMD_CPM3, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 3 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPM4", {CDC_CMD_CPM4, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 4 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPM5", {CDC_CMD_CPM5, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 5 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPO0", {CDC_CMD_CPO0, 0, CDC_UNITS_PERCENT}},             // Controller Output Power 0 (Mode dependent: -1, 0 - 100) - GET only 
+    {"CPO1", {CDC_CMD_CPO1, 0, CDC_UNITS_PERCENT}},             // Controller Output Power 1 (Mode dependent: -1, 0 - 100) - GET only 
+    {"CPO2", {CDC_CMD_CPO2, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 2 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPO3", {CDC_CMD_CPO3, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 3 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPO4", {CDC_CMD_CPO4, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 4 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPO5", {CDC_CMD_CPO5, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 5 (Mode dependent: -1, 0 - 100, 0 or 1)
     {"PWDH", {CDC_CMD_PWDH, 1, CDC_UNITS_NONE}},                 // Password Hash
     {"LEDH", {CDC_CMD_LEDH, 1, CDC_UNITS_NONE}},                  // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
     {"FWUP", {CDC_CMD_FWUP, 0, CDC_UNITS_NONE}},                 // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required

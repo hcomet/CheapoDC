@@ -39,13 +39,10 @@ char newFirmwareVersion[16] = "";
 // TCP API service
 AsyncServer * CDCTCPServer;
 
-#ifdef CDC_ENABLE_WEB_AUTH
 AsyncAuthenticationMiddleware * basicAuth;
 const char* http_username = CDC_DEFAULT_WEB_ID;
 const char* http_password = CDC_DEFAULT_WEB_PASSWORD;
 String digestHash = generateDigestHash(http_username, http_password, "CheapoDC");
-
-#endif
 
 const char* filelist = "%TMFL%";
 
@@ -284,97 +281,6 @@ String processor(const String &var) {
   return response;
 }
 
-#ifdef CDC_ENABLE_WEB_SOCKETS
-// Websocket based command processor
-void handleWebsocketMessage( AsyncWebSocketClient *client, void *arg, uint8_t *data, size_t len ) {
-  AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  String response = "";
-
-  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-
-#if ARDUINOJSON_VERSION_MAJOR>=7
-      JsonDocument requestJson;
-#else
-      const uint8_t size = JSON_OBJECT_SIZE(6);
-      StaticJsonDocument<size> requestJson;
-#endif
-
-      DeserializationError err = deserializeJson(requestJson, data);
-      if (err) {
-        LOG_ERROR("handleWebsocketMessage", "Deserialization error: " << err.c_str());
-        return;
-      } 
-      
-      if (requestJson["GET"]) {
-#if ARDUINOJSON_VERSION_MAJOR>=7
-        JsonDocument responseJson;
-#else
-        StaticJsonDocument<256> responseJson;
-#endif
-        char responseBuffer[256] = "";
-        String  getCommand = String(requestJson["GET"].as<String>());
-        cmdResponse getResponse;
-
-        getResponse = getCmdProcessor( getCommand );
-
-        if (getResponse.response != String()) {
-          responseJson[getCommand] = getResponse.response;
-          responseJson["UNITS"] = getResponse.units;
-
-          LOG_DEBUG("handleWebsocketMessage", "response: <"<< getResponse.response.length() << ">: " << getResponse.response);
-          LOG_DEBUG("handleWebsocketMessage", "response: <"<< getResponse.units.length() << ">: " << getResponse.units);
-          LOG_DEBUG("handleWebsocketMessage", "responseJson[\"" << getCommand << "\"]: "  << responseJson[getCommand].as<String>());
-          LOG_DEBUG("handleWebsocketMessage", "responseJson[\"UNITS\"]: "  << responseJson["UNITS"].as<String>());
-        
-        } else {
-          responseJson["ERROR"] = "Undefined";
-        }
-
-        if (serializeJson(responseJson, responseBuffer) == 0) {
-          LOG_ERROR("SaveConfig", "Failed to serialize GET request for: " << getCommand);
-        } else {
-          client->text(responseBuffer);
-        }
-
-        LOG_DEBUG("handleWebsocketMessage", "GET request: " << getCommand << " Response = " << response);
-      } 
-
-      if (requestJson["SET"]) {  
-        JsonObject putCommand = requestJson["SET"];
-        
-        for (JsonPair kv : putCommand) {
-          LOG_DEBUG("handleWebsocketMessage", "Processing SET command: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
-
-          if (!setCmdProcessor(String(kv.key().c_str() ), String(kv.value().as<const char*>() ))) {
-            LOG_ERROR("handleWebsocketMessage", "SET command failure: " << kv.key().c_str() << " value: " << kv.value().as<const char*>() );
-          }
-          
-        }
-
-      }    
-  }
-}
-
-void handleWebsocketEvent( AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-  switch (type) {
-    case WS_EVT_CONNECT:
-        LOG_ALERT("handleWebsocketEvent", "WebSocket client " << client->id() << " connected from " << client->remoteIP().toString().c_str());
-        // Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-        break;
-    case WS_EVT_DISCONNECT:
-        LOG_ALERT("handleWebsocketEvent", "WebSocket client " << client->id() << " disconnected");
-        //Serial.printf("WebSocket client #%u disconnected\n", client->id());
-        server->cleanupClients();
-        break;
-    case WS_EVT_DATA:
-        handleWebsocketMessage( client, arg, data, len);
-        break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
-        break;
-  }
-}
-#endif
 String processClientRequest(uint8_t *data, size_t len) {
   String response = "";
 #if ARDUINOJSON_VERSION_MAJOR>=7
@@ -562,7 +468,6 @@ void setupServers(void) {
   CDCWebServer = new AsyncWebServer(CDC_DEFAULT_WEBSRVR_PORT);
   CDCEvents = new AsyncEventSource("/events");
   
-  #ifdef CDC_ENABLE_WEB_AUTH
   basicAuth = new AsyncAuthenticationMiddleware();
   basicAuth->setUsername(CDC_DEFAULT_WEB_ID);
   //basicAuth->setPassword(http_password);
@@ -573,16 +478,6 @@ void setupServers(void) {
   //basicAuth->generateHash();
   CDCWebServer->addMiddleware(basicAuth);
   CDCEvents->addMiddleware(basicAuth);
-  #endif
-
-  #ifdef CDC_ENABLE_WEB_SOCKETS
-  // Enable Websockets on the web server for Websocket API
-  CDCWebSocket = new AsyncWebSocket( CDC_DEFAULT_WEBSOCKET_URL);
-  
-  // Websocket handlers
-  CDCWebSocket->onEvent(&handleWebsocketEvent);
-  CDCWebServer->addHandler(CDCWebSocket);
-  #endif
 
   // Enable TCP Server for TCP API
   CDCTCPServer = new AsyncServer(CDC_DEFAULT_TCP_SERVER_PORT);
@@ -596,88 +491,35 @@ void setupServers(void) {
     request->send(LittleFS, "/CDCStyle.css", "text/css");
   });
 
-  // If Websockets enabled then set up the web socket based config page as default.
-  #ifdef CDC_ENABLE_WEB_SOCKETS
-
-  CDCWebServer->on("/CDCws.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-   request->send(LittleFS, "/CDCws.js", "text/javascript");
-  });
-
   CDCWebServer->on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
-    request->send(LittleFS, "/configws.html", "text/html", false, processor);
-  });
-
-  // Allow non-web socket config page to be served but it will need an explicit reference by a browser
-  CDCWebServer->on("/hiddenconfig", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef CDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(LittleFS, "/config.html", "text/html", false, processor);
   });
 
-  #else
-
-  // No websockets so only enable the non-websocket config
-  CDCWebServer->on("/config", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
-    request->send(LittleFS, "/config.html", "text/html", false, processor);
-  });
-
-  #endif
-
-  // non-websocket javascript can always be served
+  // javascript 
   CDCWebServer->on("/CDCjs.js", HTTP_GET, [](AsyncWebServerRequest *request) {
    request->send(LittleFS, "/CDCjs.js", "text/javascript");
   });
 
   // dashboard is default page
   CDCWebServer->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
    request->send(LittleFS, "/dashboard.html", "text/html", false, processor);
   });
 
   CDCWebServer->on("/dashboard", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(LittleFS, "/dashboard.html", "text/html", false, processor);
   });
 
   // Device management
   CDCWebServer->on("/otaIndex", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(LittleFS, "/otaindex.html",  "text/html", false, processor);
   });
 
   // File management
   CDCWebServer->on("/listFiles", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(LittleFS, "/listfiles.html", String(), false, processor);
   });
 
   CDCWebServer->on("/filelist", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(200, "text/html", filelist, processor);
   });
 
@@ -703,44 +545,26 @@ void setupServers(void) {
   });
 
   CDCWebServer->on("/download", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     processDownload(request);
   });
 
   CDCWebServer->on("/delete", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     processDelete(request);
     request->send(200, "text/html", filelist, processor);
   });
 
   CDCWebServer->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(200, "text/html", reboot);
     ESP.restart();
   });
 
-  #ifdef CDC_ENABLE_WEB_AUTH
   CDCWebServer->on("/logout", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(401);
     LOG_ALERT("setupServers", "Logout web client");
   });
-  #endif
 
   // Handling the Firmware Manual File OTA Update
   CDCWebServer->on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
   },
     [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
       handleDoOTAUpdate(request, filename, index, data, len, final);
@@ -762,10 +586,6 @@ void setupServers(void) {
 
   // Handle file uploads
   CDCWebServer->on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
   },
     [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
       handleDoFileUpload(request, filename, index, data, len, final);
@@ -774,20 +594,12 @@ void setupServers(void) {
 
   // Handle SET commands sent via HTTP_POST
   CDCWebServer->on("/setvalue", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(200, "text/plain", handleSetValuePost(request));
     } 
   );
 
   // Handle GET commands sent via HTTP_GET
   CDCWebServer->on("/getvalue", HTTP_POST, [](AsyncWebServerRequest *request) {
-  #ifdef xCDC_ENABLE_WEB_AUTH
-    if(!request->authenticate(http_username, http_password))
-    return request->requestAuthentication();
-  #endif
     request->send(200, "text/plain", handleGetValue(request));
     } 
   );
@@ -801,14 +613,14 @@ void setupServers(void) {
       {
         theSetup->setPasswordHash(nP->value().c_str());
         basicAuth->setPasswordHash(theSetup->getPasswordHash());
-        LOG_ALERT("/setpassword", "Parameter: " << nP->value().c_str() << ":" << oP->value().c_str());
+        LOG_DEBUG("/setpassword", "Parameter: " << nP->value().c_str() << ":" << oP->value().c_str());
         request->send(200, "text/plain", "Password set");
       } else {
-        LOG_ALERT("/setpassword", "Old password wrong: " << oP->value() << " vs " << theSetup->getPasswordHash());
+        LOG_ERROR("/setpassword", "Old password wrong: " << oP->value() << " vs " << theSetup->getPasswordHash());
         request->send(200, "text/plain", "Password not set");
       }
     } else {
-      LOG_ALERT("/setpassword", "No newpassword parameter.");
+      LOG_ERROR("/setpassword", "No newpassword parameter.");
       request->send(200, "text/plain", "Password not set");
     }
   });
@@ -824,14 +636,14 @@ void setupServers(void) {
     if (request->hasParam("wifi", true)) {
       const AsyncWebParameter* p = request->getParam("wifi", true);
       if (!theSetup->saveWiFiConfig(p->value())) {
-        LOG_ALERT("/setwifi", "Failed to save wifi configuration.");
+        LOG_ERROR("/setwifi", "Failed to save wifi configuration.");
         request->send(200, "text/plain", "Wifi not set");
       } else {
-        LOG_ALERT("/setwifi", "Parameter: " << p->value().c_str());
+        LOG_DEBUG("/setwifi", "Parameter: " << p->value().c_str());
         request->send(200, "text/plain", "Wifi set");
       }
     } else {
-      LOG_ALERT("/setwifi", "No wifi parameter.");
+      LOG_ERROR("/setwifi", "No wifi parameter.");
       request->send(200, "text/plain", "Wifi not set");
     }
   });

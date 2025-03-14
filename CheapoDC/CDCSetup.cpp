@@ -1117,12 +1117,26 @@ bool CDCSetup::restoreConfig() {
 
 bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
   JsonDocument doc, filter;
+  // Check to see if it parses as proper Json
   DeserializationError error = deserializeJson(doc, wifiConfigJson, DeserializationOption::Filter(filter));
   if (error)
   {
     LOG_ERROR("saveWiFiConfig", "Failed to deserialize and parse: " << wifiConfigJson.c_str());
     return false;
   }
+  
+  #if LOG_LEVEL == LOG_LEVEL_DEBUG
+  JsonArray wifi = doc["wifi"];
+  for (JsonVariant item : wifi)
+  {
+    String ssid = item["ssid"].as<String>();
+    String password = item["password"].as<String>();
+    LOG_DEBUG("saveWiFiConfig", "ssid: " << ssid
+      << " password: " << password);    
+  } 
+  LOG_DEBUG("saveWiFiConfig", "doc " << wifiConfigJson.c_str());
+  #endif  // LOG_LEVEL == LOG_LEVEL_DEBUG
+
   error = deserializeJson(this->_backupWiFiConfig, wifiConfigJson);
   if (error)
   {

@@ -10,27 +10,27 @@
     </div>
     </header> 
     <main>       
-        <div class="dashboard"><dbItem>Ambient Temperature:</dbItem><dbValue><div class="reading">%ATPQ%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Dew Point:</dbItem><dbValue><div class="reading">%DP%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Humidity:</dbItem><dbValue><div class="reading">%HU%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Temperature Set Point:</dbItem><dbValue><div class="reading">%SP%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Track Point Offset:</dbItem><dbValue><div class="reading">%TPO%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Track Point:</dbItem><dbValue><div class="reading">%CTP%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Tracking Range:</dbItem><dbValue><div class="reading">%TKR%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Controller Output:</dbItem><dbValue><div class="reading">%DCO%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbi>Ambient Temperature:</dbi><dbv><div class="reading">%ATPQ%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Dew Point:</dbi><dbv><div class="reading">%DP%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Humidity:</dbi><dbv><div class="reading">%HU%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Temperature Set Point:</dbi><dbv><div class="reading">%SP%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Track Point Offset:</dbi><dbv><div class="reading">%TPO%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Track Point:</dbi><dbv><div class="reading">%CTP%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Tracking Range:</dbi><dbv><div class="reading">%TKR%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Controller Output:</dbi><dbv><div class="reading">%DCO%</div></dbv><dba></dba></div>
         <br />
-        <div class="dashboard"><dbItem>Controller Mode:</dbItem><dbValue><div class="setting">%DCM%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Temperature Mode:</dbItem><dbValue><div class="setting">%DCTM%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Set Point Mode:</dbItem><dbValue><div class="setting">%SPM%</div></dbValue><dbAction></dbAction></div>
-        <div class="dashboard"><dbItem>Last Update Time:</dbItem><dbValue><div class="setting">%LWUT%</div></dbValue><dbAction></dbAction></div>
+        <div class="dashboard"><dbi>Controller Mode:</dbi><dbv><div class="setting">%DCM%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Temperature Mode:</dbi><dbv><div class="setting">%DCTM%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Set Point Mode:</dbi><dbv><div class="setting">%SPM%</div></dbv><dba></dba></div>
+        <div class="dashboard"><dbi>Last Update Time:</dbi><dbv><div class="setting">%LWUT%</div></dbv><dba></dba></div>
     </main>
 
 <aside>
     <div class="locName">%LNM%</div><div class="locCoord">%LAT%, %LON%</div><div class="queryLocName">%WUL%</div>
     <div class="weatherIcon"><img src="%WICON%"></div><div class="weatherDesc">%WDESC%</div>
-    <div class="wReading"><wReadingTerm>Temperature:</wReadingTerm><wReadingValue>%ATPQ%</wReadingValue></div>
-    <div class="wReading"><wReadingTerm>Dew Point:</wReadingTerm><wReadingValue>%DP%</wReadingValue></div>
-    <div class="wReading"><wReadingTerm>Humidity:</wReadingTerm><wReadingValue>%HU%</wReadingValue></div>
+    <div class="wrg"><wrgt>Temperature:</wrgt><wrgv>%ATPQ%</wrgv></div>
+    <div class="wrg"><wrgt>Dew Point:</wrgt><wrgv>%DP%</wrgv></div>
+    <div class="wrg"><wrgt>Humidity:</wrgt><wrgv>%HU%</wrgv></div>
 </aside>
 <footer>
     <hr class="footerThr">
@@ -41,13 +41,6 @@
  <hr class="footerBhr">
  <div class="attribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
 </footer></div>
-<script>
-function logoutCDC() {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/logout", true);
-  xhr.send();
-  setTimeout(function(){ window.open("/dashboard","_self"); }, 1000);
-}
-</script>
+<script src=CDCjs.js></script>
 </body>
 </html>

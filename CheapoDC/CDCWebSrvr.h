@@ -11,11 +11,8 @@
 #include <ESPAsyncWebServer.h>
 #include "CDCdefines.h"
 
-// AsyncWebServer CDCserver(CDC_DEFAULT_WEBSRVR_PORT);
+// Webserver and TCP for Web UI and API
 class CDCWebServer;
-#ifdef CDC_ENABLE_WEB_SOCKETS
-class CDCWebSocket;
-#endif
 class CDCTCPServer;
 
 void setupServers(void);

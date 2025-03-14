@@ -46,11 +46,12 @@ function convertHTML(str) {
     const symbols = {
         "%" : "%25",
         "&" : "%26",
-        "<" : "%30",
+        "<" : "%3C",
         ">" : "%3E",
         "?" : "%3F",
         "@" : "%40",
         "$" : "%24",
+        "+" : "%2B",
         "#" : "%23"
     };
     let newStr = str;
@@ -121,7 +122,7 @@ function setValue( item ) {
 
 function refreshData() {
     //console.log("***Refresh Data***");
-    allcButtons = [...document.getElementsByClassName("cButton")];
+    allcButtons = [...document.getElementsByClassName("cbtn")];
 // console.log(allcButtons);
     allcButtons.forEach( function(element){setValue(element);} );
 }
@@ -230,10 +231,10 @@ function setChangeItem( item ) {
     switch (itemId) {
         case "DCM":
             if (document.getElementById("DCMS").value== 1) {
-                document.getElementById("DCO").className = "cButton";
+                document.getElementById("DCO").className = "cbtn";
                 document.getElementById("DCOI").disabled = false;
             } else {
-                document.getElementById("DCO").className = "cButton hidden";
+                document.getElementById("DCO").className = "cbtn hidden";
                 document.getElementById("DCOI").disabled = true;
             }
             break;
@@ -249,14 +250,14 @@ function setChangeItem( item ) {
             break;
         case "WS":
             if (document.getElementById("WSS").value == 2) {
-                document.getElementById("ATPQ").className = "cButton";
+                document.getElementById("ATPQ").className = "cbtn";
                 document.getElementById("ATPQI").disabled = false;
-                document.getElementById("HU").className = "cButton";
+                document.getElementById("HU").className = "cbtn";
                 document.getElementById("HUI").disabled = false;
             } else {
-                document.getElementById("ATPQ").className = "cButton hidden";
+                document.getElementById("ATPQ").className = "cbtn hidden";
                 document.getElementById("ATPQI").disabled = true;
-                document.getElementById("HU").className = "cButton hidden";
+                document.getElementById("HU").className = "cbtn hidden";
                 document.getElementById("HUI").disabled = true;
             }
             break;
@@ -268,10 +269,10 @@ function setChangeItem( item ) {
         case "CPP5":
             var pin = itemId.substr(3, 1);
             if (document.getElementById(inputId).value == -1) {
-                document.getElementById("CPM"+pin).className = "cButton hidden";
+                document.getElementById("CPM"+pin).className = "cbtn hidden";
                 document.getElementById("CPM"+pin+"S").disabled = true;
             } else {
-                document.getElementById("CPM"+pin).className = "cButton";
+                document.getElementById("CPM"+pin).className = "cbtn";
                 document.getElementById("CPM"+pin+"S").disabled = false;
             }
             break;
@@ -286,16 +287,16 @@ function setChangeItem( item ) {
             switch (mode) {
                 case "0":
                 case "1":
-                    document.getElementById("CPO"+pin).className = "cButton hidden";
+                    document.getElementById("CPO"+pin).className = "cbtn hidden";
                     document.getElementById("CPO"+pin+"I").disabled = true;
                     break;
                 case "2":
-                    document.getElementById("CPO"+pin).className = "cButton";
+                    document.getElementById("CPO"+pin).className = "cbtn";
                     document.getElementById("CPO"+pin+"I").disabled = false;
                     document.getElementById("CPO"+pin+"I").setAttribute("step", 1);
                     break;
                 case "3":
-                    document.getElementById("CPO"+pin).className = "cButton";
+                    document.getElementById("CPO"+pin).className = "cbtn";
                     document.getElementById("CPO"+pin+"I").disabled = false;
                     document.getElementById("CPO"+pin+"I").setAttribute("step", 100);
                     break;
@@ -312,7 +313,7 @@ function setChangeItem( item ) {
 }
 
 function initButtons() {
-    allcButtons = [...document.getElementsByClassName("cButton")];
+    allcButtons = [...document.getElementsByClassName("cbtn")];
 // console.log(allcButtons);
     allcButtons.forEach( function(element){setChangeItem(element);} );
     document.getElementById("loader").style.display = "none";
@@ -417,13 +418,6 @@ function httpOTAUpload() {
     }
  }
 
- function logoutCDC() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/logout", true);
-    xhr.send();
-    setTimeout(function () { window.open("/dashboard", "_self"); }, 1000);
- }
-
  function checkPasswordUpdate() {
     if ((document.getElementById("newpassword").value != "") &&
        (document.getElementById("newpassword").value == document.getElementById("confpassword").value) &&
@@ -451,15 +445,16 @@ function httpOTAUpload() {
     xhr.send("newpassword=" + encodeForHTTP(newPassword) + "&oldpassword=" + encodeForHTTP(oldPassword));
     setTimeout(function () { location.reload(); }, 1000);
  }
- 
+var wifiJson = {};
+var wifiInfo = [];
 async function loadWifi() {
-    var wifiJson = {};
-    var wifiInfo = [];
+
     var response;
     var wifiSelect = document.getElementById("wifiName");
     var wifiSSID = document.getElementById("wifiSSID");
     var wifiPassword = document.getElementById("wifiPassword");
     var option;
+
     document.getElementById("wifiButton").disabled = true;
     document.getElementById("wifiPwdCheck").checked = false;
     document.getElementById("wifiPassword").type = "password";
@@ -472,12 +467,22 @@ async function loadWifi() {
          wifiInfo = [];
       } else {
          wifiJson = await response.json();
-         wifiInfo = wifiJson.wifi;
+         if (typeof wifiJson.wifi === 'undefined') {
+            wifiInfo = [];
+         } else {
+            wifiInfo = wifiJson.wifi;
+         }
+         if ((typeof wifiJson.hostname !== 'undefined') && (wifiJson.hostname != document.getElementById("hostname").dataset.cdc)) {
+            document.getElementById("wifiMessage").innerHTML = 
+            "<strong>Important:</strong> Hostname change to " + wifiJson.hostname + " requires reboot to take effect.";
+         }
       }
     } catch (error) {
       console.error(error.message);
     }
-    
+    //console.log(response);
+    //console.log(wifiJson);
+    //console.log(wifiInfo);
     for (var i = wifiSelect.options.length-1; i >= 0; i--) {
       wifiSelect.remove(i);
     }
@@ -502,29 +507,37 @@ async function loadWifi() {
         wifiPassword.value = wifiInfo[0].password;
     }
     document.getElementById("loader").style.display = "none";
-    wifiSelect.addEventListener("change", function() {
-        var index = wifiSelect.value;
-        document.getElementById("wifiPassword").type = "password";
-        document.getElementById("wifiPwdCheck").checked = false;
-        if (index == wifiInfo.length) {
-            wifiSSID.value = "";
-            wifiSSID.placeholder = "Enter SSID";
-            wifiPassword.value = "";
-            wifiPassword.placeholder = "Enter Password";
-            return;
-        }
-        wifiSSID.value = wifiInfo[index].ssid;
-        wifiPassword.value = wifiInfo[index].password;
-    });
-    wifiSSID.addEventListener("input", function() {document.getElementById("wifiButton").disabled = false;  });
-    wifiPassword.addEventListener("input", function() {document.getElementById("wifiButton").disabled = false;  });
-    document.getElementById("wifiButton").addEventListener("click", function() {updateWifi(wifiSelect, wifiSSID, wifiPassword, wifiInfo, wifiJson);});
+
+}
+
+function wifiSelectChange() {
+    var wifiSelect = document.getElementById("wifiName");
+    var wifiSSID = document.getElementById("wifiSSID");
+    var wifiPassword = document.getElementById("wifiPassword");
+    var index = wifiSelect.value;
+
+    document.getElementById("wifiPassword").type = "password";
+    document.getElementById("wifiPwdCheck").checked = false;
+    if (index == wifiInfo.length) {
+        wifiSSID.value = "";
+        wifiSSID.placeholder = "Enter SSID";
+        wifiPassword.value = "";
+        wifiPassword.placeholder = "Enter Password";
+        return;
+    }
+    wifiSSID.value = wifiInfo[index].ssid;
+    wifiPassword.value = wifiInfo[index].password;
 }
  
-function updateWifi(wifiSelect, wifiSSID, wifiPassword, wifiInfo, wifiJson) {
-    var index = wifiSelect.value;
+function updateWifi() {
     let newWifiJson = {...wifiJson};
+    var wifiSelect = document.getElementById("wifiName");
+    var wifiSSID = document.getElementById("wifiSSID");
+    var wifiPassword = document.getElementById("wifiPassword");
+    var index = wifiSelect.value;
     document.getElementById("loader").style.display = "block";
+    document.getElementById("wifiMessage").innerHTML = "<strong>Important:</strong> WiFi changes require reboot to take effect.";
+
     if (index == wifiInfo.length) {
         var newWifi = {};
         newWifi.ssid = wifiSSID.value;
@@ -550,7 +563,7 @@ function updateWifi(wifiSelect, wifiSSID, wifiPassword, wifiInfo, wifiJson) {
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
-            //document.getElementById("loader").style.display = "none";
+            //console.log("Call loadWifi");
             loadWifi();
         }
     };
@@ -568,4 +581,99 @@ function showWifiPassword() {
   } else {
    document.getElementById("wifiPwdCheck").checked = false;
   }
+}
+function updateHostname() {
+    var previousHostname = document.getElementById("hostname").dataset.cdc;
+    var newHostname = document.getElementById("hostname").value;
+    let newWifiJson = {...wifiJson};
+
+    newWifiJson.hostname = newHostname;
+    document.getElementById("hostname").value = previousHostname;
+    document.getElementById("hnButton").disabled = true;
+    if (newHostname != previousHostname) {
+        document.getElementById("wifiMessage").innerHTML = 
+        "<strong>Important:</strong> Hostname change to " + newHostname + " requires reboot to take effect.";
+    } else {
+        document.getElementById("wifiMessage").innerHTML = "";
+    }
+    var xhr = new XMLHttpRequest();
+    document.getElementById("loader").style.display = "block";
+    xhr.open("POST", "/setwifi", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            //console.log("Call loadWifi");
+            loadWifi();
+        }
+    };
+    xhr.send("wifi=" + encodeForHTTP(JSON.stringify(newWifiJson)));
+
+}
+var fileListCount = 0;
+var fileListItem = 0;
+function uploadFile() {
+  const fileList = document.getElementById("file2").files;
+  fileListCount = fileList.length;
+  //console.log("Files uploaded: " + fileListCount);
+  postFileToServer( 0 );
+}
+function postFileToServer(fileIndex) {
+  if (fileIndex <= (fileListCount-1)) {
+    const fileList = document.getElementById("file2").files; 
+    document.getElementById("filename").innerHTML =  fileList[fileIndex].name + ": ";
+    var formdata = new FormData();
+    //console.log("File" + fileIndex + ": " + fileList[fileIndex].name);
+    formdata.append("file2", fileList[fileIndex]);
+    var ajax = new XMLHttpRequest();
+    ajax.upload.addEventListener("progress", fProgressHandler, false);
+    ajax.addEventListener("load", completeHandler, false);
+    ajax.open("POST", "/upload");
+    ajax.send(formdata);
+  } else {
+    alert("Incorrect file index " + fileIndex + " versus max index " + (fileListCount - 1));
+  }
+}
+function fProgressHandler(event) {
+  document.getElementById("filesize").innerHTML =  event.loaded + " bytes";
+  var percent = (event.loaded / event.total) * 100;
+  document.getElementById("status").innerHTML = "Completed: " + Math.round(percent) + "&percnt;";
+  if (percent >= 100) {
+    document.getElementById("status").innerHTML = "Completed: 100%";
+  }
+}
+function completeHandler(event) {
+  if (fileListItem < (fileListCount - 1) ) {
+    fileListItem += 1;
+    document.getElementById("status").innerHTML = "Files Uploaded: " + (fileListItem + 1) + " of " + fileListCount;
+    postFileToServer(fileListItem);
+  } else {
+    document.getElementById("status").innerHTML = "Upload Complete";
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("filelist").innerHTML = xmlhttp.responseText;
+      }
+    }
+    xmlhttp.open("GET", "/filelist", true);
+    xmlhttp.send();
+    document.getElementById("status").innerHTML = "Files Uploaded: " + (fileListItem + 1);
+    document.getElementById("file2").outerHTML = "<input type=\"file\" name=\"file2\" id=\"file2\" multiple/>";
+    document.getElementById('iupload').disabled = true;
+    document.getElementById('file2').addEventListener('change', function() {document.getElementById('iupload').disabled = false;  });
+    fileListCount = 0;
+    fileListItem = 0;
+  }
+}
+
+function deleteFile(filename) {
+    if (confirm("Confirm file delete for: " + filename)) {
+        xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("filelist").innerHTML = xmlhttp.responseText;
+            }
+        } 
+        xmlhttp.open("GET", "/delete?file=" + filename, true);
+        xmlhttp.send();
+    }
 }

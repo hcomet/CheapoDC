@@ -233,29 +233,29 @@
     font-size: smaller;
   }
 
-  wReadingTerm {
-    grid-area: wReadingTerm;
+  wrgt {
+    grid-area: wrgt;
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
   }
 
-  wReadingValue {
-    grid-area: wReadingValue;
+  wrgv {
+    grid-area: wrgv;
     text-align: right;
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
   }
 
-  .wReading {
+  .wrg {
     max-width: 200px;
     display: grid;
     margin: 5px auto;
     grid-gap: 5px;
     grid-template-columns: 2fr 1fr;
     grid-template-areas:
-      "wReadingTerm  wReadingValue";
+      "wrgt  wrgv";
   }
 
   hr.footerThr {
@@ -281,8 +281,8 @@
     height: 35px;
   }
 
-  dbItem {
-    grid-area: dbItem;
+  dbi {
+    grid-area: dbi;
     text-align: right;
     font-weight: bold;
     vertical-align: bottom;
@@ -291,8 +291,8 @@
     margin-bottom: 0px;
   }
 
-  dbValue {
-    grid-area: dbValue;
+  dbv {
+    grid-area: dbv;
     text-align: left;
     vertical-align: bottom;
     padding: 0px;
@@ -300,8 +300,8 @@
     margin-bottom: 0px;
   }
 
-  dbAction {
-    grid-area: dbAction;
+  dba {
+    grid-area: dba;
     text-align: center;
     padding: 0px;
     margin-top: 0px;
@@ -317,7 +317,7 @@
     grid-gap: 5px;
     grid-template-columns: 6fr 4fr 1fr;
     grid-template-areas:
-      "dbItem  dbValue dbAction"; 
+      "dbi  dbv dba"; 
   }
 
   .reading {
@@ -335,32 +335,32 @@
     margin-bottom: 0px;
   }
 
-  configItem, configValue, configComment, configAction {
+  cfitm, cfvl, cfcmt, cfact {
     padding: 0px;
     margin: auto;
     vertical-align: bottom;
   }
 
-  configItem {
-    grid-area: configItem;
+  cfitm {
+    grid-area: cfitm;
     text-align: right;
     margin-right: 0px;
   }
 
-  configValue {
-    grid-area: configValue;
+  cfvl {
+    grid-area: cfvl;
     text-align: left;
     margin-left: 0px;
   }
 
-  configComment {
-    grid-area: configComment;
+  cfcmt {
+    grid-area: cfcmt;
     text-align: left;
     margin-left: 0px;
   }
 
-  configAction {
-    grid-area: configAction;
+  cfact {
+    grid-area: cfact;
     text-align: center;
     vertical-align: middle;
     margin-left: 0px;
@@ -383,7 +383,7 @@
     .config {max-width: 60%}
   }
 
-  .configline, .urlconfig {
+  .cfln, .urlconfig {
     display: grid;
     border: none;
     vertical-align: bottom;
@@ -393,32 +393,20 @@
     grid-template-columns: 3fr 3fr 2fr 1fr;
   }
 
-  .configline {
+  .cfln {
     height: 23px;
     grid-template-areas:
-      "configItem  configValue configComment configAction"; 
+      "cfitm  cfvl cfcmt cfact"; 
   }
 
   .urlconfig {
     height: auto;
     grid-template-areas:
-      "configItem  configValue configValue configValue"
-      ". configComment configComment configAction"; 
+      "cfitm  cfvl cfvl cfvl"
+      ". cfcmt cfcmt cfact"; 
   }
 
-
-  .cSetting, .cReadiing {
-    text-align: left;
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-  }
-
-  .cReading > select, .cReading > input {
+  .crdg > select, .crdg > input {
     margin: 0px;
     border-color: var(--color-lightGrey);
     border-width: 1px;
@@ -427,15 +415,15 @@
     box-shadow: none;
   }
 
-  .cReading > select {
+  .crdg > select {
     width: 190px;
   }
-  .cReading > input {
+  .crdg > input {
     width: 180px;
     padding-left: 5px;
   }
 
-  .cReading.url >  input {
+  .crdg.url >  input {
     width: 395px;
   }
 
@@ -446,49 +434,41 @@
     display: inline;
   }
 
-  button.cButton {
+  button.cbtn {
     max-height: 23px;
     float: right;
     margin-right: 2px;
   }
 
-  button.cButton.hidden {
+  button.cbtn.hidden {
     display: none;
   }
 
-  .cReadiing > input[type=url] {
-    width: 200px;
-  }
-
-  .cReadiing > input[type=number] {
-    width: 50px;
-  }
-
-  .twocolconfig {
+  .cf2clm {
     display: grid;
     grid-template-columns: 50% 50%;
-    grid-template-areas: "configcol1 configcol2";
+    grid-template-areas: "cfcl1 cfcl2";
     grid-gap: 10px;
     margin: 2px auto 2px 0;
  }
- .configcol1 {
-  grid-area: configcol1;
+ .cfcl1 {
+  grid-area: cfcl1;
   padding: 5px;
 }
-.configcol2 {
-  grid-area: configcol2;
+.cfcl2 {
+  grid-area: cfcl2;
   padding: 5px;
 }
-.twocolconfig .configline {
+.cf2clm .cfln {
   grid-template-columns: 30% 50% 20%;
-  grid-template-areas: "configItem  configValue configAction"; 
+  grid-template-areas: "cfitm  cfvl cfact"; 
   border: none;
   max-width: 18em;
 }
-.twocolconfig .cReading>select {
+.cf2clm .crdg>select {
   width: 135px;
 }
-.twocolconfig .cReading>input {
+.cf2clm .crdg>input {
   width: 125px;
 }
 h3 {

@@ -15,7 +15,7 @@
 
 dewController::dewController(void)
 {
-    // Initialize all Controller pins as disabled
+    // Initialize all Controller Outputs as disabled
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
     for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
     {
@@ -26,7 +26,7 @@ dewController::dewController(void)
 
     // If defaults set in CDCdefines.h for PIN0 and PIN1 then configure
 #ifdef CDC_DEFAULT_CONTROLLER_PIN0 
-    LOG_DEBUG("dewController", "Controller Pin 0: " << CDC_DEFAULT_CONTROLLER_PIN0);
+    LOG_DEBUG("dewController", "Controller Output 0: " << CDC_DEFAULT_CONTROLLER_PIN0);
   
     this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinPin = CDC_DEFAULT_CONTROLLER_PIN0;
     this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;
@@ -60,7 +60,7 @@ bool dewController::setEnabled()
     {
         if (this->_controllerPinSettings[i].controllerPinPin != CONTROLLER_PIN_NOT_CONFIGURED) {
             if(!this->setControllerPinMode(i, this->_controllerPinSettings[i].controllerPinMode)) {
-                LOG_ERROR("setEnabled", "Controller pin failure " << i << ". Controller cannot be enabled.");
+                LOG_ERROR("setEnabled", "Controller Output failure " << i << ". Controller cannot be enabled.");
                 this->_controllerEnabled = false;
                 return false;
             }
@@ -74,7 +74,7 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
 {
     if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
     {
-        LOG_ERROR("setControllerPinPin", "Invalid controller pin value: " << controllerPin);
+        LOG_ERROR("setControllerPinPin", "Invalid controller output value: " << controllerPin);
         return false;
     }
 
@@ -91,7 +91,7 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
 
     if (pin == theSetup->getStatusLEDPin())
     {
-      LOG_ERROR("setControllerPinPin", "Cannot set Controller Pin " << controllerPin << " to same as LED Status Pin: " << pin);
+      LOG_ERROR("setControllerPinPin", "Cannot set Controller Output " << controllerPin << " to same as LED Status Pin: " << pin);
       return false;
     }
 
@@ -99,7 +99,7 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
     {
         if ((this->_controllerPinSettings[i].controllerPinPin == pin) && (i != controllerPin))
         {
-            LOG_ERROR("setControllerPinPin", "Pin " << pin << " already assigned to controller pin " << i);
+            LOG_ERROR("setControllerPinPin", "Pin " << pin << " already assigned to controller output " << i);
             return false;
         }
     }
@@ -108,13 +108,13 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
         (this->_controllerPinSettings[controllerPin].controllerPinPin != CONTROLLER_PIN_NOT_CONFIGURED)))
     {
         if (!this->setControllerPinMode(controllerPin, CONTROLLER_PIN_MODE_DISABLED)) {
-            LOG_ERROR("setControllerPinPin", "Controller pin " << controllerPin << " is enabled. Pin cannot be changed.");
+            LOG_ERROR("setControllerPinPin", "Controller Output " << controllerPin << " is enabled. Pin cannot be changed.");
             return false;
         }
     }
 
     this->_controllerPinSettings[controllerPin].controllerPinPin = pin;
-    LOG_DEBUG("setControllerPinPin", "Controller pin " << controllerPin << " set to: " << pin);
+    LOG_DEBUG("setControllerPinPin", "Controller Output " << controllerPin << " set to: " << pin);
     return true;
 }
 
@@ -122,25 +122,25 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
 {
     if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
     {
-        LOG_ERROR("setControllerPinMode", "Invalid controller pin: " << controllerPin);
+        LOG_ERROR("setControllerPinMode", "Invalid controller output: " << controllerPin);
         return false;
     }
 
     if ((mode < CONTROLLER_PIN_MODE_DISABLED) || (mode > CONTROLLER_PIN_MODE_BOOLEAN))
     {
-        LOG_ERROR("setControllerPinMode", "Invalid controller pin mode: " << mode);
+        LOG_ERROR("setControllerPinMode", "Invalid controller output mode: " << mode);
         return false;
     }
  
     if (!this->_controllerEnabled) {
         this->_controllerPinSettings[controllerPin].controllerPinMode = mode;
-        LOG_DEBUG("setControllerPinMode", "Controller Disabled but Controller pin " << controllerPin << " set to mode: " << mode);
+        LOG_DEBUG("setControllerPinMode", "Controller Disabled but Controller Output " << controllerPin << " set to mode: " << mode);
         return true;
     }
 
     if (this->_controllerPinSettings[controllerPin].controllerPinPin == CONTROLLER_PIN_NOT_CONFIGURED)
     {
-        LOG_ERROR("setControllerPinMode", "Controller pin " << controllerPin << " is not configured.");
+        LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " is not configured.");
         return false;
     }
 
@@ -149,7 +149,7 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
       int savedPinPin = this->_controllerPinSettings[controllerPin].controllerPinPin;
       if (!this->setControllerPinMode(controllerPin, CONTROLLER_PIN_MODE_DISABLED)) 
       {
-        LOG_ERROR("setControllerPinMode", "Controller pin " << controllerPin << " not reset to CONTROLLER_PIN_MODE_DISABLED");
+        LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " not reset to CONTROLLER_PIN_MODE_DISABLED");
         return false;
       }
       this->_controllerPinSettings[controllerPin].controllerPinPin = savedPinPin;
@@ -189,7 +189,7 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
     case CONTROLLER_PIN_MODE_PWM:
         if ((controllerPin == CONTROLLER_PIN0) || (controllerPin == CONTROLLER_PIN1))
         {
-            LOG_ERROR("setControllerPinMode", "Controller pin " << controllerPin << " cannot be set to PWM mode.");
+            LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " cannot be set to PWM mode.");
             return false;
         }
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
@@ -205,7 +205,7 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
     case CONTROLLER_PIN_MODE_BOOLEAN:
         if ((controllerPin == CONTROLLER_PIN0) || (controllerPin == CONTROLLER_PIN1))
         {
-            LOG_ERROR("setControllerPinMode", "Controller pin " << controllerPin << " cannot be set to Boolean mode.");
+            LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " cannot be set to Boolean mode.");
             return false;
         }
         if (this->_controllerPinSettings[controllerPin].controllerPinMode != CONTROLLER_PIN_MODE_DISABLED) {
@@ -224,11 +224,11 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
     this->_controllerPinSettings[controllerPin].controllerPinMode = mode;
     if ((mode != CONTROLLER_PIN_MODE_DISABLED) && (mode != CONTROLLER_PIN_MODE_CONTROLLER)) {
         if (!this->setControllerPinOutput(controllerPin, this->_controllerPinSettings[controllerPin].controllerPinOutput)) {
-            LOG_ERROR("setControllerPinMode", "Failed to set output for controller pin " << controllerPin);
+            LOG_ERROR("setControllerPinMode", "Failed to set output for controller output " << controllerPin);
             return false;
         }
     }
-    LOG_DEBUG("setControllerPinMode", "Controller pin " << controllerPin << " set to: " << mode);
+    LOG_DEBUG("setControllerPinMode", "Controller Output " << controllerPin << " set to: " << mode);
     return true;
 }
 
@@ -236,24 +236,24 @@ bool dewController::setControllerPinOutput(int controllerPin, int output)
 {
     if ((controllerPin < CONTROLLER_PIN2) || (controllerPin > CONTROLLER_PIN5))
     {
-        LOG_ERROR("setControllerPinOutput", "Invalid controller pin: " << controllerPin);
+        LOG_ERROR("setControllerPinOutput", "Invalid controller output: " << controllerPin);
         return false;
     }
 
     if (!this->_controllerEnabled) {
         this->_controllerPinSettings[controllerPin].controllerPinOutput = output;
-        LOG_DEBUG("setControllerPinOutput", "Controller Disabled but Controller pin " << controllerPin << " output set to: " << output);
+        LOG_DEBUG("setControllerPinOutput", "Controller Disabled but Controller Output " << controllerPin << " output set to: " << output);
         return true;
     }
 
     switch (_controllerPinSettings[controllerPin].controllerPinMode)
     {
     case CONTROLLER_PIN_MODE_DISABLED:
-        LOG_ERROR("setControllerPinOutput", "Controller pin " << controllerPin << " is Disabled.");
+        LOG_ERROR("setControllerPinOutput", "Controller Output " << controllerPin << " is Disabled.");
         return false;
         break;
     case CONTROLLER_PIN_MODE_CONTROLLER:
-        LOG_ERROR("setControllerPinOutput", "Controller pin " << controllerPin << " is in Controller mode.");
+        LOG_ERROR("setControllerPinOutput", "Controller Output " << controllerPin << " is in Controller mode.");
         return false;
         break;
     case CONTROLLER_PIN_MODE_PWM:
@@ -280,14 +280,14 @@ bool dewController::setControllerPinOutput(int controllerPin, int output)
         digitalWrite(_controllerPinSettings[controllerPin].controllerPinPin, (output > 0) ? HIGH : LOW);
         break;
     default:
-        LOG_ERROR("setControllerPinOutput", "Controller pin " << controllerPin << " has an invalid mode.");
+        LOG_ERROR("setControllerPinOutput", "Controller Output " << controllerPin << " has an invalid mode.");
         return false;
         break;
     }
 
     this->_controllerPinSettings[controllerPin].controllerPinOutput = 
             (((output > 0)&&(this->_controllerPinSettings[controllerPin].controllerPinMode==CONTROLLER_PIN_MODE_BOOLEAN)) ? 100 : output);
-    LOG_DEBUG("setControllerPinOutput", "Controller pin " << controllerPin << " Output set to: " << output);
+    LOG_DEBUG("setControllerPinOutput", "Controller Output " << controllerPin << " Output set to: " << output);
     return true;
 }
 
@@ -295,7 +295,7 @@ int dewController::getControllerPinOutput(int controllerPin)
 {
     if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
     {
-        LOG_ERROR("getControllerPinOutput", "Invalid controller pin: " << controllerPin);
+        LOG_ERROR("getControllerPinOutput", "Invalid controller output: " << controllerPin);
         return -1;
     }
     return _controllerPinSettings[controllerPin].controllerPinOutput;
@@ -305,7 +305,7 @@ int dewController::getControllerPinPin(int controllerPin)
 {
     if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
     {
-        LOG_ERROR("getControllerPinPin", "Invalid controller pin: " << controllerPin);
+        LOG_ERROR("getControllerPinPin", "Invalid controller output: " << controllerPin);
         return -1;
     }
     return _controllerPinSettings[controllerPin].controllerPinPin;
@@ -315,7 +315,7 @@ controllerPinModes dewController::getControllerPinMode(int controllerPin)
 {
     if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
     {
-        LOG_ERROR("getControllerPinMode", "Invalid controller pin value: " << controllerPin);
+        LOG_ERROR("getControllerPinMode", "Invalid controller output value: " << controllerPin);
         return CONTROLLER_PIN_MODE_DISABLED;
     }
     return _controllerPinSettings[controllerPin].controllerPinMode;

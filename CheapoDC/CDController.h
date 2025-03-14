@@ -65,7 +65,7 @@ class dewController
 {
 public:
         dewController(void);
-        void updateOutput(int output = -1); // Controller PWM controller pins only
+        void updateOutput(int output = -1); // Controller mode outputs only
         bool setControllerPinPin(int controllerPin, int pin );
         bool setControllerPinMode(int controllerPin, controllerPinModes mode);
         bool setControllerPinOutput(int controllerPin, int output);

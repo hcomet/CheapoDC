@@ -1,11 +1,20 @@
 ![CheapoDC Logo](images/logo.png)
 
+# Introducing CheapoDC
+
 The Cheapo Dew Controller, or CheapoDC, is a low cost, easy to build DIY dew controller based on an ESP32-C3 mini.
 Parts required include the ESP32-C3 mini, a MOSFET module for each output, a 12V to 5V buck converter, some protoboard,
  RCA sockets, a 12V barrel socket and wire. Cost of the parts should be less than $20 for a unit that
 controls 2 dew heater straps.
 
-A primary goal was to keep the build simple with minimal components. This is done by leveraging the ESP32 WiFi
+A primary goal was to keep the project cheap, simple and easy with:
+
+* minimal low cost off the shelf components
+* no coding or Arduino IDE experience necessary with both [Webflash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) and [HTTP OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) support
+* Comprehensive [Web UI](#web-ui) for configuration and management
+* [INDI](https://www.indilib.org/) and [Stellarmate](https://stellarmate.com/) support 'out-of-the-box'
+
+CheapoDC leverages the ESP32 WiFi
 capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API
 or the [Open-Meteo](https://open-meteo.com/) API may be used to retrieve ambient temperature, humidity and dew point
 for the controller's geographic location. This is then used to calculate CheapoDC's power output. No additional
@@ -160,7 +169,7 @@ In my implementation I used a red LED connected to the same pin as the onboard L
 
 ![Wiring Diagram](images/wiring.jpg)
 
-The default configuration for the basic dual output controller uses Controller Pins 0 and 1 mapped to GPIO pins 0 and 1.
+The default configuration for the basic dual output controller uses Controller Outputs, 0 and 1, mapped to GPIO pins 0 and 1.
 If you cannot use these GPIO pins then they may be changed using the Web UI on the [Device Management](#cheapodc-device-management)
 page or the default values may be changed in the [CDCDefines.h](CheapoDC/README.md#configure-firmware-in-the-cdcdefinesh-file) file
 before building the firmware.
@@ -238,9 +247,23 @@ Used to configure GPIO Pin mappings for outputs as well as setting the Output Mo
 |Disabled|Output is disabled. The default. GPIO pin mapping set to -1.|Pin 0 through Pin 5|
 |Controller|Output is controlled by the dew controller.|Pin 0 through Pin 5|
 |PWM|Output is manually controlled using PWM and output may be set from 0% to 100%.|Pin 2 through Pin 5|
-|Boolean|Output is manually controlled and may be either Off/0% or On/100%.|Pin 2 through Pin 5|
+|Boolean|Output is manually controlled and may be either Off (0%) or On (100%).|Pin 2 through Pin 5|
 
 Note that a Controller Output Pin to GPIO Pin mapping must be set before an Output Mode may be selected. These settings may be controlled via the Web UI or the API.
+
+#### WiFi Configuration
+
+Shows current network information and allows you to configure the hostname and WiFi access point to use for network access. CheapoDC can be configured to step through multiple access points to make a WiFi connection.
+* Network Information
+  * Wifi Mode: STA = Station Mode, AP = Access Point Mode.
+  * Hostname: Current active hostname. If updated a reboot is required to see the new hostname.
+  * IP Address.
+* Configure WiFi
+  * Name: Allows you to pick an access point for editting the password. Or, select `Add WiFi` to add an access point.
+  * SSID: Is the access point SSID point to add or edit. To delete an access point blank out the SSID and click **Update**.
+  * Password: Is the password for the access point. **Show Password** will only work for adding a new WiFi access point.
+
+Changes to any of the WiFi Configuration setting require a reboot to take effect.
 
 #### Change Password
 
@@ -254,8 +277,8 @@ Used to change the Status LED pin mapping from the default of GPIO 8. Also used 
 
 CheapoDC supports two methods for updating firmware. 
 
-1. Web Update: Will indicate when a new release is available and then allow for an HTTP based OTA update. This will update both the firmware and data partitions while preserving your configuration settings. No software or Arduino IDE knowledge is required for this update method.
-2. Manual Update: Allows for an OTA update to firmware that has been compiled and built on your own machine. This only updates the data partition. You will need to manually update the files in the data partition using the [File Management UI](#cheapodc-file-management). At least Arduino IDE knowledge is required for this method.
+1. Web OTA Update: Will indicate when a new release is available and then allow for an HTTP based OTA update. This will update both the firmware and data partitions while preserving your configuration settings. No software or Arduino IDE knowledge is required for this update method. Please consult the [Web OTA Update FAQ](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
+2. Manual OTA Update: Allows for an OTA update to firmware that has been compiled and built on your own machine. This only updates the data partition. You will need to manually update the files in the data partition using the [File Management UI](#cheapodc-file-management). At least Arduino IDE knowledge is required for this method.
 
 #### Reboot Device
 
@@ -271,17 +294,20 @@ The CheapoDC uses LittleFS for file storage on the ESP32. Although LittleFS supp
 
 The Status LED is used to provide information about the current status of the CheapoDC. Status blinking lasts for 10 seconds. It will blink as WiFi access attempts are made. If a Station mode connection is successfully made to an access point then the status LED will slow blink (1 second cycle). If no connection is made then the CheapoDC will go into Access Point mode. The status LED will then fast blink (200ms cycle).
 
-The status LED will also blink for 10 seconds after a power output changes and after a controller configuration change. The 10 second blink period may be modified by changing **#define CDC_STATUS_LED_DELAY 10** in [CDCdefines.h](/CheapoDC/CDCdefines.h). If the status LED is not turning off after 10 seconds then you may need to reverse the High/Low setting. This can also be done in the [CDCdefines.h](/CheapoDC/CDCdefines.h) by uncommenting ***#define CDC_REVERSE_HIGH_LOW***.
+The status LED will also blink for 10 seconds after the controller changes the power output and after an API or Web UI driven controller configuration change.
+
+If the status LED is not turning off after connecting to WiFI or after the 10 second blink then you may need to reverse the High value setting. This can also be done in the Web UI by changing the High Value setting in [Status LED Configuration](#status-led-configuration).
 
 ## CheapoDC API
 
 The CheapoDC provides API access to all configuration and data items available through the [Web UI](/README.md#web-ui). There is no authentication support in the API but the API also does not support firmware OTA updates or file management. These can only be done through the Web UI.
 
-CheapoDC supports three API mechanisms:
+CheapoDC supports two API mechanisms:
 
 1. TCP API using JSON syntax
 2. Basic Web API utilizing HTTP POST
-3. Web Sockets API - Deprecated in release v2.2.0.
+
+Formerly a third mechanism, Web Sockets API, was supported but wav deprecated in release v2.2.0.
 
 The APIs use the same commands which are listed in the top of [CDCommands.cpp](/CheapoDC/CDCommands.cpp). Commands are 2 to 4 character strings. For each command there is a map indicating:
 
@@ -308,8 +334,8 @@ The table below provides a list of the commands but the code is the final correc
 * Commands supporting a **Setter** method are identified.
 * The **ATPQ** and **HU** commands are only setter commands when Weather Source is set to External Source.
 * Date and time responses are in local time based on the Time Zone Offset and DST Offset values.
-* Controller Pin commands: CPP#, CPM# and CPO# are independent API commands where the # must be one of 0, 1, 2, 3, 4 or 5.
-* Controller Pin command CPP# allows a Controller Pin to be mapped to -1 for Disabled or GPIO 0 through 39. Which actual GPIO pin to choose is ESP32 module dependent.
+* Controller Output commands: CPP#, CPM# and CPO# are independent API commands where the # must be one of 0, 1, 2, 3, 4 or 5.
+* Controller Output command CPP# allows a Controller Output to be mapped to -1 for Disabled or GPIO 0 through 39. Which actual GPIO pin to choose is ESP32 module dependent.
 * Using an invalid command or trying a setter on a command not supporting a setter will return an error.
 * Strictly speaking command values are always treated as Strings since the values are always enclosed in quotes in the JSON. Conversion to appropriate type is handled internally.
 * The **CLC** command has been deprecated.
@@ -365,11 +391,11 @@ The table below provides a list of the commands but the code is the final correc
 |    IP    |&cross;|  None    | String [16] |   IP Address|
 |    HN    |&cross;|  None | String [16] |   Host name |
 |    WQEN    |&check;|  None | Bool | Web Query Enabled<br>False = 0<br>True = 1|
-|   CPP#   |&check;|  None    | Integer |Controller Pin 0 to GPIO pin mapping<br>-1 to 39<br>-1 = Disabled|
-|    CPM#    |&check;|  None    | ENUM |Controller Pin Mode <br>Disabled = 0<br>Controller = 1<br>PWM = 2<br>Boolean = 3|
-|CPO#|&check;|&percnt;|Integer|Controller Pin Output<br>Output Mode dependent.<br>Set - PWM, Boolean<br>Get - all modes|
+|   CPP#   |&check;|  None    | Integer |Controller Output (0 to 5) to GPIO pin mapping<br>-1 to 39<br>-1 = Disabled|
+|    CPM#    |&check;|  None    | ENUM |Controller Output (2 to 5) Mode <br>Disabled = 0<br>Controller = 1<br>PWM = 2<br>Boolean = 3|
+|CPO#|&check;|&percnt;|Integer|Controller Power Output (0 to 5), mode dependent:<br>Set - PWM, Boolean<br>Get - all modes|
 |PWDH|&check;|None|String[32]|Change the [Digest access authentication](https://en.wikipedia.org/wiki/Digest_access_authentication#:~:text=In%20contrast%2C%20basic%20access%20authentication,It%20uses%20the%20HTTP%20protocol.) MD5 Password Hash. |
-|FWUP|&cross;|None|Integer|Returns new FW release availability:<br>x.y.z = update available<br>NOFWUPDATE = no update<br>NOSUPPORT = Web Update not supported
+|FWUP|&cross;|None|String[16]|Returns new FW release availability:<br>x.y.z = update available<br>NOFWUPDATE = no update<br>NOSUPPORT = Web Update not supported|
 
 ### TCP API
 
