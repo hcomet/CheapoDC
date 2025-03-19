@@ -92,7 +92,7 @@ bool CDCSetup::queryWeather(void)
   {
     if (this->getInWiFiAPMode())
     {
-      LOG_ERROR("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
+      LOG_ALERT("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
       return false;
     }
 

@@ -80,7 +80,7 @@ CheapoDC configuration files.
    * In general, if newer versions of a library are available then only use new subversions not new major versions.
 
 5. Download the latest firmware release source code from <https://github.com/hcomet/CheapoDC/releases>  
-  <u>**NOTE:**</u> After extracting the release to your file system open the CheapDC.ino file in the Arduino IDE. This will open the full set of source files in the IDE. Now configure the firmware before building it.
+  <u>**NOTE:**</u> After extracting the release to your file system open the CheapoDC.ino file in the Arduino IDE. This will open the full set of source files in the IDE. Now configure the firmware before building it.
 
 ### IDE Tips:
 * Many ESP32-C3 board (Dev Module, mini, super mini, micro etc..) configurations have *USB CDC On BOOT:* ***"Disabled"***. This needs to be ***"ENABLED"*** or the Serial Monitor will not work.

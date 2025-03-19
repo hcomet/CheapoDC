@@ -11,13 +11,15 @@ var MD5;(()=>{"use strict";var r={d:(n,t)=>{for(var e in t)r.o(t,e)&&!r.o(n,e)&&
 window.addEventListener('load', onLoad);
 
 function onLoad(event) {
-    document.getElementById("loader").style.display = "block";
-    initButtons();
+    if (document.getElementById("loader")) {
+        document.getElementById("loader").style.display = "block";
+        initButtons();
+    }
     document.addEventListener('keydown', function (event) {
         if (event.ctrlKey && (event.key === 'z')) {
             initButtons();
         }
-    });
+    });   
 }
 
 function convertHTML(str) {
@@ -331,6 +333,7 @@ function httpOTAAvailability( value) {
         document.getElementById("fwUpdateNotAvailable").style.display = "block";
         document.getElementById("fwUpdateNotAvailable").innerHTML = "Not supported.";
         document.getElementById("fwUpdateAvailable").style.display = "none";
+        document.getElementById("readfota").style.display = "none";
     } else {
         if (value != "NOFWUPDATE") {
             document.getElementById("fwUpdateAvailable").style.display = "block";
@@ -470,19 +473,34 @@ async function loadWifi() {
          if (typeof wifiJson.wifi === 'undefined') {
             wifiInfo = [];
          } else {
-            wifiInfo = wifiJson.wifi;
-         }
-         if ((typeof wifiJson.hostname !== 'undefined') && (wifiJson.hostname != document.getElementById("hostname").dataset.cdc)) {
-            document.getElementById("wifiMessage").innerHTML = 
-            "<strong>Important:</strong> Hostname change to " + wifiJson.hostname + " requires reboot to take effect.";
+            // console.log("wifiJson.wifi.length: ", wifiJson.wifi.length);
+            if (typeof wifiJson.wifi.length === 'undefined') {
+              wifiInfo = [];
+            } else {
+                wifiInfo = wifiJson.wifi;
+            }
          }
       }
     } catch (error) {
       console.error(error.message);
     }
-    //console.log(response);
-    //console.log(wifiJson);
-    //console.log(wifiInfo);
+    // If json file blank or incomplete setup the defaults for some items
+    if (typeof wifiJson.hostname === 'undefined') {
+        wifiJson.hostname = "CheapoDC";
+    }
+    if (wifiJson.hostname != document.getElementById("hostname").dataset.cdc) {
+        document.getElementById("wifiMessage").innerHTML = 
+        "<strong>Important:</strong> Hostname change to " + wifiJson.hostname + " requires reboot to take effect.";
+    }
+    if (typeof wifiJson.connectAttempts === 'undefined') {
+        wifiJson.connectAttempts = "15";
+    }
+    if (typeof wifiJson.tryAPs === 'undefined') {
+        wifiJson.tryAPs = "1";
+    }
+    // console.log(response);
+    // console.log(wifiJson);
+    // console.log(wifiInfo);
     for (var i = wifiSelect.options.length-1; i >= 0; i--) {
       wifiSelect.remove(i);
     }
@@ -537,7 +555,7 @@ function updateWifi() {
     var index = wifiSelect.value;
     document.getElementById("loader").style.display = "block";
     document.getElementById("wifiMessage").innerHTML = "<strong>Important:</strong> WiFi changes require reboot to take effect.";
-
+    // console.log("Update Wifi: wifiInfo.length: " + wifiInfo.length + " Index: " + index + " SSID: " + wifiSSID.value + " Password: " + wifiPassword.value);
     if (index == wifiInfo.length) {
         var newWifi = {};
         newWifi.ssid = wifiSSID.value;

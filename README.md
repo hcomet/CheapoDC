@@ -24,16 +24,17 @@ support the weather service queries but it can also be used in a limited way wit
 
 The CheapoDC may be set up using a basic configuration with two dew strap outputs or it may be configured with up to
 four additional outputs. Each CheapoDC Output is controlled by a separate MOSFET module tied to one of the ESP32's
-GPIO pins. The four additional outputs may be configured to be managed either automatically using the CheapoDC dew control algorithm, along with two main dew controller outputs,
+GPIO pins. The four additional outputs may be configured to be managed either automatically using the CheapoDC dew 
+control algorithm, along with the two main dew controller outputs,
 or manually via the Web UI or API. Dew control algorithm managed pins and thus dew strap outputs are all tied to the
 same ESP32 PWM channel and will have the same output.
 
-CheapoDC hardware build details can be found in the [Hardware](/README.md#hardware) section of this document. 
+CheapoDC hardware build details can be found in the [Hardware](#hardware) section of this document. 
 
 CheapoDC firmware may installed on your device using one of the following methods:
 
 * Using the Arduino IDE: Details on how to build the CheapoDC firmware as well as information about the latest
-firmware release may be found with the source code in the [CheapoDC/README.md](CheapoDC/README.md).
+firmware release may be found with the source code in the [CheapoDC/README.md](./CheapoDC#webflash-as-an-option).
 * WebFlash: A web based utility that allows for the installation of the latest firmware directly to your ESP32-C3 based device.
 
 CheapoDC also supports web based Over-the-air (OTA) upgrades of the firmware using the CheapoDC Web UI.

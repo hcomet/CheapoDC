@@ -19,5 +19,7 @@ void setupServers(void);
 
 const char* httpFirmwareUpdateAvailable(void);
 void updateFirmware(void);
+void setupHttpOTA();
+void cleanupHttpOTA();
 
 #endif

@@ -309,8 +309,8 @@
 <input type=password name=HTTPOTA id=HTTPOTAPWD placeholder="Enter Password">
 <input type=button name=HTTPUPDATE id=iupdate value=Update onclick=httpOTAUpload() disabled>
 </div>
-<div id=fwUpdateNotAvailable class=in30 display=block>No update available. Currently at latest version.</div>
-<p class=in30>Please read the Web OTA Update&nbsp;<a href=https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html target=_blank>FAQ</a>.</p>
+<div id=fwUpdateNotAvailable class="in30 dwn10" display=block>No update available. Currently at latest version.</div>
+<p class=in30 id=readfota>Please read the Web OTA Update&nbsp;<a href=https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html target=_blank>FAQ</a>.</p>
 <h3>Manual OTA Update</h3>
 <form id=uploadOTAFileForm method=POST action=/upload class="in30 dwn10" enctype=multipart/form-data>
 <input type=file name=file1 id=file1 value="Choose FW"><input type=button name=upload id=iupload value=Update title="Upload File" onclick=fileOTAUpload() disabled>

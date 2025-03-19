@@ -442,27 +442,10 @@ String handleGetValue(AsyncWebServerRequest *request)
  * setup function
  */
 void setupServers(void) {
-
-  // Setup FOTA
-  #ifdef CDC_ENABLE_HTTP_OTA
-  String CDCFotaID = String(String(programName) + "." + ESP.getChipModel());
-  LOG_ALERT("setupServers", "Setting up HTTP-FOTA for: " << CDCFotaID);
-  CDCFota = new esp32FOTA( CDCFotaID.c_str(), programVersion, false);
-  CDCFota->setManifestURL( theSetup->getHttpOTAURL() );
-  memset(newFirmwareVersion, '\0', sizeof(newFirmwareVersion));
-  if (CDCFota->execHTTPcheck())
-  {
-    CDCFota->getPayloadVersion(newFirmwareVersion);
-    LOG_ALERT("setupServer", "New version available: " << newFirmwareVersion);
-  } else {
-    LOG_ALERT("setupServer", "NO new version available");
-    strlcpy(newFirmwareVersion, CDC_NO_FW_UPDATE_RESPONSE, sizeof(newFirmwareVersion));
-  }
-  #else // CDC_ENABLE_HTTP_OTA
-  LOG_ALERT("setupServers", "Support for HTTP OTA not enabled.");
-  memset(newFirmwareVersion, '\0', sizeof(newFirmwareVersion));
-  strlcpy(newFirmwareVersion, CDC_NO_FW_UPDATE_RESPONSE, sizeof(newFirmwareVersion));
-  #endif // CDC_ENABLE_HTTP_OTA
+  // Initialize HTTP OTA to check for FW update
+  setupHttpOTA();
+  // Cleanup HTTP OTA to free heap
+  cleanupHttpOTA();
 
   // Create Server objects
   CDCWebServer = new AsyncWebServer(CDC_DEFAULT_WEBSRVR_PORT);
@@ -710,43 +693,96 @@ void CDCFotaUpdateErrorCB(int partition) {
   LOG_ALERT("CDCFotaErrorCB", message.c_str());
   CDCEvents->send( message, "error", millis());
 }
+#endif // CDC_ENABLE_HTTP_OTA
+
+// Set up HTTP OTA update for firmware
+//
+void setupHttpOTA() {
+#ifdef CDC_ENABLE_HTTP_OTA
+  String CDCFotaID = String(String(programName) + "." + ESP.getChipModel());
+  LOG_ALERT("setupHttpOTA", "Setting up HTTP-FOTA for: " << CDCFotaID);
+  CDCFota = new esp32FOTA( CDCFotaID.c_str(), programVersion, false);
+  
+  // Set up the root CA for HTTPS
+  File file = LittleFS.open(CDC_HTTP_OTA_ROOT_CA_FILE, "r");
+  if (!file)
+  {
+    const char* root_ca = WEB_OTA_ROOT_CA;
+    LOG_DEBUG("setupHttpOTA", "No Root CA file found: " << CDC_HTTP_OTA_ROOT_CA_FILE << " Using default.");
+    CryptoMemAsset  *MyRootCA = new CryptoMemAsset("Root CA", root_ca, strlen(root_ca)+1 );
+    CDCFota->setRootCA( MyRootCA );
+  } else {
+    file.close();
+    LOG_ALERT("setupHttpOTA", "Root CA file found: " << CDC_HTTP_OTA_ROOT_CA_FILE << " Using it instead of default.");
+    CryptoFileAsset *MyRootCA =  new CryptoFileAsset(CDC_HTTP_OTA_ROOT_CA_FILE, &LittleFS);
+    CDCFota->setRootCA( MyRootCA );  
+  }
+  
+  CDCFota->setManifestURL( theSetup->getHttpOTAURL() );
+  CDCFota->setCertFileSystem(nullptr);
+      
+  CDCFota->setProgressCb( CDCFotaProgressCB );
+  CDCFota->setUpdateFinishedCb( CDCFotaFinishedCB );
+  CDCFota->setUpdateBeginFailCb(CDCFotaUpdateErrorCB);
+  CDCFota->setUpdateCheckFailCb(CDCFotaCheckErrorCB);
+
+  memset(newFirmwareVersion, '\0', sizeof(newFirmwareVersion));
+  if (CDCFota->execHTTPcheck())
+  {
+    CDCFota->getPayloadVersion(newFirmwareVersion);
+    LOG_ALERT("setupHttpOTA", "New version available: " << newFirmwareVersion);
+  } else {
+    LOG_DEBUG("setupHttpOTA", "NO new version available");
+    strlcpy(newFirmwareVersion, CDC_NO_FW_UPDATE_RESPONSE, sizeof(newFirmwareVersion));
+  }
+#else // CDC_ENABLE_HTTP_OTA
+  LOG_ALERT("setupHttpOTA", "Support for HTTP OTA not enabled.");
+  memset(newFirmwareVersion, '\0', sizeof(newFirmwareVersion));
+  strlcpy(newFirmwareVersion, CDC_NO_FW_UPDATE_RESPONSE, sizeof(newFirmwareVersion));
+#endif // CDC_ENABLE_HTTP_OTA
+}
+
+void cleanupHttpOTA() {
+#ifdef CDC_ENABLE_HTTP_OTA
+  if (CDCFota) {
+    delete CDCFota;
+    CDCFota = nullptr;
+    LOG_DEBUG("cleanupHttpOTA", "HTTP OTA object deleted.");
+  }
+#endif // CDC_ENABLE_HTTP_OTA
+}
 
 void updateFirmware(void) {
+#ifdef CDC_ENABLE_HTTP_OTA
   if (updateFirmwareNow) 
   {
     bool continueUpdate = true;
-    bool updateFWPartition = (CDCFota->getFirmwareURL()[0] != '\0');
-    bool updateDataPartition = (CDCFota->getFlashFS_URL()[0] != '\0');
-    auto cfg = CDCFota->getConfig();
+    bool updateFWPartition = false;
+    bool updateDataPartition = false;
     updateFirmwareNow = false;
-    cfg.check_sig    = false;
-    cfg.unsafe       = true;
-    CDCFota->setConfig( cfg );
     LOG_ALERT("updateFirmware", "Do HTML OTA.");
-    
-    CDCFota->setCertFileSystem(nullptr);
-    CDCFota->setProgressCb( CDCFotaProgressCB );
-    CDCFota->setUpdateFinishedCb( CDCFotaFinishedCB );
-    CDCFota->setUpdateBeginFailCb(CDCFotaUpdateErrorCB);
-    CDCFota->setUpdateCheckFailCb(CDCFotaCheckErrorCB);
+
+    setupHttpOTA();
+    updateFWPartition = (CDCFota->getFirmwareURL()[0] != '\0');
+    updateDataPartition = (CDCFota->getFlashFS_URL()[0] != '\0');
 
     CDCEvents->send(String((updateDataPartition)?"The data and firmware partitions will be updated.":"The firmware partition will be updated."), "message", millis());
     if (updateDataPartition)
     {
       CDCEvents->send("Backup data partition configuration files.", "status", millis());
       if (!theSetup->backupConfig()) {
-        LOG_ALERT("updateFirmware", "Backup configuration files failed.");
+        LOG_ERROR("updateFirmware", "Backup configuration files failed.");
         CDCEvents->send("Error: Data partition backup failed.", "error", millis());
         continueUpdate = false;
       } else {
         CDCEvents->send("Updating data partition. ", "status", millis());
         if (!CDCFota->execSPIFFSOTA()) {
-          LOG_ALERT("updateFirmware", "Data partition update failure.");
+          LOG_ERROR("updateFirmware", "Data partition update failure.");
           CDCEvents->send("Error: Data partition update failed.", "error", millis());
           continueUpdate = false;
         } else {
           if (!theSetup->restoreConfig()) {
-            LOG_ALERT("updateFirmware", "Restore configs failed.");
+            LOG_ERROR("updateFirmware", "Restore configs failed.");
             CDCEvents->send("Error: Restore data partition configuration files failed.", "error", millis());
             continueUpdate = false;
           }
@@ -757,19 +793,19 @@ void updateFirmware(void) {
       CDCEvents->send("0", "progress", millis());
       CDCEvents->send("Updating firmware partition. ", "status", millis());
       if (!CDCFota->execOTA(U_FLASH, true)) {
-        LOG_ALERT("updateFirmware", "Firmware partition update failure.");
+        LOG_ERROR("updateFirmware", "Firmware partition update failure.");
         CDCEvents->send("Error: Firmware update failed.", "error", millis());
         continueUpdate = false;
       }
     } 
     if (!continueUpdate) {
       LOG_ERROR("updateFirmware","HTTP OTA Failure.");
-      CDCEvents->send("Update failed,  rebooting. Refresh browser when ready.", "message", millis());
+      CDCEvents->send("Update failed, rebooting. Refresh browser when ready.", "message", millis());
       CDCEvents->send( "Wait", "reboot", millis());
       sleep(1);
       ESP.restart();
     }
 
   }
-}
 #endif // CDC_ENABLE_HTTP_OTA
+}
