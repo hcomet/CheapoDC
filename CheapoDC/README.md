@@ -145,11 +145,13 @@ As of V2.2.0 changes to the ***CDCdefines.h*** file are **not** required since a
   
 ### First Time Device Configuration
 
-Browse to the CheapoDC Web UI at http://cheapodc.local to configure your device. When prompted login using the default userid and password: admin, admin. You should be on the 
-[Dashboard](../README.md#cheapodc-dashboard) page.
+If you have not modified the default CDCWiFi.json then the CheapoDC will enter AP (Access Point) mode when booted the first time.
 
+* Connect to the access point, SSID: cheapodc and Password: cheapodc.
+* Browse to the CheapoDC Web UI at http://cheapodc.local to configure your device. When prompted login using the default userid and password: admin, admin. You should be on the [Dashboard](../README.md#cheapodc-dashboard) page.
 * Go to the [Device Management](../README.md#cheapodc-device-management) page by clicking on the button at the bottom of the page.
 * Scroll down to [WiFi Configuration](../README.md#wifi-configuration) and configure your WiFi SSID and Password. You'll need to [Reboot](../README.md#reboot-device) the CheapoDC for the WiFi changes to take effect.
+* After rebooting. The CheapoDC should be connected to your WiFi network. Refresh your browser and stay on the Device Management page.
 * Configure the [Controller Outputs](../README.md#controller-output-configuration) if needed. Output 0 and 1 are always dew controller outputs and by default mapped to GPIO pins 0 and 1. Outputs 2 to 5 may be configured as Controller, PWM or Boolean. They are Disabled by default. Outputs **must** be mapped to a GPIO pin first before an [Output Mode](../README.md#output-modes) may be set.  
   For the ESP32-C3 SuperMini GPIO pins 0, 1, 3, 5, 6 and 7 have been validated.
 * [Change your password](../README.md#change-password).

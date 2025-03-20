@@ -448,13 +448,18 @@ See the Configuration Files section in [Building and Installing CheapoDC](./Chea
 
 An INDI driver is now available in the master branch as of INDI release 2.0.7, April 1, 2024. Details should become available on the [INDI website devices list](https://www.indilib.org/aux/cheapodc-dew-controller.html) as well as the [StellarMate website devices list](https://www.stellarmate.com/devices.html).
 
-Driver version 1.2 supports the latest versions of the CheapoDC firmware adding support for the four Additional Controller Outputs.
+Driver version 1.2 supports the latest versions of the CheapoDC firmware adding support for the four Additional Controller Outputs. Up to date driver documentation is maintained [here](https://hcomet.github.io/CheapoDC/indi/CheapoDC.html).
 
 # Third Party Acknowledgements
 
 * Two libraries are bundled into CheapoDC:
-  * esp32FOTA from Chris Joyce provides the Web Update capability for HTTP OTA updates. The original library may be
+  * esp32FOTA from Chris Joyce provides the [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) capability for HTTP OTA updates. The original library may be
   found at [https://github.com/chrisjoyce911/esp32FOTA](https://github.com/chrisjoyce911/esp32FOTA). esp32FOTA also bundles in a semantic version parsing library, [semver](https://github.com/h2non/semver.c), from h2non.
   * EasyLogger from Alex Skov Jensen provides the debug logging macros. The original library may be
   found at [https://github.com/x821938/EasyLogger](https://github.com/x821938/EasyLogger).
-* The WebFlash capability uses [ESP Web Tools](https://esphome.github.io/esp-web-tools/) from [Home Assistant](https://www.home-assistant.io/).
+* Other libraries used by CheapoDC include:
+   * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)
+   * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)
+   * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)
+   * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)
+* The [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) capability uses [ESP Web Tools](https://esphome.github.io/esp-web-tools/) from [Home Assistant](https://www.home-assistant.io/).
