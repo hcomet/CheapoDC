@@ -14,6 +14,7 @@
 #include <WiFiClient.h>
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
+#include <WebAuthentication.h>
 #include "CDCdefines.h"
 #include "CDCEasyLogger.h"
 #include "CDCvars.h"
@@ -89,9 +90,9 @@ bool CDCSetup::queryWeather(void)
   LOG_DEBUG("queryWeather", "Current weather source: " << this->_currentWeatherSource);
   if (this->_currentWeatherSource != EXTERNALSOURCE)
   {
-    if (theSetup->getInWiFiAPMode())
+    if (this->getInWiFiAPMode())
     {
-      LOG_ERROR("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
+      LOG_ALERT("queryWeather", "CheapoDC in Access Point mode. Cannot do a weather query.");
       return false;
     }
 
@@ -206,34 +207,22 @@ CDCSetup::CDCSetup(void)
 {
   LOG_DEBUG("CDCSetup", "Starting setup");
   // Load defaults
+  
   this->_loadDefaults();
 
-  // initialize status LED as an output.
-  pinMode(CDC_STATUS_LED, OUTPUT);
-  this->blinkStatusLEDEvery(CDC_DEFAULT_STATUS_BLINK);
-  this->statusLEDOn();
-
+  // Disable Weather queries until we are ready
+  this->setWeatherQueryEnabled( false );
+  sleep(5);
   // Filesystem first
-  LOG_DEBUG("CDCSETUP", "Setup LittleFS");
+  LOG_DEBUG("CDCSetup", "Setup LittleFS");
   if (!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED))
   {
     LOG_ERROR("CDCSetup", "LittleFS Mount Failed");
     return;
   } else {
-    LOG_ALERT("CDCSETUP", "LittleFS Mounted. Size: " << LittleFS.totalBytes() << " Used: " << LittleFS.usedBytes());
+    LOG_ALERT("CDCSetup", "LittleFS Mounted. Size: " << LittleFS.totalBytes() << " Used: " << LittleFS.usedBytes());
   }
-
-  // Set up WiFi
-  LOG_DEBUG("CDCSETUP", "Setup WiFi");
-  if (!this->_setupWiFi())
-  {
-    LOG_ERROR("CDCSetup", "Wifi connection failure");
-  }
-
-  // Start RTC/NTP correct the timezone later after we load the CDC Config file
-  LOG_DEBUG("CDCSETUP", "Start RTC");
-  // theTime = new ESP32Time(0);
-
+  
   strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
   strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
 }
@@ -284,7 +273,7 @@ bool CDCSetup::SaveConfig(void)
       return false;
     }
 
-    resetConfigUpdated();
+    this->resetConfigUpdated();
     file.close();
   }
 #if LOG_LEVEL == LOG_LEVEL_DEBUG
@@ -301,7 +290,18 @@ bool CDCSetup::SaveConfig(void)
 void CDCSetup::_loadDefaults(void)
 {
 
-  LOG_DEBUG("_loadDefaults", "Loading CDCSetup defaults.");
+  LOG_DEBUG("_loadDefaults", "Loading CDCSetup defaults: Starting.");
+
+  memset(this->_passwordHash, '\0', sizeof(this->_passwordHash));
+  strlcpy(this->_passwordHash, generateDigestHash(CDC_DEFAULT_WEB_ID, CDC_DEFAULT_WEB_PASSWORD, CDC_DEFAULT_WEB_REALM).c_str(), sizeof(this->_passwordHash));
+
+  #ifdef CDC_DEFAULT_STATUS_LED_PIN
+  this->setStatusLEDPin( CDC_DEFAULT_STATUS_LED_PIN);
+  #else
+  this->setStatusLEDPin( -1 ); // Disable for now
+  #endif
+
+  this->setStatusLEDHigh( CDC_STATUS_LED_HIGH);
 
   memset(this->_wifiConfig.hostname, '\0', sizeof(this->_wifiConfig.hostname));
   strlcpy(this->_wifiConfig.hostname, CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
@@ -374,6 +374,13 @@ void CDCSetup::_loadDefaults(void)
   this->_currentWeather.dewPoint = 0.0;
   memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
   memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
+
+  memset(this->_httpOTAURL, '\0', sizeof(this->_httpOTAURL));
+  strlcpy(this->_httpOTAURL, CDC_DEFAULT_HTTP_OTA_URL, sizeof(this->_httpOTAURL));
+
+  this->resetConfigUpdated();
+  
+  LOG_DEBUG("_loadDefaults", "Loading CDCSetup defaults: completed.");
 }
 
 //********************************************************************************************
@@ -428,7 +435,7 @@ bool CDCSetup::LoadConfig(void)
         bool loadValue = pos->second.saveToConfig;
 
         if (loadValue)
-          setCmdProcessor(String(kv.key().c_str()), String(kv.value().as<const char *>()));
+          setCmdProcessor(String(kv.key().c_str()), String(kv.value().as<const char *>()), LOADCONFIG);
       }
       if (String(kv.key().c_str()).compareTo(String("WAPI")) == 0)
       {
@@ -455,7 +462,7 @@ bool CDCSetup::LoadConfig(void)
       this->setWeatherSource(OPENMETEO);
       LOG_ALERT("LoadConfig", "V1 Config found setting WS to OPENMETEO.");
     }
-    setConfigUpdated();
+    this->setConfigUpdated();
     this->SaveConfig();
 
   }
@@ -464,7 +471,7 @@ bool CDCSetup::LoadConfig(void)
   runCmdPostProcessQueue();
 #endif
   LOG_DEBUG("LoadConfig", "Load config complete");
-  resetConfigUpdated();
+  this->resetConfigUpdated();
   file.close();
   return true;
 }
@@ -530,7 +537,7 @@ bool CDCSetup::_connectWiFi(void)
 }
 
 //********************************************************************************************
-bool CDCSetup::_setupWiFi(void)
+bool CDCSetup::setupWiFi(void)
 {
   // Connect to WiFi network
   bool useDefaults = false;
@@ -544,10 +551,10 @@ bool CDCSetup::_setupWiFi(void)
   StaticJsonDocument<512> doc;
 #endif
 
-  File file = LittleFS.open(CDC_WIFI_CONFIG);
+  File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_READ);
   if (!file)
   {
-    LOG_ERROR("_setupWiFi", "Failed to open: " << CDC_WIFI_CONFIG);
+    LOG_ERROR("setupWiFi", "Failed to open: " << CDC_WIFI_CONFIG);
     useDefaults = true;
   }
   else
@@ -555,14 +562,14 @@ bool CDCSetup::_setupWiFi(void)
     DeserializationError error = deserializeJson(doc, file);
     if (error)
     {
-      LOG_ERROR("_setupWiFi", "Failed to deserialize: " << CDC_WIFI_CONFIG);
+      LOG_ERROR("setupWiFi", "Failed to deserialize: " << CDC_WIFI_CONFIG);
       useDefaults = true;
     }
   }
 
   if (useDefaults)
   {
-    LOG_DEBUG("_setupWiFi", "Using WiFi Defaults");
+    LOG_DEBUG("setupWiFi", "Using WiFi Defaults");
     strlcpy(this->_wifiConfig.hostname, CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
     this->_wifiConfig.connectAttempts, CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
     this->_wifiConfig.tryAPs, CDC_DEFAULT_WIFI_TRYAPS;
@@ -587,9 +594,9 @@ bool CDCSetup::_setupWiFi(void)
     this->_wifiConfig.connectAttempts = (doc["connectAttempts"] | CDC_DEFAULT_WIFI_CONNECTATTEMPTS);
     this->_wifiConfig.tryAPs = (doc["tryAPs"] | CDC_DEFAULT_WIFI_TRYAPS);
 
-    LOG_DEBUG("_setupWiFi", "hostname:" << this->_wifiConfig.hostname);
-    LOG_DEBUG("_setupWiFi", "Connection attempts:" << this->_wifiConfig.connectAttempts);
-    LOG_DEBUG("_setupWiFi", "Try APs:" << this->_wifiConfig.tryAPs);
+    LOG_DEBUG("setupWiFi", "hostname:" << this->_wifiConfig.hostname);
+    LOG_DEBUG("setupWiFi", "Connection attempts:" << this->_wifiConfig.connectAttempts);
+    LOG_DEBUG("setupWiFi", "Try APs:" << this->_wifiConfig.tryAPs);
 
     while (count < this->_wifiConfig.tryAPs)
     {
@@ -597,8 +604,8 @@ bool CDCSetup::_setupWiFi(void)
       {
         strlcpy(this->_wifiConfig.ssid, wifi_item["ssid"] | CDC_DEFAULT_WIFI_SSID, sizeof(this->_wifiConfig.ssid));
         strlcpy(this->_wifiConfig.password, wifi_item["password"] | CDC_DEFAULT_WIFI_PASSWORD, sizeof(this->_wifiConfig.password));
-        LOG_DEBUG("_setupWiFi", "WiFi " << count << "ssid " << this->_wifiConfig.ssid);
-        LOG_DEBUG("_setupWiFi", "WiFi " << count << "password " << this->_wifiConfig.password);
+        LOG_DEBUG("setupWiFi", "WiFi " << count << "ssid " << this->_wifiConfig.ssid);
+        LOG_DEBUG("setupWiFi", "WiFi " << count << "password " << this->_wifiConfig.password);
 
         if (this->_connectWiFi())
         {
@@ -617,16 +624,16 @@ bool CDCSetup::_setupWiFi(void)
   WiFi.softAP(CDC_DEFAULT_WIFI_AP_SSID, CDC_DEFAULT_WIFI_AP_PASSWORD);
   this->_inWiFiAPMode = true;
   strlcpy(this->_IPAddress, WiFi.softAPIP().toString().c_str(), sizeof(this->_IPAddress));
-  LOG_ALERT("_setupWiFi", "WiFi in AP mode SSID " << CDC_DEFAULT_WIFI_AP_SSID << " with IP address: " << this->_IPAddress);
+  LOG_ALERT("setupWiFi", "WiFi in AP mode SSID " << CDC_DEFAULT_WIFI_AP_SSID << " with IP address: " << this->_IPAddress);
 
   /*use mdns for host name resolution*/
   if (!MDNS.begin(this->_wifiConfig.hostname))
   { // http://'host'.local
-    LOG_ERROR("_setupWiFi", "Error setting up MDNS responder!");
+    LOG_ERROR("setupWiFi", "Error setting up MDNS responder!");
   }
   else
   {
-    LOG_ALERT("_setupWiFi", "mDNS responder started");
+    LOG_ALERT("setupWiFi", "mDNS responder started");
   }
 
   this->blinkStatusLEDEvery(CDC_WIFI_AP_STATUS_BLINK);
@@ -636,23 +643,77 @@ bool CDCSetup::_setupWiFi(void)
 }
 
 // status LED
+void CDCSetup::setStatusLEDPin(int pin)
+{
+  if (pin == -1)
+  {
+    this->_statusLEDPin = -1;
+  }
+  else if ((pin >= 0) && (pin <= 39))
+  {
+    for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
+    {
+      if (pin == theDController->getControllerPinPin(i))
+      {
+        LOG_ERROR("setStatusLEDPin", "Status LED Pin is already in use: " << this->_statusLEDPin);
+        return;
+      }
+    }
+    this->_statusLEDPin = pin;
+    pinMode(this->_statusLEDPin, OUTPUT);
+  }
+}
+
+void CDCSetup::setStatusLEDHigh( int highValue )
+{
+  if ((highValue == 0) || (highValue == 1))
+  {
+    this->_statusLEDHigh = (bool) highValue;
+  }
+  else
+  {
+    LOG_ERROR("setStatusLEDHigh", "Invalid value for LED High: " << highValue);
+  }
+}
+
+
+void CDCSetup::_writeStatusLED(uint8_t value)
+{
+  if (this->_statusLEDPin >= 0)
+  {
+    int writeValue = (value == this->_statusLEDHigh);
+    LOG_DEBUG("_writeStatusLED", "LedHIGH: " << this->_statusLEDHigh << " Write Value: " << value << " Written: " << writeValue);
+    digitalWrite(this->_statusLEDPin, writeValue);
+  }
+}
+
+int CDCSetup::_readStatusLED(void)
+{
+  if (this->_statusLEDPin >= 0)
+  {
+    int readValue = (digitalRead(this->_statusLEDPin) == this->_statusLEDHigh);
+    return readValue;
+  }
+  return (this->_statusLEDHigh==1) ? 0 : 1;
+}
+
 void CDCSetup::blinkStatusLED()
 {
   if (this->_statusLEDEnabled)
-    digitalWrite(CDC_STATUS_LED, !digitalRead(CDC_STATUS_LED));
+    this->_writeStatusLED(!this->_readStatusLED());
 }
 
 void CDCSetup::statusLEDOn()
 {
   this->_statusLEDEnabled = true;
-  digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_HIGH);
+  this->_writeStatusLED(HIGH);
   this->statusLEDDelay(RESET_DELAY);
 }
 
 void CDCSetup::statusLEDOff()
 {
   this->_statusLEDEnabled = false;
-  digitalWrite(CDC_STATUS_LED, CDC_STATUS_LED_LOW);
+  this->_writeStatusLED(LOW);
 }
 
 void CDCSetup::blinkStatusLEDEvery(int blinkEvery)
@@ -669,6 +730,44 @@ void CDCSetup::blinkStatusLEDEvery(int blinkEvery)
 
 int CDCSetup::getStatusBlinkEvery() { return this->_statusBlinkEvery; };
 
+void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
+{
+  switch (cmd)
+  {
+  case INC_DELAY:
+    if ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay < CDC_STATUS_LED_DELAY))
+      this->_statusLEDDelay = this->_statusLEDDelay + 1;
+    break;
+  case DEC_DELAY:
+    if ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay > 0))
+    {
+      this->_statusLEDDelay = this->_statusLEDDelay - 1;
+      if (this->_statusLEDDelay <= 0)
+        this->statusLEDOff();
+    }
+    break;
+  case RESET_DELAY:
+    this->_statusLEDDelay = CDC_STATUS_LED_DELAY;
+    this->_statusLEDDelayEnabled = true;
+    break;
+  case DISABLE_DELAY:
+    this->_statusLEDDelay = CDC_STATUS_LED_DELAY;
+    this->_statusLEDDelayEnabled = false;
+    break;
+  case ZERO_DELAY:
+    this->_statusLEDDelay = 0;
+    break;
+  default:
+    break;
+  }
+} 
+
+bool CDCSetup::statusLEDDelayComplete()
+{
+  return ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay <= 0));
+}
+
+// Weather and Location functions
 void CDCSetup::setWeatherQueryEvery(int queryEvery)
 {
   LOG_DEBUG("setWeatherQueryEvery", "queryEvery = " << queryEvery);
@@ -677,16 +776,6 @@ void CDCSetup::setWeatherQueryEvery(int queryEvery)
     this->_queryWeatherEvery = queryEvery;
 
   LOG_DEBUG("setWeatherQueryEvery", "this->_queryWeatherEvery = " << this->_queryWeatherEvery);
-}
-
-void CDCSetup::setUpdateOutputEvery(int updateEvery)
-{
-  LOG_DEBUG("setUpdateOutputEvery", "updateEvery = " << updateEvery);
-
-  if ((updateEvery >= 0) && (updateEvery <= 59))
-    this->_controllerUpdateEvery = updateEvery;
-
-  LOG_DEBUG("setUpdateOutputEvery", "this->_controllerUpdateEvery = " << this->_controllerUpdateEvery);
 }
 
 void CDCSetup::setLocationLatitude(float latitude)
@@ -731,7 +820,7 @@ void CDCSetup::setLocationTimeZone(int timezone)
   {
     this->_location.timezone = timezone;
     // Apply Timezone change
-    configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
+    configTime(this->getLocation().timezone, this->getLocation().DSTOffset, this->getNTPServerURL());
     now();
   }
   else
@@ -748,7 +837,7 @@ void CDCSetup::setLocationDST(int DSTOffset)
   {
     this->_location.DSTOffset = DSTOffset;
     // Apply DST change
-    configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
+    configTime(this->getLocation().timezone, this->getLocation().DSTOffset, this->getNTPServerURL());
     now();
   }
   else
@@ -757,46 +846,19 @@ void CDCSetup::setLocationDST(int DSTOffset)
   }
 }
 
+void CDCSetup::setUpdateOutputEvery(int updateEvery)
+{
+  LOG_DEBUG("setUpdateOutputEvery", "updateEvery = " << updateEvery);
+
+  if ((updateEvery >= 0) && (updateEvery <= 59))
+    this->_controllerUpdateEvery = updateEvery;
+
+  LOG_DEBUG("setUpdateOutputEvery", "this->_controllerUpdateEvery = " << this->_controllerUpdateEvery);
+}
+
 void CDCSetup::setAmbientTemperatureExternal(float temperature)
 {
   this->_ambientTemperatureExternal = temperature;
-}
-
-void CDCSetup::statusLEDDelay(statusLEDDelayCmd cmd)
-{
-  switch (cmd)
-  {
-  case INC_DELAY:
-    if ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay < CDC_STATUS_LED_DELAY))
-      this->_statusLEDDelay = this->_statusLEDDelay + 1;
-    break;
-  case DEC_DELAY:
-    if ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay > 0))
-    {
-      this->_statusLEDDelay = this->_statusLEDDelay - 1;
-      if (this->_statusLEDDelay <= 0)
-        this->statusLEDOff();
-    }
-    break;
-  case RESET_DELAY:
-    this->_statusLEDDelay = CDC_STATUS_LED_DELAY;
-    this->_statusLEDDelayEnabled = true;
-    break;
-  case DISABLE_DELAY:
-    this->_statusLEDDelay = CDC_STATUS_LED_DELAY;
-    this->_statusLEDDelayEnabled = false;
-    break;
-  case ZERO_DELAY:
-    this->_statusLEDDelay = 0;
-    break;
-  default:
-    break;
-  }
-} 
-
-bool CDCSetup::statusLEDDelayComplete()
-{
-  return ((this->_statusLEDDelayEnabled) && (this->_statusLEDDelay <= 0));
 }
 
 void CDCSetup::setWeatherSource(weatherSource source)
@@ -914,12 +976,12 @@ String CDCSetup::getDateTime( time_t t )
   char dtBuff[CDC_MAX_DATETIME_STRING];
   struct tm lTime;
   tmElements_t lTElements;
-  time_t local_t = t + theSetup->_location.timezone;
+  time_t local_t = t + this->_location.timezone;
 
   getLocalTime(&lTime);
 
   if (lTime.tm_isdst == 1)
-    local_t = local_t + theSetup->_location.DSTOffset;
+    local_t = local_t + this->_location.DSTOffset;
 
   breakTime(local_t, lTElements);
   
@@ -944,12 +1006,12 @@ String CDCSetup::getDate( time_t t )
   char dtBuff[CDC_MAX_DATETIME_STRING] = {};
   struct tm lTime;
   tmElements_t lTElements;
-  time_t local_t = t + theSetup->_location.timezone;
+  time_t local_t = t + this->_location.timezone;
 
   getLocalTime(&lTime);
 
   if (lTime.tm_isdst == 1)
-    local_t = local_t + theSetup->_location.DSTOffset;
+    local_t = local_t + this->_location.DSTOffset;
   
   breakTime(local_t, lTElements);
   
@@ -975,12 +1037,12 @@ String CDCSetup::getTime( time_t t )
   char dtBuff[CDC_MAX_DATETIME_STRING];
   struct tm lTime;
   tmElements_t lTElements;
-  time_t local_t = t + theSetup->_location.timezone;
+  time_t local_t = t + this->_location.timezone;
 
   getLocalTime(&lTime);
   
   if (lTime.tm_isdst == 1)
-    local_t = local_t + theSetup->_location.DSTOffset;
+    local_t = local_t + this->_location.DSTOffset;
 
   breakTime(local_t, lTElements);
   sprintf(dtBuff, CDC_TIME, lTElements.Hour, lTElements.Minute, second(lTElements.Second));
@@ -1004,4 +1066,97 @@ int CDCSetup::getMinute()
   getLocalTime(&lTime);
 
   return lTime.tm_min;
+}
+
+// Password Hash - MD5 (32 characters)
+void    CDCSetup::setPasswordHash( String pwdHash ) 
+{
+  strlcpy(this->_passwordHash, pwdHash.c_str(), sizeof(this->_passwordHash));
+}
+
+bool CDCSetup::backupConfig() {
+  File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_READ);
+  if (!file)
+  {
+    LOG_ERROR("backupConfig", "Failed to open: " << CDC_WIFI_CONFIG);
+    return false;
+  }
+  else
+  {
+    DeserializationError error = deserializeJson(this->_backupWiFiConfig, file);
+    if (error)
+    {
+      LOG_ERROR("backupConfig", "Failed to deserialize: " << CDC_WIFI_CONFIG);
+      return false;
+    }
+
+  }
+  file.close();
+  LittleFS.end();
+  return true;
+}
+
+bool CDCSetup::restoreConfig() {
+  if (!LittleFS.begin(false))
+  {
+    return false;
+  }
+
+  File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_WRITE);
+  if (serializeJson(this->_backupWiFiConfig, file) == 0)
+  {
+    LOG_ERROR("restoreConfig", "Failed to serialize config to: " << CDC_WIFI_CONFIG);
+    file.close();
+    return false;
+  }
+  file.close();
+
+  this->setConfigUpdated();
+  return this->SaveConfig();
+}
+
+bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
+  JsonDocument doc, filter;
+  // Check to see if it parses as proper Json
+  DeserializationError error = deserializeJson(doc, wifiConfigJson, DeserializationOption::Filter(filter));
+  if (error)
+  {
+    LOG_ERROR("saveWiFiConfig", "Failed to deserialize and parse: " << wifiConfigJson.c_str());
+    return false;
+  }
+  
+  #if LOG_LEVEL == LOG_LEVEL_DEBUG
+  JsonArray wifi = doc["wifi"];
+  for (JsonVariant item : wifi)
+  {
+    String ssid = item["ssid"].as<String>();
+    String password = item["password"].as<String>();
+    LOG_DEBUG("saveWiFiConfig", "ssid: " << ssid
+      << " password: " << password);    
+  } 
+  LOG_DEBUG("saveWiFiConfig", "doc " << wifiConfigJson.c_str());
+  #endif  // LOG_LEVEL == LOG_LEVEL_DEBUG
+
+  error = deserializeJson(this->_backupWiFiConfig, wifiConfigJson);
+  if (error)
+  {
+    LOG_ERROR("saveWiFiConfig", "Failed to deserialize: " << wifiConfigJson.c_str());
+    return false;
+  } else {
+    File file = LittleFS.open(CDC_WIFI_CONFIG,FILE_WRITE);
+    if (!file)
+    {
+      LOG_ERROR("saveWiFiConfig", "Failed to open: " << CDC_WIFI_CONFIG);
+      return false;
+    }
+    if (!file.print(wifiConfigJson.c_str()))
+    {
+      LOG_ERROR("saveWiFiConfig", "Failed to write to config to: " << wifiConfigJson.c_str());
+      file.close();
+      return false;
+    }
+    file.close();
+  }
+  
+  return true;  
 }

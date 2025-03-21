@@ -1,39 +1,44 @@
-<head><title>File Management</title> <link rel="icon" type="image/png" href="/favicon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="./CDCStyle.css">
-</head><body><div class="wrapper">
-<header><div class="headerGrid">
-<hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon>
-<hTitle class="title">File Management</hTitle>
-<logoutIcon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logoutIcon>
+<!doctype html>
+<html lang=en>
+<head><title>CheapoDC File Management</title> <link rel=icon type=image/png href=/favicon.png>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<link rel=stylesheet href=./CDCStyle.css>
+</head><body><div class=wrapper>
+<header><div class=headerGrid>
+<hIcon class=logo><img src=/cheapo.png alt=CheapoDC onclick='window.location.href="https://github.com/hcomet/CheapoDC"'></hIcon>
+<hTitle class=title>File Management</hTitle>
+<logoutIcon onclick=logoutCDC()><img src=/logout.png alt=Logout></logoutIcon>
 </div>
 </header>
 <main>
 <h2>File List</h2>
-<div id="filelist">%TMFL%</div>
-<hr class="footerThr">
+<div id=filelist>%TMFL%</div>
+<hr class=footerThr>
 <h2>File Upload</h2>
-<div class="fileUpload">
-<form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
-<input type="file" name="file1" id="file1" multiple/><input type="button" name="upload" id="iupload" value="Upload" title="Upload File" onclick="uploadFile()" disabled/>
-<h3 id="status">Completed: 0&percnt;</h3> <p id="loaded_n_total"><span id="filename"></span><span id="filesize"></span></p>
+<div class=fileUpload>
+<form id=uploadForm method=POST action=/upload enctype=multipart/form-data>
+<input type=file name=file2 id=file2 multiple><input type=button name=upload id=iupload value=Upload title="Upload File" onclick=uploadFile() disabled>
+<h3 id=status>Completed: 0&percnt;</h3> <p id=loaded_n_total><span id=filename></span><span id=filesize></span></p>
 </form>
 </div>
 </main>
 <aside>
-<div class="locName">%LNM%</div><div class="locCoord">%LAT%, %LON%</div><div class="queryLocName">%WUL%</div>
-<div class="weatherIcon"><img src="%WICON%"></div><div class="weatherDesc">%WDESC%</div>
-<div class="wReading"><wReadingTerm>Temperature:</wReadingTerm><wReadingValue>%ATPQ%</wReadingValue></div>
-<div class="wReading"><wReadingTerm>Dew Point:</wReadingTerm><wReadingValue>%DP%</wReadingValue></div>
-<div class="wReading"><wReadingTerm>Humidity:</wReadingTerm><wReadingValue>%HU%</wReadingValue></div>
+<div class=locName>%LNM%</div><div class=locCoord>%LAT%, %LON%</div><div class=queryLocName>%WUL%</div>
+<div class=weatherIcon><img src="%WICON%"></div><div class=weatherDesc>%WDESC%</div>
+<div class=wrg><wrgt>Temperature:</wrgt><wrgv>%ATPQ%</wrgv></div>
+<div class=wrg><wrgt>Dew Point:</wrgt><wrgv>%DP%</wrgv></div>
+<div class=wrg><wrgt>Humidity:</wrgt><wrgv>%HU%</wrgv></div>
 </aside>
 <footer>
-<br/><hr class="footerThr">
-<button type="button" class="bfooter" onclick="document.location='../dashboard'">Dashboard</button>
-<button type="button" class="bfooter" onclick="document.location='../config'">Configuration</button>
-<button type="button" class="bfooter" onclick="document.location='../otaIndex'">Device Management</button>
-<button type="button" class="bfooterDisabled" disabled>File Management</button>
-<hr class="footerBhr">
-<div class="atribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space: %LFS%)</div>
+<br><hr class=footerThr>
+<button type=button class=bfooter onclick='document.location="../dashboard"'>Dashboard</button>
+<button type=button class=bfooter onclick='document.location="../config"'>Controller Configuration</button>
+<button type=button class=bfooter onclick='document.location="../otaIndex"'>Device Management</button>
+<button type=button class=bfooterDisabled disabled>File Management</button>
+<hr class=footerBhr>
+<div class=attribution>Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br>(Heap: %HP%, File space: %LFS%)</div>
 </footer></div>
-<script>/*<![CDATA[*/document.getElementById("file1").addEventListener("change",function(){document.getElementById("iupload").disabled=false});var fileListCount=0;var fileListItem=0;function uploadFile(){const a=document.getElementById("file1").files;fileListCount=a.length;postFileToServer(0)}function postFileToServer(d){if(d<=(fileListCount-1)){const b=document.getElementById("file1").files;document.getElementById("filename").innerHTML=b[d].name+": ";var a=new FormData();a.append("file1",b[d]);var c=new XMLHttpRequest();c.upload.addEventListener("progress",progressHandler,false);c.addEventListener("load",completeHandler,false);c.open("POST","/upload");c.send(a)}else{alert("Incorrect file index "+d+" versus max index "+(fileListCount-1))}}function progressHandler(b){document.getElementById("filesize").innerHTML=b.loaded+" bytes";var a=(b.loaded/b.total)*100;document.getElementById("status").innerHTML="Completed: "+Math.round(a)+"&percnt;";if(a>=100){document.getElementById("status").innerHTML="Completed: 100%"}}function completeHandler(a){if(fileListItem<(fileListCount-1)){fileListItem+=1;document.getElementById("status").innerHTML="Files Uploaded: "+(fileListItem+1)+" of "+fileListCount;postFileToServer(fileListItem)}else{document.getElementById("status").innerHTML="Upload Complete";xmlhttp=new XMLHttpRequest();xmlhttp.onreadystatechange=function(){if(this.readyState==4&&this.status==200){document.getElementById("filelist").innerHTML=xmlhttp.responseText}};xmlhttp.open("GET","/filelist",true);xmlhttp.send();document.getElementById("status").innerHTML="Files Uploaded: "+(fileListItem+1);document.getElementById("file1").outerHTML='<input type="file" name="file1" id="file1" multiple/>';document.getElementById("iupload").disabled=true;document.getElementById("file1").addEventListener("change",function(){document.getElementById("iupload").disabled=false});fileListCount=0;fileListItem=0}}function deleteFile(a){if(confirm("Confirm file delete for: "+a)){xmlhttp=new XMLHttpRequest();xmlhttp.onreadystatechange=function(){if(this.readyState==4&&this.status==200){document.getElementById("filelist").innerHTML=xmlhttp.responseText}};xmlhttp.open("GET","/delete?file="+a,true);xmlhttp.send()}}function logoutCDC(){var a=new XMLHttpRequest();a.open("GET","/logout",true);a.send();setTimeout(function(){window.open("/dashboard","_self")},1000)};/*]]>*/</script></body>
+<script>document.getElementById("file2").addEventListener("change",(function(){document.getElementById("iupload").disabled=!1}))</script>
+<script src=CDCjs.js></script>
+</body>
+</html>

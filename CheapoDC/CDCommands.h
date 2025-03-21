@@ -24,17 +24,21 @@ struct cmdResponse
     String units;
 };
 
+enum    cmdCaller
+{
+    LOADCONFIG = 0,
+    WEBAPI,
+    TCPAPI,
+    MAXCMDCALLERS
+};
+
 extern std::map<std::string, CDCommand> CDCCommands;
 
 // Process CDC get commands and return results
 cmdResponse getCmdProcessor(const String &var);
 
 // Process CDC set commands
-bool setCmdProcessor(const String &var, String newValue);
-
-void setConfigUpdated();
-void resetConfigUpdated();
-bool getConfigUpdated();
+bool setCmdProcessor(const String &var, String newValue, cmdCaller caller);
 
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
 // Additional operations queue for keeping longer processes from impacting command responses

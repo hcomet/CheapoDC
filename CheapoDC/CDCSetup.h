@@ -9,8 +9,7 @@
 #define MY_CDCSETUP_H
 
 #include <Arduino.h>
-//#include <ESP32Time.h>
-//#include <TimeLib.h>
+#include <ArduinoJson.h>
 #include "CDCdefines.h"
 #include "CDCvars.h"
 
@@ -73,9 +72,16 @@ class CDCSetup
 {
     public:
                 CDCSetup(void);
+        bool setupWiFi(void);
+        bool saveWiFiConfig( String wifiConfigJson );
         bool LoadConfig(void);
         bool SaveConfig(void);
         bool queryWeather(void);
+        void resetConfigUpdated() { this->_configUpdated = false; };
+        bool getConfigUpdated() { return this->_configUpdated; };
+        void setConfigUpdated() { this->_configUpdated = true; this->statusLEDOn();};
+        bool backupConfig();  // Call before overwriting data partition
+        bool restoreConfig(); // Must be called after overwriting data partition
 
         // status LED
         void    blinkStatusLED();
@@ -88,6 +94,9 @@ class CDCSetup
         int     getStatusBlinkEvery();
 
         // getters
+        const char*     getPasswordHash() {return this->_passwordHash;};
+        int             getStatusLEDPin() {return this->_statusLEDPin;};
+        int             getStatusLEDHigh() {return (int)this->_statusLEDHigh;};
         CDCLocation     getLocation() {return this->_location;};
         float           getAmbientTemperatureWQ() {return this->_currentWeather.ambientTemperature;};
         float           getAmbientTemperatureExternal() {return this->_ambientTemperatureExternal;};
@@ -112,8 +121,12 @@ class CDCSetup
         bool            getInWiFiAPMode() {return this->_inWiFiAPMode;};
         const char*     getWiFiHostname() {return this->_wifiConfig.hostname;};
         const char*     getIPAddress() {return this->_IPAddress;};
+        const char*     getHttpOTAURL() {return this->_httpOTAURL;};
 
         // setters
+        void    setPasswordHash( String pwdHash );
+        void    setStatusLEDPin( int pin );
+        void    setStatusLEDHigh( int highValue );
         void    setWeatherSource( weatherSource newWeatherSource );
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};
         void    setWeatherQueryIconURL( String newURL ) {strlcpy(this->_weatherIconURL, newURL.c_str(), sizeof(this->_weatherIconURL));};
@@ -131,6 +144,7 @@ class CDCSetup
         void    setLocationTimeZone( int timezone);
         void    setLocationDST( int DSTOffset );
         void    calculateAndSetDewPoint();
+        void    setHttpOTAURL( String url ) {strlcpy(this->_httpOTAURL, url.c_str(), sizeof(this->_httpOTAURL));};
 
         // Time related helpers
         // All return in local time based on time values in CDCLocation
@@ -153,9 +167,10 @@ class CDCSetup
         
         
      private:
-        bool _setupWiFi(void);
         bool _connectWiFi(void);
         void _loadDefaults(void);
+        void _writeStatusLED(uint8_t value);
+        int _readStatusLED(void);
 
         CDCWiFiConfig   _wifiConfig;
         bool            _inWiFiAPMode;
@@ -169,13 +184,22 @@ class CDCSetup
         char            _weatherAPIKey[64];
         int             _queryWeatherEvery;
         int             _controllerUpdateEvery; // in minutes
+        int             _statusLEDPin;
         int             _statusBlinkEvery;
         bool            _statusLEDEnabled;
         int             _statusLEDDelay;
         bool            _statusLEDDelayEnabled;
+        bool            _statusLEDHigh;
         char            _NTPServer[64];
         char            _IPAddress[16];
         weatherData     _currentWeather;
-                        
+        char            _passwordHash[64];
+        bool            _configUpdated; 
+        char            _httpOTAURL[256];
+#if ARDUINOJSON_VERSION_MAJOR>=7
+	JsonDocument    _backupWiFiConfig;
+#else
+	DynamicJsonDocument _backupWiFiConfig(1024);
+#endif           
 };
 #endif 

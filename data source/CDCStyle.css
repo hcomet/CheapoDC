@@ -26,18 +26,24 @@
     vertical-align: top;
     }
 
-
   .danger {
     color: var(--color-danger);
     cursor: pointer;
     text-decoration: underline;
   }
 
+  button.bfooter {
+    margin: auto 5px;
+  }
+
+  button.reboot {
+    margin: auto 30px;
+  }
+
   input[type=submit], 
   input[type=file]::file-selector-button,
   input[type=button],
-  button.bfooter,
-  button.reboot {
+  button {
     display: inline-block;
     padding: 5px 10px;
     font-size: 12px;
@@ -49,27 +55,30 @@
     background-color: var(--color-primary);
     border: color(var(--color-darkGrey));
     border-radius: 5px;
-    box-shadow: 0 4px #999;
   }
   
   input[type=submit]:hover, 
   input[type=file]::file-selector-button:hover,
   input[type=button]:hover,
-  button.bfooter:hover,
-  button.reboot:hover {background-color: var(--color-hover)}
+  button:hover
+  {background-color: var(--color-hover)}
   
   input[type=submit]:active, 
   input[type=file]::file-selector-button:active,
-  button.bfooter:active {
+  input[type=button]:active,
+  button:active
+  {
     background-color: var(--color-hover);
-    box-shadow: 0 2px #666;
-    transform: translateY(4px);
+    border: color(#000);
+    border-width: 3px;
+    transform: scale(0.95);
   }
 
   input[type=button]:disabled,
-  button.bfooterDisabled {
-    background-color: var(--color-grey);
-    color: var(--color-darkGrey);
+  button:disabled
+  {
+    background-color: var(--color-lightGrey);
+    color: var(--color-grey);
     display: inline-block;
     padding: 5px 10px;
     font-size: 12px;
@@ -78,7 +87,6 @@
     outline-color: var(--color-darkGrey);
     border: color(var(--color-darkGrey));
     border-radius: 5px;
-    box-shadow: 0 4px #999;
   }
 
   table.main {
@@ -199,29 +207,20 @@
 
   .weatherIcon {
     width: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px auto;
     background-color: var(--color-hover);
     border-radius: 5px;
   }
 
   .weatherDesc {
     max-width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin: 10px auto;
     text-align: center;
   }
 
   .locName, .locCoord, .queryLocName {
     max-width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin: 5px auto;
     text-align: center;
   }
 
@@ -234,32 +233,29 @@
     font-size: smaller;
   }
 
-  wReadingTerm {
-    grid-area: wReadingTerm;
+  wrgt {
+    grid-area: wrgt;
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
   }
 
-  wReadingValue {
-    grid-area: wReadingValue;
+  wrgv {
+    grid-area: wrgv;
     text-align: right;
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
   }
 
-  .wReading {
+  .wrg {
     max-width: 200px;
     display: grid;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin: 5px auto;
     grid-gap: 5px;
     grid-template-columns: 2fr 1fr;
     grid-template-areas:
-      "wReadingTerm  wReadingValue";
+      "wrgt  wrgv";
   }
 
   hr.footerThr {
@@ -273,11 +269,10 @@
 
   hr.confighr {
     border-bottom: 1px solid var(--color-lightGrey);
-    margin: 0px;
-    padding: 0px;
+    margin: 15px auto 0px;
   }
 
-  .atribution {
+  .attribution {
     color: var(--color-grey);
   }
 
@@ -286,8 +281,8 @@
     height: 35px;
   }
 
-  dbItem {
-    grid-area: dbItem;
+  dbi {
+    grid-area: dbi;
     text-align: right;
     font-weight: bold;
     vertical-align: bottom;
@@ -296,8 +291,8 @@
     margin-bottom: 0px;
   }
 
-  dbValue {
-    grid-area: dbValue;
+  dbv {
+    grid-area: dbv;
     text-align: left;
     vertical-align: bottom;
     padding: 0px;
@@ -305,8 +300,8 @@
     margin-bottom: 0px;
   }
 
-  dbAction {
-    grid-area: dbAction;
+  dba {
+    grid-area: dba;
     text-align: center;
     padding: 0px;
     margin-top: 0px;
@@ -316,15 +311,13 @@
   .dashboard {
     display: grid;
     vertical-align: bottom;
-    padding-left: 0px;
-    margin-left: 0;
     height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin: 2px auto 2px 2px;
+    padding-left: 0px;
     grid-gap: 5px;
     grid-template-columns: 6fr 4fr 1fr;
     grid-template-areas:
-      "dbItem  dbValue dbAction"; 
+      "dbi  dbv dba"; 
   }
 
   .reading {
@@ -342,40 +335,35 @@
     margin-bottom: 0px;
   }
 
-  configItem {
-    grid-area: configItem;
+  cfitm, cfvl, cfcmt, cfact {
+    padding: 0px;
+    margin: auto;
+    vertical-align: bottom;
+  }
+
+  cfitm {
+    grid-area: cfitm;
     text-align: right;
-    font-weight: bold;
-    vertical-align: bottom;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-right: 0px;
   }
 
-  configValue {
-    grid-area: configValue;
+  cfvl {
+    grid-area: cfvl;
     text-align: left;
-    vertical-align: bottom;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-left: 0px;
   }
 
-  configComment {
-    grid-area: configComment;
+  cfcmt {
+    grid-area: cfcmt;
     text-align: left;
-    vertical-align: bottom;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-left: 0px;
   }
 
-  configAction {
-    grid-area: configAction;
+  cfact {
+    grid-area: cfact;
     text-align: center;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    vertical-align: middle;
+    margin-left: 0px;
   }
   
   .config {
@@ -395,53 +383,31 @@
     .config {max-width: 60%}
   }
 
-  .configline {
+  .cfln, .urlconfig {
     display: grid;
-    border: 1px solid var(--color-lightGrey);
+    border: none;
     vertical-align: bottom;
     padding-left: 0px;
-    margin-left: 0;
-    height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin: 2px auto 2px 0px;
     grid-gap: 5px;
     grid-template-columns: 3fr 3fr 2fr 1fr;
+  }
+
+  .cfln {
+    height: 23px;
     grid-template-areas:
-      "configItem  configValue configComment configAction"; 
+      "cfitm  cfvl cfcmt cfact"; 
   }
 
   .urlconfig {
-    display: grid;
-    border: 1px solid var(--color-lightGrey);
-    vertical-align: bottom;
-    padding-left: 0px;
-    margin-left: 0;
     height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    grid-gap: 5px;
-    grid-template-columns: 3fr 3fr 2fr 1fr;
     grid-template-areas:
-      "configItem  configValue configValue configValue"
-      ". configComment configComment configAction"; 
+      "cfitm  cfvl cfvl cfvl"
+      ". cfcmt cfcmt cfact"; 
   }
 
-
-  .cSetting, .cReadiing {
-    text-align: left;
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-  }
-
-  .cReading > select, .cReading > input {
+  .crdg > select, .crdg > input {
     margin: 0px;
-    padding: 0px;
-    width: 180px;
     border-color: var(--color-lightGrey);
     border-width: 1px;
     outline-offset: 1px;
@@ -449,14 +415,16 @@
     box-shadow: none;
   }
 
-  .cReading.url >  input {
-    width: 395px;
+  .crdg > select {
+    width: 190px;
+  }
+  .crdg > input {
+    width: 180px;
+    padding-left: 5px;
   }
 
-  button.cButton {
-    max-height: 25px;
-    float: right;
-    margin-right: 2px;
+  .crdg.url >  input {
+    width: 395px;
   }
 
   ul.no-bullets {
@@ -466,21 +434,80 @@
     display: inline;
   }
 
-  button.cButton.hidden {
+  button.cbtn {
+    max-height: 23px;
+    float: right;
+    margin-right: 2px;
+  }
+
+  button.cbtn.hidden {
     display: none;
   }
 
-  .cReadiing > input[type=url] {
-    width: 200px;
-  }
+  .cf2clm {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-template-areas: "cfcl1 cfcl2";
+    grid-gap: 10px;
+    margin: 2px auto 2px 0;
+ }
+ .cfcl1 {
+  grid-area: cfcl1;
+  padding: 5px;
+}
+.cfcl2 {
+  grid-area: cfcl2;
+  padding: 5px;
+}
+.cf2clm .cfln {
+  grid-template-columns: 30% 50% 20%;
+  grid-template-areas: "cfitm  cfvl cfact"; 
+  border: none;
+  max-width: 18em;
+}
+.cf2clm .crdg>select {
+  width: 135px;
+}
+.cf2clm .crdg>input {
+  width: 125px;
+}
+h3 {
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+form#passwordForm {
+  text-align: right;
+  margin-right: 15px;
+}
+.in30 {
+  margin-left: 30px;
+}
+.dwn10 {
+  margin-top: 10px;
+}
+.mb10 {
+  margin-bottom: 10px;
+}
+.mb5 {
+  margin-bottom: 5px;
+}
+.errorText {
+  color: var(--color-error);
+}
 
-  .cReadiing > input[type=number] {
-    width: 50px;
-  }
 
-  .cReadiing > select {
-    width: 50px;
-  }
+.filelist {
+  display: grid;
+  border: 1px solid var(--color-lightGrey);
+  vertical-align: bottom;
+  padding-left: 0px;
+  height: auto;
+  margin: 2px auto 2px 0px;
+  grid-gap: 5px;
+  grid-template-columns: 4fr 2fr 2fr 1fr;
+  grid-template-areas:
+    "fileItem fileAction1 fileAction2 ."; 
+}
 
   /* Center the loader */
   #loader {
@@ -527,19 +554,4 @@
     padding: 0px;
     margin-top: 0px;
     margin-bottom: 0px;
-  }
-
-  .filelist {
-    display: grid;
-    border: 1px solid var(--color-lightGrey);
-    vertical-align: bottom;
-    padding-left: 0px;
-    margin-left: 0;
-    height: auto;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    grid-gap: 5px;
-    grid-template-columns: 4fr 2fr 2fr 1fr;
-    grid-template-areas:
-      "fileItem fileAction1 fileAction2 ."; 
   }

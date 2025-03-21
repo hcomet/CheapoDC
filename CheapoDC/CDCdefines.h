@@ -19,12 +19,12 @@
 #include <Arduino.h>
 
 // *************************************************************************************
-// ESP32 C3 Board configuration
+// ESP32 C3 Board configuration defaults
 // *************************************************************************************
-#define CDC_ENABLE_PWM_OUTPUT // comment out to disable output pins (mainly for debugging)
-#define CDC_PWM_OUTPUT_PIN1 0  // set first Output Pin
-#define CDC_PWM_OUTPUT_PIN2 1  // set second Output Pin or comment out to disable
-#define CDC_PWM_CHANNEL 0      // Currently both output Pin 1 an 2 share a channel
+#define CDC_DEFAULT_CONTROLLER_PIN0 0  // set first Controller output default
+#define CDC_DEFAULT_CONTROLLER_PIN1 1  // set second Controller output default
+#define CDC_CONTROLLER_PWM_CHANNEL 0      // The PWM Channel used for Dew Controller managed Pins (Don't change)
+#define CONTROLLER_PIN_NOT_CONFIGURED -1  // Used to indicate that a pin has not been configured
 
 // *************************************************************************************
 // Builtin LED or other pin to use for Status LED.
@@ -33,7 +33,7 @@
 // 0.2 second blink (100ms on/100ms off) is fall back to Access Point Mode - CDC_WIFI_AP_STATUS_BLINK
 // Blink will continue for 10 seconds then turn off - CDC_STATUS_LED_DELAY
 // *************************************************************************************
-#define CDC_STATUS_LED 8                      // Pin to use for Status LED
+#define CDC_DEFAULT_STATUS_LED_PIN 8                      // Pin to use for Status LED
 #define CDC_DEFAULT_STATUS_BLINK 500          // every x millisec
 #define CDC_WIFI_AP_STATUS_BLINK 100          // every x millisec
 #define CDC_STATUS_LED_DELAY 10               // time until status LED is turned off in seconds (0 = infinite delay)
@@ -47,38 +47,6 @@
 #define CDC_STATUS_LED_HIGH HIGH
 #define CDC_STATUS_LED_LOW LOW
 #endif
-
-// *************************************************************************************
-// Configure Web services
-// *************************************************************************************
-#define CDC_ENABLE_WEB_AUTH              // Uncomment this line to enable Basic Web Authentication
-#define CDC_DEFAULT_WEB_ID "admin"       // Change to change logon ID
-#define CDC_DEFAULT_WEB_PASSWORD "admin" // Change to change logon password
-
-// *************************************************************************************
-// Web Socket support
-// Read the README.md in https://github.com/hcomet/CheapoDC/tree/main/CheapoDC for
-// changes needed to AsyncTCP.cpp and AsyncWebSocket.h  before enabling Web Sockets
-// When Web Sockets are enabled then the post processing queue is also enabled so that  
-// commands requiring longer actions like initiating a Wed Query go into a queue. The 
-// asyncWebSocket implementation will not handle long transactions that block and cause 
-// watchdog process timeouts.
-// *************************************************************************************
-//#define CDC_ENABLE_WEB_SOCKETS      // Uncomment this line to enable Web Sockets
-
-// Command post processing queue support
-// Some API commands may auto generate post processing actions such as weather queries or 
-// power output updates. These may cause long command transactions. If the API client is 
-// making many asynchronous calls to the API and those cause long transactions then the 
-// AsyncTCP queue can be overwhelmed and prevent the ESP32 watchdog timer from getting
-// enough time causing panic crashes. Enabling this queue will cause the post processing
-// actions to be put in a queue that is cleared every CDC_RUNCMDQUEUE_EVERY msec.
-// For situations where API calls are synchronously called (ie: HTML embedded or the INDI 
-// driver) the queue is not needed. This is the default which is disabled. For a situation
-// where asynchronous calls are not limited (ie: the Web Sockets javascript client) then it
-// should be enabled. Enabling Web Sockets will automatically enable the queue.
-//#define CDC_ENABLE_CMDQUEUE         // Uncomment to enable command post processing queue
-#define CDC_RUNCMDQUEUE_EVERY 10    // run command queue every x msec
 
 // *************************************************************************************
 // Network configuration
@@ -97,6 +65,10 @@
 // ***********         DO NOT change anything below here.                    ***********
 // *************************************************************************************
 // *************************************************************************************
+// Defaults for Web Authentication
+#define CDC_DEFAULT_WEB_ID "admin"       // Change to change logon ID
+#define CDC_DEFAULT_WEB_PASSWORD "admin" // Change to change logon password
+#define CDC_DEFAULT_WEB_REALM "CheapoDC" // Change to change logon realm
 
 // *************************************************************************************
 // Default Location and time settings
@@ -158,11 +130,84 @@
 #define CDC_CONFIG_FILE "/CDCConfig.json"
 #define CDC_WIFI_CONFIG "/CDCWiFi.json"
 
-// Server configuration
-
+// *************************************************************************************
+// Configure Web services
+// *************************************************************************************
 #define CDC_DEFAULT_WEBSRVR_PORT 80
-#define CDC_DEFAULT_WEBSOCKET_URL "/ws"
 #define CDC_DEFAULT_TCP_SERVER_PORT 58000 // Port used for the TCP based API
+
+// *************************************************************************************
+// Web Socket support - Has been deprecated
+// Read the README.md in https://github.com/hcomet/CheapoDC/tree/main/CheapoDC for
+// changes needed to AsyncTCP.cpp and AsyncWebSocket.h  before enabling Web Sockets
+// When Web Sockets are enabled then the post processing queue is also enabled so that  
+// commands requiring longer actions like initiating a Wed Query go into a queue. The 
+// asyncWebSocket implementation will not handle long transactions that block and cause 
+// watchdog process timeouts.
+// *************************************************************************************
+//#define CDC_ENABLE_WEB_SOCKETS      // Do not uncomment has been deprecated
+//#define CDC_DEFAULT_WEBSOCKET_URL "/ws"  // Do not uncomment has been deprecated
+
+// Command post processing queue support
+// Some API commands may auto generate post processing actions such as weather queries or 
+// power output updates. These may cause long command transactions. If the API client is 
+// making many asynchronous calls to the API and those cause long transactions then the 
+// AsyncTCP queue can be overwhelmed and prevent the ESP32 watchdog timer from getting
+// enough time causing panic crashes. Enabling this queue will cause the post processing
+// actions to be put in a queue that is cleared every CDC_RUNCMDQUEUE_EVERY msec.
+// For situations where API calls are synchronously called (ie: HTML embedded or the INDI 
+// driver) the queue is not needed. This is the default which is disabled. For a situation
+// where asynchronous calls are not limited (ie: the Web Sockets javascript client) then it
+// should be enabled. Enabling Web Sockets will automatically enable the queue.
+//#define CDC_ENABLE_CMDQUEUE         // Uncomment to enable command post processing queue
+#define CDC_RUNCMDQUEUE_EVERY 10    // run command queue every x msec
+
+// For Web based updates using HTTP OTA
+#define CDC_ENABLE_HTTP_OTA   // Comment out to disable HTTP OTA Support if enabled esp32FOTA library is required
+#define CDC_DEFAULT_HTTP_OTA_URL "https://hcomet.github.io/CheapoDC/httpOtaManifest.json" // URL for Web based firmware updates
+#ifdef CDC_ENABLE_HTTP_OTA
+#define CDC_NO_FW_UPDATE_RESPONSE "NOFWUPDATE"
+#define CDC_HTTP_OTA_ROOT_CA_FILE "/root_ca.pem"     // Can be placed in the data partition to override the default below
+#define WEB_OTA_ROOT_CA \
+"-----BEGIN CERTIFICATE-----\n" \
+"MIIF3jCCA8agAwIBAgIQAf1tMPyjylGoG7xkDjUDLTANBgkqhkiG9w0BAQwFADCB\n" \
+"iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl\n" \
+"cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV\n" \
+"BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkwHhcNMTAw\n" \
+"MjAxMDAwMDAwWhcNMzgwMTE4MjM1OTU5WjCBiDELMAkGA1UEBhMCVVMxEzARBgNV\n" \
+"BAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0plcnNleSBDaXR5MR4wHAYDVQQKExVU\n" \
+"aGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNVBAMTJVVTRVJUcnVzdCBSU0EgQ2Vy\n" \
+"dGlmaWNhdGlvbiBBdXRob3JpdHkwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK\n" \
+"AoICAQCAEmUXNg7D2wiz0KxXDXbtzSfTTK1Qg2HiqiBNCS1kCdzOiZ/MPans9s/B\n" \
+"3PHTsdZ7NygRK0faOca8Ohm0X6a9fZ2jY0K2dvKpOyuR+OJv0OwWIJAJPuLodMkY\n" \
+"tJHUYmTbf6MG8YgYapAiPLz+E/CHFHv25B+O1ORRxhFnRghRy4YUVD+8M/5+bJz/\n" \
+"Fp0YvVGONaanZshyZ9shZrHUm3gDwFA66Mzw3LyeTP6vBZY1H1dat//O+T23LLb2\n" \
+"VN3I5xI6Ta5MirdcmrS3ID3KfyI0rn47aGYBROcBTkZTmzNg95S+UzeQc0PzMsNT\n" \
+"79uq/nROacdrjGCT3sTHDN/hMq7MkztReJVni+49Vv4M0GkPGw/zJSZrM233bkf6\n" \
+"c0Plfg6lZrEpfDKEY1WJxA3Bk1QwGROs0303p+tdOmw1XNtB1xLaqUkL39iAigmT\n" \
+"Yo61Zs8liM2EuLE/pDkP2QKe6xJMlXzzawWpXhaDzLhn4ugTncxbgtNMs+1b/97l\n" \
+"c6wjOy0AvzVVdAlJ2ElYGn+SNuZRkg7zJn0cTRe8yexDJtC/QV9AqURE9JnnV4ee\n" \
+"UB9XVKg+/XRjL7FQZQnmWEIuQxpMtPAlR1n6BB6T1CZGSlCBst6+eLf8ZxXhyVeE\n" \
+"Hg9j1uliutZfVS7qXMYoCAQlObgOK6nyTJccBz8NUvXt7y+CDwIDAQABo0IwQDAd\n" \
+"BgNVHQ4EFgQUU3m/WqorSs9UgOHYm8Cd8rIDZsswDgYDVR0PAQH/BAQDAgEGMA8G\n" \
+"A1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQEMBQADggIBAFzUfA3P9wF9QZllDHPF\n" \
+"Up/L+M+ZBn8b2kMVn54CVVeWFPFSPCeHlCjtHzoBN6J2/FNQwISbxmtOuowhT6KO\n" \
+"VWKR82kV2LyI48SqC/3vqOlLVSoGIG1VeCkZ7l8wXEskEVX/JJpuXior7gtNn3/3\n" \
+"ATiUFJVDBwn7YKnuHKsSjKCaXqeYalltiz8I+8jRRa8YFWSQEg9zKC7F4iRO/Fjs\n" \
+"8PRF/iKz6y+O0tlFYQXBl2+odnKPi4w2r78NBc5xjeambx9spnFixdjQg3IM8WcR\n" \
+"iQycE0xyNN+81XHfqnHd4blsjDwSXWXavVcStkNr/+XeTWYRUc+ZruwXtuhxkYze\n" \
+"Sf7dNXGiFSeUHM9h4ya7b6NnJSFd5t0dCy5oGzuCr+yDZ4XUmFF0sbmZgIn/f3gZ\n" \
+"XHlKYC6SQK5MNyosycdiyA5d9zZbyuAlJQG03RoHnHcAP9Dc1ew91Pq7P8yF1m9/\n" \
+"qS3fuQL39ZeatTXaw2ewh0qpKJ4jjv9cJ2vhsE/zB+4ALtRZh8tSQZXq9EfX7mRB\n" \
+"VXyNWQKV3WKdwrnuWih0hKWbt5DHDAff9Yk2dDLWKMGwsAvgnEzDHNb842m1R0aB\n" \
+"L6KCq9NjRHDEjf8tM7qtj3u1cIiuPhnPQCjY/MiQu12ZIvVS5ljFH4gxQ+6IHdfG\n" \
+"jjxDah2nGN59PRbxYvnKkKj9\n" \
+"-----END CERTIFICATE-----\n" \
+""
+#else
+#define CDC_NO_FW_UPDATE_RESPONSE "NOSUPPORT"
+#endif  // CDC_ENABLE_HTTP_OTA
+
 
 // units - HTML Escaped
 #define CDC_UNITS_DEGREES "&deg;"
@@ -173,16 +218,6 @@
 #define CDC_UNITS_MINUTE "min"
 #define CDC_UNITS_NONE ""
 
-/*
-// Used for tracking weather update times
-#ifdef CDC_USE_OPEN_WEATHER
-#define CDC_TIME "%02d:%02d:%02d"  // hh:mm:ss
-#define CDC_DATE "%s, %s %02d %4d" // DDD, MMM dd yyyy
-#else
-#define CDC_TIME "%02d:%02d GMT" // hh:mm GMT
-#define CDC_DATE "%s %02d, %4d"  // MMM dd, yyyy
-#endif
-*/
 #define CDC_NA "--"
 #define CDC_BLANK ""
 
@@ -217,7 +252,7 @@
 #define CDC_CMD_LNM 27   // Location name
 #define CDC_CMD_TMZ 28   // Location time zone (seconds)
 #define CDC_CMD_DST 29   // Location DST offset (seconds)
-#define CDC_CMD_LED 30   // Status LED Blink rate (x/1000 msec)
+#define CDC_CMD_LED 30   // Status LED GPIO pin
 #define CDC_CMD_NTP 31   // NTP serverName
 #define CDC_CMD_OMIN 32  // DC Min output
 #define CDC_CMD_OMAX 33  // DC Max output
@@ -232,7 +267,29 @@
 #define CDC_CMD_WIFI 42  // WIFI mode AP (Access Point) or STA (Station Mode)
 #define CDC_CMD_IP 43    // IP Address
 #define CDC_CMD_HN 44    // Host name
-#define CDC_CMD_WQEN 45  // Weather Query Enabled (false = 0, true = 1) 
+#define CDC_CMD_WQEN 45  // Weather Query Enabled (false = 0, true = 1)
+#define CDC_CMD_CPP0 46  // Controller Output 0 to Pin mapping
+#define CDC_CMD_CPP1 47  // Controller Output 1 to Pin mapping
+#define CDC_CMD_CPP2 48  // Controller Output 2 to Pin mapping
+#define CDC_CMD_CPP3 49  // Controller Output 3 to Pin mapping
+#define CDC_CMD_CPP4 50  // Controller Output 4 to Pin mapping
+#define CDC_CMD_CPP5 51  // Controller Output 5 to Pin mapping
+#define CDC_CMD_CPM0 52  // Controller Output 0 Mode (0 = Disabled, 1 = Controller) - GET only
+#define CDC_CMD_CPM1 53  // Controller Output 1 Mode (0 = Disabled, 1 = Controller) - GET only
+#define CDC_CMD_CPM2 54  // Controller Output 2 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPM3 55  // Controller Output 3 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPM4 56  // Controller Output 4 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPM5 57  // Controller Output 5 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+#define CDC_CMD_CPO0 58  // Controller Output Power 0 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO1 59  // Controller Output Power 1 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO2 60  // Controller Output Power 2 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO3 61   // Controller Output Power 3 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO4 62   // Controller Output Power 4 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_CPO5 63   // Controller Output Power 5 (Mode dependent: -1, 0 - 100, 0 or 1)
+#define CDC_CMD_PWDH 64   // Password Hash
+#define CDC_CMD_LEDH 65   // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
+#define CDC_CMD_FWUP 66   // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
+#define CDC_CMD_UURL 67   // Update URL - points to the HTTP OTA update manifest.json
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625

@@ -49,7 +49,7 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"LNM", {CDC_CMD_LNM, 1, CDC_UNITS_NONE}},                  // Location name
     {"TMZ", {CDC_CMD_TMZ, 1, CDC_UNITS_SECOND}},                // Location time zone (seconds)
     {"DST", {CDC_CMD_DST, 1, CDC_UNITS_SECOND}},                // Location DST offset (seconds)
-    {"LED", {CDC_CMD_LED, 0, CDC_UNITS_MILLISEC}},              // Status LED Blink every (msec)
+    {"LED", {CDC_CMD_LED, 1, CDC_UNITS_MILLISEC}},              // Status LED GPIO Pin
     {"NTP", {CDC_CMD_NTP, 1, CDC_UNITS_NONE}},                  // NTP serverName
     {"OMIN", {CDC_CMD_OMIN, 1, CDC_UNITS_PERCENT}},             // DC Min output
     {"OMAX", {CDC_CMD_OMAX, 1, CDC_UNITS_PERCENT}},             // DC Max output
@@ -64,20 +64,32 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"WIFI", {CDC_CMD_WIFI, 0, CDC_UNITS_NONE}},                // WIFI mode AP (Access Point) or STA (Station Mode)
     {"IP", {CDC_CMD_IP, 0, CDC_UNITS_NONE}},                    // IP Address
     {"HN", {CDC_CMD_HN, 0, CDC_UNITS_NONE}},                    // Host name
-    {"WQEN", {CDC_CMD_WQEN, 0, CDC_UNITS_NONE}}                 // Weather Query Enabled (false = 0, true = 1) 
-};
+    {"WQEN", {CDC_CMD_WQEN, 0, CDC_UNITS_NONE}},                // Weather Query Enabled (false = 0, true = 1) 
+    {"CPP0", {CDC_CMD_CPP0, 1, CDC_UNITS_NONE}},                // Controller Output 0 to Pin mapping
+    {"CPP1", {CDC_CMD_CPP1, 1, CDC_UNITS_NONE}},                // Controller Output 1 to Pin mapping
+    {"CPP2", {CDC_CMD_CPP2, 1, CDC_UNITS_NONE}},                // Controller Output 2 to Pin mapping
+    {"CPP3", {CDC_CMD_CPP3, 1, CDC_UNITS_NONE}},                // Controller Output 3 to Pin mapping
+    {"CPP4", {CDC_CMD_CPP4, 1, CDC_UNITS_NONE}},                // Controller Output 4 to Pin mapping
+    {"CPP5", {CDC_CMD_CPP5, 1, CDC_UNITS_NONE}},                // Controller Output 5 to Pin mapping
+    {"CPM0", {CDC_CMD_CPM0, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 0 Mode (0 = Disabled, 1 = Controller) - GET only  
+    {"CPM1", {CDC_CMD_CPM1, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 1 Mode (0 = Disabled, 1 = Controller) - GET only
+    {"CPM2", {CDC_CMD_CPM2, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 2 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPM3", {CDC_CMD_CPM3, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 3 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPM4", {CDC_CMD_CPM4, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 4 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPM5", {CDC_CMD_CPM5, 1, CDC_PIN_MODE_JSONARRAY}},        // Controller Output 5 Mode (0 = Disabled, 1 = Controller, 2 = PWM, 3 = Boolean)
+    {"CPO0", {CDC_CMD_CPO0, 0, CDC_UNITS_PERCENT}},             // Controller Output Power 0 (Mode dependent: -1, 0 - 100) - GET only 
+    {"CPO1", {CDC_CMD_CPO1, 0, CDC_UNITS_PERCENT}},             // Controller Output Power 1 (Mode dependent: -1, 0 - 100) - GET only 
+    {"CPO2", {CDC_CMD_CPO2, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 2 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPO3", {CDC_CMD_CPO3, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 3 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPO4", {CDC_CMD_CPO4, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 4 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"CPO5", {CDC_CMD_CPO5, 0, CDC_UNITS_PERCENT}},                // Controller Output Power 5 (Mode dependent: -1, 0 - 100, 0 or 1)
+    {"PWDH", {CDC_CMD_PWDH, 1, CDC_UNITS_NONE}},                 // Password Hash
+    {"LEDH", {CDC_CMD_LEDH, 1, CDC_UNITS_NONE}},                  // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
+    {"FWUP", {CDC_CMD_FWUP, 0, CDC_UNITS_NONE}},                 // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
+    {"UURL", {CDC_CMD_UURL, 1, CDC_UNITS_NONE}}                   // Update URL - points to the HTTP OTA update manifest.json
+  };  
 
-bool configUpdated = false;
-
-void resetConfigUpdated() { configUpdated = false; };
-void setConfigUpdated() 
-{ 
-  configUpdated = true;
-  #ifdef CDC_STATUS_LED_BLINK_ON_CONFIG_CHANGE
-  theSetup->statusLEDOn();
-  #endif
-};
-bool getConfigUpdated() { return configUpdated; };
+// ******************************************************************
 
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
 // command queue processor for Web Socket transactions
@@ -352,7 +364,7 @@ cmdResponse getCmdProcessor(const String &var)
   }
   case CDC_CMD_LED:
   {
-    newResponse.response = String(theSetup->getStatusBlinkEvery());
+    newResponse.response = String(theSetup->getStatusLEDPin());
 
     break;
   }
@@ -455,7 +467,61 @@ cmdResponse getCmdProcessor(const String &var)
     newResponse.response = String(buf);
     break;
   }
+  case CDC_CMD_CPP0:
+  case CDC_CMD_CPP1:
+  case CDC_CMD_CPP2:
+  case CDC_CMD_CPP3:
+  case CDC_CMD_CPP4:
+  case CDC_CMD_CPP5:
+  {
+    int pin = var.substring(3).toInt();
+    newResponse.response = String(theDController->getControllerPinPin(pin));
+    break;
+  }
+  case CDC_CMD_CPM0:
+  case CDC_CMD_CPM1:
+  case CDC_CMD_CPM2:
+  case CDC_CMD_CPM3:
+  case CDC_CMD_CPM4:
+  case CDC_CMD_CPM5:
+  {
+    int pin = var.substring(3).toInt();
+    newResponse.response = String((int)theDController->getControllerPinMode(pin));
+    break;
+  }
+  case CDC_CMD_CPO0:
+  case CDC_CMD_CPO1:
+  case CDC_CMD_CPO2:
+  case CDC_CMD_CPO3:
+  case CDC_CMD_CPO4:
+  case CDC_CMD_CPO5:
+  {
+    int pin = var.substring(3).toInt();
+    newResponse.response = String(theDController->getControllerPinOutput(pin));
+    break;
+  }
+  case CDC_CMD_PWDH:
+  {
+    newResponse.response = String(theSetup->getPasswordHash());
+    break;
+  }
+  case CDC_CMD_LEDH:
+  {
+    newResponse.response = String(theSetup->getStatusLEDHigh());
+    break;
+  }
+  case CDC_CMD_FWUP:
+  {
+    newResponse.response = String(httpFirmwareUpdateAvailable());
+    break;
+  }
+  case CDC_CMD_UURL:
+  {
+    newResponse.response = String(theSetup->getHttpOTAURL());
+    break;
+  }
   default:
+    LOG_ALERT("getCmdProcessor", "GET function not supported for: " << var);
     return newResponse;
     break;
   }
@@ -467,9 +533,15 @@ cmdResponse getCmdProcessor(const String &var)
 //************************************************************************************************
 // Process CDC set commands
 //************************************************************************************************
-bool setCmdProcessor(const String &var, String newValue)
+bool setCmdProcessor(const String &var, String newValue, cmdCaller caller)
 {
   int command;
+
+  if ((caller < 0) || ( caller >= MAXCMDCALLERS))
+  {
+    LOG_DEBUG("setCmdProcessor", "Invalid SET command caller: " << caller);
+    return false;
+  }
 
   if (CDCCommands.count(var.c_str()) == 0)
   {
@@ -721,7 +793,7 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   case CDC_CMD_LED:
   {
-    theSetup->blinkStatusLEDEvery(newValue.toInt());
+    theSetup->setStatusLEDPin(newValue.toInt());
     break;
   }
   case CDC_CMD_NTP:
@@ -779,6 +851,74 @@ bool setCmdProcessor(const String &var, String newValue)
     theSetup->setWeatherQueryEnabled((bool)newValue.toInt());
     break;
   }
+  case CDC_CMD_CPP0:
+  case CDC_CMD_CPP1:
+  case CDC_CMD_CPP2:
+  case CDC_CMD_CPP3:
+  case CDC_CMD_CPP4:
+  case CDC_CMD_CPP5:
+  {
+    int pin = var.substring(3).toInt();
+    if (!theDController->setControllerPinPin(pin, newValue.toInt())) {
+      LOG_ERROR("setCmdProcessor", "Invalid Pin number for " << var << ": " << newValue);
+      return false;
+    }
+    break;
+  }
+  
+  case CDC_CMD_CPM0:
+  case CDC_CMD_CPM1:
+  case CDC_CMD_CPM2:
+  case CDC_CMD_CPM3:
+  case CDC_CMD_CPM4:
+  case CDC_CMD_CPM5:
+  {
+    int pin = var.substring(3).toInt();
+    if (!theDController->setControllerPinMode(pin, (controllerPinModes)newValue.toInt())) {
+      LOG_ERROR("setCmdProcessor", "Invalid Pin mode for " << var << ": " << newValue);
+      return false;
+    }
+    break;
+  }
+  
+  case CDC_CMD_CPO2:
+  case CDC_CMD_CPO3:
+  case CDC_CMD_CPO4:
+  case CDC_CMD_CPO5:
+  {
+    int pin = var.substring(3).toInt();
+    if (!theDController->setControllerPinOutput(pin, newValue.toInt())) {
+      LOG_ERROR("setCmdProcessor", "Invalid Pin output for " << var << ": " << newValue);
+      return false;
+    }
+    break;
+  }
+  case CDC_CMD_PWDH:
+  {
+    // Not allowed via TCPAPI for security reasons
+    if (caller == TCPAPI) {
+      return false;
+    }
+    theSetup->setPasswordHash(newValue);
+    break;
+  }
+  case CDC_CMD_LEDH:
+  {
+    theSetup->setStatusLEDHigh(newValue.toInt());
+    break;
+  }
+  case CDC_CMD_UURL:
+  {
+    if (caller != LOADCONFIG) {
+      return false;
+    }
+    theSetup->setHttpOTAURL(newValue);
+    break;
+  }
+  // Commands that have values in the configuration file but cannot be set 
+  case CDC_CMD_FW:      // Set FW not supported but stored in the CDCConfig file for versioning 
+    return false;   
+    break;
   default:
   {
     LOG_ALERT("setCmdProcessor", "SET function not supported for: " << var);
@@ -787,9 +927,9 @@ bool setCmdProcessor(const String &var, String newValue)
   }
   }
 
-  if (CDCCommands.at(var.c_str()).saveToConfig)
+  if ((caller != LOADCONFIG) && (CDCCommands.at(var.c_str()).saveToConfig))
   {
-    setConfigUpdated();
+    theSetup->setConfigUpdated();
   };
   return true;
 }

@@ -1,7 +1,8 @@
-<head>
-    <title>CheapoDC Configuration</title>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <title>CheapoDC Controller Configuration</title>
     <link rel="icon" type="image/png" href="/favicon.png">
-    <!--    <meta http-equiv="refresh" content="30"> -->
     <link rel="stylesheet" href="./CDCStyle.css">
 </head>
 
@@ -11,391 +12,349 @@
         <header>
             <div class="headerGrid">
                 <hIcon class="logo"><img src="/cheapo.png" alt="CheapoDC" onclick="window.location.href='https://github.com/hcomet/CheapoDC'"></hIcon>
-                <hTitle class="title">CheapoDC Configuration</hTitle>
+                <hTitle class="title">Controller Configuration</hTitle>
                 <logoutIcon onclick="logoutCDC()"><img src="/logout.png" alt="Logout"></logoutIcon>
             </div>
         </header>
         <main>
             <h2>Dew Controller Configuration</h2>
-            <div class="configline">
-                <configItem>Controller Mode:</configItem>
-                <configValue>
-                    <div class="cReading"><select name="DCM" id="DCMS" data-cdc="%DCM%">
+            <div class="cfln">
+                <cfitm>Controller Mode:</cfitm>
+                <cfvl>
+                    <div class="crdg"><select name="DCM" id="DCMS" data-cdc="%DCM%">
                             <option id="Automatic" value="0">Automatic</option>
                             <option id="Manual" value="1">Manual</option>
                             <option id="Off" value="2">Off</option>
                         </select>
                     </div>
-                </configValue>
-                <configAction><button type="button" class="cButton" id="DCM" disabled>Update</button></configAction>
+                </cfvl>
+                <cfact><button type="button" class="cbtn" id="DCM" disabled>Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Controller Output:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="DCO" step="1" min="0" max="100" class="cInput"
+            <div class="cfln">
+                <cfitm>Controller Output:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="DCO" step="1" min="0" max="100" class="cinp"
                             id="DCOI" data-cdc="%DCO%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">&percnt; Min to Max</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="DCO">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">&percnt; Min to Max</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="DCO">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Minimum Output:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="OMIN" step="1" min="0" max="99" class="cInput"
+            <div class="cfln">
+                <cfitm>Minimum Output:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="OMIN" step="1" min="0" max="99" class="cinp"
                             id="OMINI" data-cdc="%OMIN%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">&percnt; 0 to Max</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="OMIN">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">&percnt; 0 to Max</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="OMIN">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Maximum Output:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="OMAX" step="1" min="1" max="100" class="cInput"
+            <div class="cfln">
+                <cfitm>Maximum Output:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="OMAX" step="1" min="1" max="100" class="cinp"
                             id="OMAXI" data-cdc="%OMAX%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">&percnt; Min to 100</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="OMAX">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">&percnt; Min to 100</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="OMAX">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Update Output Every:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="UOE" step="1" min="1" max="20" class="cInput"
+            <div class="cfln">
+                <cfitm>Update Output Every:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="UOE" step="1" min="1" max="20" class="cinp"
                             id="UOEI" data-cdc="%UOE%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">minutes 1 to 20</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="UOE">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">minutes 1 to 20</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="UOE">Update</button></cfact>
             </div>
             <br />
-            <div class="configline">
-                <configItem>Temperature Mode:</configItem>
-                <configValue>
-                    <div class="cReading"><select name="DCTM" id="DCTMS" data-cdc="%DCTM%">
+            <div class="cfln">
+                <cfitm>Temperature Mode:</cfitm>
+                <cfvl>
+                    <div class="crdg"><select name="DCTM" id="DCTMS" data-cdc="%DCTM%">
                             <option id="Weather Query" value="0">Weather Query</option>
                             <option id="External Input" value="1">External Input</option>
                         </select>
                         <script>document.getElementById("DCTMS").value = "%DCTM%";</script>
                     </div>
-                </configValue>
-                <configAction><button type="button" class="cButton" id="DCTM">Update</button></configAction>
+                </cfvl>
+                <cfact><button type="button" class="cbtn" id="DCTM">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Weather Query:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="ATPQ" step="0.1" class="cInput" id="ATPQI" 
+            <div class="cfln">
+                <cfitm>Weather Query:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="ATPQ" step="0.1" class="cinp" id="ATPQI" 
                             data-cdc="%ATPQ%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="ATPQ">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="ATPQ">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>External Input:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="ATPX" step="0.1" class="cInput" id="ATPXI"
+            <div class="cfln">
+                <cfitm>External Input:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="ATPX" step="0.1" class="cinp" id="ATPXI"
                             data-cdc="%ATPX%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="ATPX">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="ATPX">Update</button></cfact>
             </div>
             <br />
-            <div class="configline">
-                <configItem>Set Point Mode:</configItem>
-                <configValue>
-                    <div class="cReading"><select name="SPM" id="SPMS" data-cdc="%SPM%">
+            <div class="cfln">
+                <cfitm>Set Point Mode:</cfitm>
+                <cfvl>
+                    <div class="crdg"><select name="SPM" id="SPMS" data-cdc="%SPM%">
                             <option id="Dew Point" value="0">Dew Point</option>
                             <option id="Temperature" value="1">Temperature</option>
                             <option id="Midpoint" value="2">Midpoint</option>
                         </select>
                         <script>document.getElementById("SPMS").value = "%SPM%";</script>
                     </div>
-                </configValue>
-                <configAction><button type="button" class="cButton" id="SPM">Update</button></configAction>
+                </cfvl>
+                <cfact><button type="button" class="cbtn" id="SPM">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Humidity:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="HU" class="cInput" id="HUI" step=""1" min="0" max="100"
+            <div class="cfln">
+                <cfitm>Humidity:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="HU" class="cinp" id="HUI" step="1" min="0" max="100"
                             data-cdc="%HU%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">&percnt;</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="HU">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">&percnt;</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="HU">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Dew Point:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="DP" step="0.1" class="cInput" id="DPI" disabled
+            <div class="cfln">
+                <cfitm>Dew Point:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="DP" step="0.1" class="cinp" id="DPI" disabled
                             data-cdc="%DP%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="DP">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="DP">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Temperature Set Point:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="SP" step="0.1" class="cInput" id="SPI"
+            <div class="cfln">
+                <cfitm>Temperature Set Point:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="SP" step="0.1" class="cinp" id="SPI"
                             data-cdc="%SP%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="SP">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="SP">Update</button></cfact>
                 </script>
             </div>
             <br />
-            <div class="configline">
-                <configItem>Track Point Offset:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="TPO" step="0.1" min="-5.0" max="5.0" class="cInput"
+            <div class="cfln">
+                <cfitm>Track Point Offset:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="TPO" step="0.1" min="-5.0" max="5.0" class="cinp"
                             id="TPOI" data-cdc="%TPO%" />
                     </div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="TPO">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="TPO">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Tracking Range:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="TKR" step="0.1" min="4" max="10" class="cInput"
+            <div class="cfln">
+                <cfitm>Tracking Range:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="TKR" step="0.1" min="4" max="10" class="cinp"
                             id="TKRI" data-cdc="%TKR%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="TKR">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="TKR">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Calculated Track Point:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" step="0.1" name="CTP" class="cInput" id="CTPI" disabled
+            <div class="cfln">
+                <cfitm>Calculated Track Point:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" step="0.1" name="CTP" class="cinp" id="CTPI" disabled
                             data-cdc="%CTP%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Degrees C</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="CTP">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Degrees C</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="CTP">Update</button></cfact>
             </div>
+         <hr class="confighr">
             <h2>Weather Query Configuration</h2>
-            <div class="configline">
-                <configItem>Weather Query Every:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="WQE" step="1" min="0" max="20" class="cInput"
+            <div class="cfln">
+                <cfitm>Weather Query Every:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="WQE" step="1" min="0" max="20" class="cinp"
                             id="WQEI" data-cdc="%WQE%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">minutes 0 to 20</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="WQE">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">minutes 0 to 20</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="WQE">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Weather Source:</configItem>
-                <configValue>
-                    <div class="cReading"><select name="WS" id="WSS" data-cdc="%WS%">
+            <div class="cfln">
+                <cfitm>Weather Source:</cfitm>
+                <cfvl>
+                    <div class="crdg"><select name="WS" id="WSS" data-cdc="%WS%">
                             <option id="Open-Meteo" value="0">Open-Meteo</option>
                             <option id="OpenWeather" value="1">OpenWeather</option>
                             <option id="External Source" value="2">External Source</option>
                         </select>
                     </div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">Service</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="WS" disabled>Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">Service</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="WS" disabled>Update</button></cfact>
             </div>
             <div class="urlconfig">
-                <configItem>Weather API URL:</configItem>
-                <configValue>
-                    <div class="cReading url"><input type="url" name="WAPI" class="cInput" id="WAPII" disabled
+                <cfitm>Weather API URL:</cfitm>
+                <cfvl>
+                    <div class="crdg url"><input type="url" name="WAPI" class="cinp" id="WAPII" disabled
                             data-cdc="%WAPI%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">printf format</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="WAPI">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">printf format</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="WAPI">Update</button></cfact>
             </div>
             <div class="urlconfig">
-                <configItem>Weather Icon URL:</configItem>
-                <configValue>
-                    <div class="cReading url"><input type="url" name="WIURL" class="cInput" id="WIURLI" disabled
+                <cfitm>Weather Icon URL:</cfitm>
+                <cfvl>
+                    <div class="crdg url"><input type="url" name="WIURL" class="cinp" id="WIURLI" disabled
                             data-cdc="%WIURL%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">printf format</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="WIURL">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">printf format</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="WIURL">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Weather API Key:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="WKEY" class="cInput" id="WKEYI" data-cdc="%WKEY%" />
+            <div class="cfln">
+                <cfitm>Weather API Key:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="text" name="WKEY" class="cinp" id="WKEYI" data-cdc="%WKEY%" />
                     </div>
-                </configValue>
-                <configAction><button type="button" class="cButton" id="WKEY">Update</button></configAction>
+                </cfvl>
+                <cfact><button type="button" class="cbtn" id="WKEY">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Last Weather Query:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="LQT" id="LQTI" readonly data-cdc="%LQT%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">hh:mm:ss Local</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="LQT">Update</button></configAction>
+            <div class="cfln">
+                <cfitm>Last Weather Query:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="text" name="LQT" id="LQTI" readonly data-cdc="%LQT%" /></div>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">hh:mm:ss Local</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="LQT">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Last Weather Update:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="LWUT" id="LWUTI" readonly data-cdc="%LWUT%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">hh:mm:ss Local</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="LWUT">Update</button></configAction>
+            <div class="cfln">
+                <cfitm>Last Weather Update:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="text" name="LWUT" id="LWUTI" readonly data-cdc="%LWUT%" /></div>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">hh:mm:ss Local</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn hidden" id="LWUT">Update</button></cfact>
             </div>
+            <hr class="confighr">
             <h2>Location and Time Configuration</h2>
-            <div class="configline">
-                <configItem>My Location Name:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="LNM" id="LNMI" data-cdc="%LNM%" /></div>
-                </configValue>
-                <configAction><button type="button" class="cButton" id="LNM">Update</button></configAction>
+            <div class="cfln">
+                <cfitm>My Location Name:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="text" name="LNM" id="LNMI" data-cdc="%LNM%" /></div>
+                </cfvl>
+                <cfact><button type="button" class="cbtn" id="LNM">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Location Latitude:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="LAT" id="LATI" step="0.01" data-cdc="%LAT%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">digital degrees</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="LAT">Update</button></configAction>
+            <div class="cfln">
+                <cfitm>Location Latitude:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="LAT" id="LATI" step="0.01" data-cdc="%LAT%" /></div>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">digital degrees</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="LAT">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Location Longitude:</configItem>
-                <configValue>
-                    <!-- <div class="cReading"><input type="text" inputmode="numeric" name="LON" id="LONI" data-cdc="%LON%"/></div> -->
-                    <div class="cReading"><input type="number" name="LON" id="LONI" step="0.01" data-cdc="%LON%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">digital degrees</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="LON">Update</button></configAction>
+            <div class="cfln">
+                <cfitm>Location Longitude:</cfitm>
+                <cfvl>
+                    <!-- <div class="crdg"><input type="text" inputmode="numeric" name="LON" id="LONI" data-cdc="%LON%"/></div> -->
+                    <div class="crdg"><input type="number" name="LON" id="LONI" step="0.01" data-cdc="%LON%" /></div>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">digital degrees</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="LON">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Current Date Time:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="CDT" id="CDTI" readonly data-cdc="%CDT%" /></div>
-                </configValue>
-                <configAction><button type="button" class="cButton hidden" id="CDT">Update</button></configAction>
+            <div class="cfln">
+                <cfitm>Current Date Time:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="text" name="CDT" id="CDTI" readonly data-cdc="%CDT%" /></div>
+                </cfvl>
+                <cfact><button type="button" class="cbtn hidden" id="CDT">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Timezone Offset:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" name="TMZ" step="1" min="-43000" max="50400" id="TMZI"
+            <div class="cfln">
+                <cfitm>Timezone Offset:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" name="TMZ" step="1" min="-43000" max="50400" id="TMZI"
                             data-cdc="%TMZ%" />
                     </div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">seconds</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="TMZ">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">seconds</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="TMZ">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>Daylight Savings Offset:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="number" step="3600" min="-3600" max="3600" name="DST" id="DSTI"
+            <div class="cfln">
+                <cfitm>Daylight Savings Offset:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="number" step="3600" min="-3600" max="3600" name="DST" id="DSTI"
                             data-cdc="%DST%" />
                     </div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">seconds</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="DST">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">seconds</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="DST">Update</button></cfact>
             </div>
-            <div class="configline">
-                <configItem>NTP Server URL:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" class="cInput" id="NTPI" name="NTP" data-cdc="%NTP%" />
+            <div class="cfln">
+                <cfitm>NTP Server URL:</cfitm>
+                <cfvl>
+                    <div class="crdg"><input type="text" class="cinp" id="NTPI" name="NTP" data-cdc="%NTP%" />
                     </div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">server name</div>
-                </configComment>
-                <configAction><button type="button" class="cButton" id="NTP">Update</button></configAction>
+                </cfvl>
+                <cfcmt>
+                    <div class="crdg">server name</div>
+                </cfcmt>
+                <cfact><button type="button" class="cbtn" id="NTP">Update</button></cfact>
             </div>
-            <h2>Dew Controller Information</h2>
-            <div class="configline">
-                <configItem>Up Time:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="UPT" class="cInput" id="UPTI" disabled
-                            data-cdc="%UPT%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">HHH:MM:SS:MSec</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="UPT">Update</button></configAction>
-            </div>
-            <div class="configline">
-                <configItem>Host Name:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="HN" class="cInput" id="HNI" disabled
-                            data-cdc="%HN%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading"></div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="HN">Update</button></configAction>
-            </div>
-            <div class="configline">
-                <configItem>IP Address:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="IP" class="cInput" id="IPI" disabled
-                            data-cdc="%IP%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading"></div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="IP">Update</button></configAction>
-            </div>
-            <div class="configline">
-                <configItem>WiFi Mode:</configItem>
-                <configValue>
-                    <div class="cReading"><input type="text" name="WIFI" class="cInput" id="WIFII" disabled
-                            data-cdc="%WIFI%" /></div>
-                </configValue>
-                <configComment>
-                    <div class="cReading">AP or STA</div>
-                </configComment>
-                <configAction><button type="button" class="cButton hidden" id="WIFI">Update</button></configAction>
-            </div>
+
         </main>
         <footer>
             <hr class="footerThr">
             <button type="button" class="bfooter" onclick="document.location='../dashboard'">Dashboard</button> <!---->
             <button type="button" class="bfooterDisabled" onclick="document.location='../config'"
-                disabled>Configuration</button>
+                disabled>Controller Configuration</button>
             <button type="button" class="bfooter" onclick="document.location='../otaIndex'">Device Management</button>
             <button type="button" class="bfooter" onclick="document.location='../listFiles'">File Management</button>
             <hr class="footerBhr">
-            <div class="atribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space:
+            <div class="attribution">Cheapo Dew Controller - &copy; 2025 - Release: %FW% <br />(Heap: %HP%, File space:
                 %LFS%)</div>
         </footer>
     </div>
-</body>
-<script src="CDCjs.js"></script>
+    <script src="CDCjs.js"></script></body>
+</html>    

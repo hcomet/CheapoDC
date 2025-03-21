@@ -15,34 +15,28 @@
 
 dewController::dewController(void)
 {
+    // Initialize all Controller Outputs as disabled
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
-#ifdef CDC_ENABLE_PWM_OUTPUT
-    LOG_DEBUG("dewController", "Output 1: " << CDC_PWM_OUTPUT_PIN1);
-  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-    if (!ledcAttachChannel(CDC_PWM_OUTPUT_PIN1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL)) {
-      LOG_ERROR("dewController", "Could not attach PIN1: " << CDC_PWM_OUTPUT_PIN1 << " to PWM Channel: " << CDC_PWM_CHANNEL);
+    for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
+    {
+        this->_controllerPinSettings[i].controllerPinPin = CONTROLLER_PIN_NOT_CONFIGURED;
+        this->_controllerPinSettings[i].controllerPinMode = CONTROLLER_PIN_MODE_DISABLED;
+        this->_controllerPinSettings[i].controllerPinOutput = 0;
     }
-  #else
-    ledcSetup(CDC_PWM_CHANNEL, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION);
-    ledcAttachPin(CDC_PWM_OUTPUT_PIN1, CDC_PWM_CHANNEL);
-  #endif // ESP Core version
 
-  #ifdef CDC_PWM_OUTPUT_PIN2
-    LOG_DEBUG("dewController", "Output 2: " << CDC_PWM_OUTPUT_PIN2);
-    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-    if (!ledcAttachChannel(CDC_PWM_OUTPUT_PIN2, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_PWM_CHANNEL)) {
-      LOG_ERROR("dewController", "Could not attach PIN2: " << CDC_PWM_OUTPUT_PIN2 << " to PWM Channel: " << CDC_PWM_CHANNEL);
-    }
-    #else
-    ledcAttachPin(CDC_PWM_OUTPUT_PIN2, CDC_PWM_CHANNEL);
-    #endif  // ESP Core version
-  #endif  // CDC_PWM_OUTPUT_PIN2
-  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-    ledcWriteChannel(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
-  #else
-    ledcWrite(CDC_PWM_CHANNEL, CDC_PWM_DUTY_MINIMUM);
-  #endif // ESP Core version
-#endif // CDC_ENABLE_PWM_OUTPUT
+    // If defaults set in CDCdefines.h for PIN0 and PIN1 then configure
+#ifdef CDC_DEFAULT_CONTROLLER_PIN0 
+    LOG_DEBUG("dewController", "Controller Output 0: " << CDC_DEFAULT_CONTROLLER_PIN0);
+  
+    this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinPin = CDC_DEFAULT_CONTROLLER_PIN0;
+    this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;
+#endif // CDC_DEFAULT_CONTROLLER_PIN0
+#ifdef CDC_DEFAULT_CONTROLLER_PIN1
+    LOG_DEBUG("dewController", "Contorller Pin 1: " << CDC_DEFAULT_CONTROLLER_PIN1);
+
+    this->_controllerPinSettings[CONTROLLER_PIN1].controllerPinPin = CDC_DEFAULT_CONTROLLER_PIN1;
+    this->_controllerPinSettings[CONTROLLER_PIN1].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;
+#endif // CDC_DEFAULT_CONTROLLER_PIN1
 
     this->_currentControllerMode = CDC_DEFAULT_CONTROLLER_MODE;
     this->_currentTemperatureMode = CDC_DEFAULT_TEMPERATURE_MODE;
@@ -55,6 +49,276 @@ dewController::dewController(void)
     this->_minimumOutputSetting = CDC_MINIMUM_CONTROLLER_OUTPUT;
     this->_maximumOutputSetting = CDC_MAXIMUM_CONTROLLER_OUTPUT;
     this->_controllerEnabled = false;
+}
+
+bool dewController::setEnabled()
+{
+    this->_controllerEnabled = true;
+    LOG_DEBUG("setEnabled", "Controller enabled");
+    // Enable all configured Pins
+    for (int i = CONTROLLER_PIN0; i < MAX_CONTROLLER_PINS; i++)
+    {
+        if (this->_controllerPinSettings[i].controllerPinPin != CONTROLLER_PIN_NOT_CONFIGURED) {
+            if(!this->setControllerPinMode(i, this->_controllerPinSettings[i].controllerPinMode)) {
+                LOG_ERROR("setEnabled", "Controller Output failure " << i << ". Controller cannot be enabled.");
+                this->_controllerEnabled = false;
+                return false;
+            }
+        }
+    }
+    this->updateOutput();
+    return true;
+}
+
+bool dewController::setControllerPinPin(int controllerPin, int pin)
+{
+    if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
+    {
+        LOG_ERROR("setControllerPinPin", "Invalid controller output value: " << controllerPin);
+        return false;
+    }
+
+    if (pin == -1) {
+      this->setControllerPinMode( controllerPin, CONTROLLER_PIN_MODE_DISABLED);
+      return true;
+    }
+
+    if ((pin < 0) || (pin > 39))
+    {
+        LOG_ERROR("setControllerPinPin", "Invalid pin number: " << pin);
+        return false;
+    }
+
+    if (pin == theSetup->getStatusLEDPin())
+    {
+      LOG_ERROR("setControllerPinPin", "Cannot set Controller Output " << controllerPin << " to same as LED Status Pin: " << pin);
+      return false;
+    }
+
+    for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
+    {
+        if ((this->_controllerPinSettings[i].controllerPinPin == pin) && (i != controllerPin))
+        {
+            LOG_ERROR("setControllerPinPin", "Pin " << pin << " already assigned to controller output " << i);
+            return false;
+        }
+    }
+
+    if ((this->_controllerEnabled) && ((this->_controllerPinSettings[controllerPin].controllerPinMode != CONTROLLER_PIN_MODE_DISABLED) || 
+        (this->_controllerPinSettings[controllerPin].controllerPinPin != CONTROLLER_PIN_NOT_CONFIGURED)))
+    {
+        if (!this->setControllerPinMode(controllerPin, CONTROLLER_PIN_MODE_DISABLED)) {
+            LOG_ERROR("setControllerPinPin", "Controller Output " << controllerPin << " is enabled. Pin cannot be changed.");
+            return false;
+        }
+    }
+
+    this->_controllerPinSettings[controllerPin].controllerPinPin = pin;
+    LOG_DEBUG("setControllerPinPin", "Controller Output " << controllerPin << " set to: " << pin);
+    return true;
+}
+
+bool dewController::setControllerPinMode(int controllerPin, controllerPinModes mode)
+{
+    if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
+    {
+        LOG_ERROR("setControllerPinMode", "Invalid controller output: " << controllerPin);
+        return false;
+    }
+
+    if ((mode < CONTROLLER_PIN_MODE_DISABLED) || (mode > CONTROLLER_PIN_MODE_BOOLEAN))
+    {
+        LOG_ERROR("setControllerPinMode", "Invalid controller output mode: " << mode);
+        return false;
+    }
+ 
+    if (!this->_controllerEnabled) {
+        this->_controllerPinSettings[controllerPin].controllerPinMode = mode;
+        LOG_DEBUG("setControllerPinMode", "Controller Disabled but Controller Output " << controllerPin << " set to mode: " << mode);
+        return true;
+    }
+
+    if (this->_controllerPinSettings[controllerPin].controllerPinPin == CONTROLLER_PIN_NOT_CONFIGURED)
+    {
+        LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " is not configured.");
+        return false;
+    }
+
+    if ((this->_controllerPinSettings[controllerPin].controllerPinMode != mode) && (mode != CONTROLLER_PIN_MODE_DISABLED) && (this->_controllerPinSettings[controllerPin].controllerPinMode != CONTROLLER_PIN_MODE_DISABLED))
+    {
+      int savedPinPin = this->_controllerPinSettings[controllerPin].controllerPinPin;
+      if (!this->setControllerPinMode(controllerPin, CONTROLLER_PIN_MODE_DISABLED)) 
+      {
+        LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " not reset to CONTROLLER_PIN_MODE_DISABLED");
+        return false;
+      }
+      this->_controllerPinSettings[controllerPin].controllerPinPin = savedPinPin;
+      return this->setControllerPinMode(controllerPin, mode);
+    }
+
+    switch (mode)
+    {
+    case CONTROLLER_PIN_MODE_DISABLED:
+        if ((this->_controllerPinSettings[controllerPin].controllerPinMode == CONTROLLER_PIN_MODE_CONTROLLER) || 
+            (this->_controllerPinSettings[controllerPin].controllerPinMode == CONTROLLER_PIN_MODE_PWM))
+        {
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+            if (!ledcDetach(this->_controllerPinSettings[controllerPin].controllerPinPin)) {
+              LOG_ERROR("setControllerPinMode", "Could not detach Pin: " << controllerPin << ":" << 
+                        this->_controllerPinSettings[controllerPin].controllerPinPin << " from Controller/PWM.");
+            }
+#else
+            ledcDetachPin(this->_controllerPinSettings[controllerPin].controllerPinPin);
+#endif // ESP Core version  
+        } 
+        digitalWrite(_controllerPinSettings[controllerPin].controllerPinPin, 0);
+        this->_controllerPinSettings[controllerPin].controllerPinOutput = 0;
+        this->_controllerPinSettings[controllerPin].controllerPinPin = CONTROLLER_PIN_NOT_CONFIGURED;
+        break;
+    case CONTROLLER_PIN_MODE_CONTROLLER:
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    if (!ledcAttachChannel(this->_controllerPinSettings[controllerPin].controllerPinPin, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, CDC_CONTROLLER_PWM_CHANNEL)) {
+      LOG_ERROR("setControllerPinMode", "Could not attach Pin: " << controllerPin << ":" << this->_controllerPinSettings[controllerPin].controllerPinPin << 
+                " to Controller PWM Channel: " << CDC_CONTROLLER_PWM_CHANNEL);
+    }
+#else
+    ledcAttachPin(this->_controllerPinSettings[controllerPin].controllerPinPin, CDC_CONTROLLER_PWM_CHANNEL);
+#endif // ESP Core version
+        this->_controllerPinSettings[controllerPin].controllerPinOutput = this->_currentOutput;
+        break;
+    case CONTROLLER_PIN_MODE_PWM:
+        if ((controllerPin == CONTROLLER_PIN0) || (controllerPin == CONTROLLER_PIN1))
+        {
+            LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " cannot be set to PWM mode.");
+            return false;
+        }
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+        if (!ledcAttachChannel(this->_controllerPinSettings[controllerPin].controllerPinPin, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION, controllerPin - 1)) {
+        LOG_ERROR("setControllerPinMode", "Could not attach Pin: " << controllerPin << ":" << this->_controllerPinSettings[controllerPin].controllerPinPin << 
+                    " to Pin PWM Channel: " << (controllerPin - 1));
+        }
+#else
+        ledcSetup(controllerPin - 1, CDC_PWM_FREQUENCY, CDC_PWM_RESOLUTION);
+        ledcAttachPin(this->_controllerPinSettings[controllerPin].controllerPinPin, controllerPin - 1);
+#endif // ESP Core version
+        break;
+    case CONTROLLER_PIN_MODE_BOOLEAN:
+        if ((controllerPin == CONTROLLER_PIN0) || (controllerPin == CONTROLLER_PIN1))
+        {
+            LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " cannot be set to Boolean mode.");
+            return false;
+        }
+        if (this->_controllerPinSettings[controllerPin].controllerPinMode != CONTROLLER_PIN_MODE_DISABLED) {
+            int savePinPin = this->_controllerPinSettings[controllerPin].controllerPinPin;
+            int saveOutput = this->_controllerPinSettings[controllerPin].controllerPinOutput;
+            this->setControllerPinMode(controllerPin, CONTROLLER_PIN_MODE_DISABLED);
+            this->_controllerPinSettings[controllerPin].controllerPinPin = savePinPin;
+            this->_controllerPinSettings[controllerPin].controllerPinOutput = saveOutput;
+        }
+        pinMode(_controllerPinSettings[controllerPin].controllerPinPin, OUTPUT);    
+        break;
+    default:
+        break;
+    }
+
+    this->_controllerPinSettings[controllerPin].controllerPinMode = mode;
+    if ((mode != CONTROLLER_PIN_MODE_DISABLED) && (mode != CONTROLLER_PIN_MODE_CONTROLLER)) {
+        if (!this->setControllerPinOutput(controllerPin, this->_controllerPinSettings[controllerPin].controllerPinOutput)) {
+            LOG_ERROR("setControllerPinMode", "Failed to set output for controller output " << controllerPin);
+            return false;
+        }
+    }
+    LOG_DEBUG("setControllerPinMode", "Controller Output " << controllerPin << " set to: " << mode);
+    return true;
+}
+
+bool dewController::setControllerPinOutput(int controllerPin, int output)
+{
+    if ((controllerPin < CONTROLLER_PIN2) || (controllerPin > CONTROLLER_PIN5))
+    {
+        LOG_ERROR("setControllerPinOutput", "Invalid controller output: " << controllerPin);
+        return false;
+    }
+
+    if (!this->_controllerEnabled) {
+        this->_controllerPinSettings[controllerPin].controllerPinOutput = output;
+        LOG_DEBUG("setControllerPinOutput", "Controller Disabled but Controller Output " << controllerPin << " output set to: " << output);
+        return true;
+    }
+
+    switch (_controllerPinSettings[controllerPin].controllerPinMode)
+    {
+    case CONTROLLER_PIN_MODE_DISABLED:
+        LOG_ERROR("setControllerPinOutput", "Controller Output " << controllerPin << " is Disabled.");
+        return false;
+        break;
+    case CONTROLLER_PIN_MODE_CONTROLLER:
+        LOG_ERROR("setControllerPinOutput", "Controller Output " << controllerPin << " is in Controller mode.");
+        return false;
+        break;
+    case CONTROLLER_PIN_MODE_PWM:
+        if ((output < 0) || (output > 100))
+        {
+            LOG_ERROR("setControllerPinOutput", "Invalid PWM output value: " << output);
+            return false;
+        } else {
+            int PWMDutyCycle = (output * (pow(2, CDC_PWM_RESOLUTION) - 1)) / 100;
+            int PWMChannel = controllerPin - 1;
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+            ledcWriteChannel(PWMChannel, PWMDutyCycle);
+#else
+            ledcWrite(PWMChannel, PWMDutyCycle);
+#endif  // ESP_ARDUINO_VERSION
+        }
+        break;
+    case CONTROLLER_PIN_MODE_BOOLEAN:
+        if (output < 0)
+        {
+            LOG_ERROR("setControllerPinOutput", "Invalid boolean output value: " << output);
+            return false;
+        }
+        digitalWrite(_controllerPinSettings[controllerPin].controllerPinPin, (output > 0) ? HIGH : LOW);
+        break;
+    default:
+        LOG_ERROR("setControllerPinOutput", "Controller Output " << controllerPin << " has an invalid mode.");
+        return false;
+        break;
+    }
+
+    this->_controllerPinSettings[controllerPin].controllerPinOutput = 
+            (((output > 0)&&(this->_controllerPinSettings[controllerPin].controllerPinMode==CONTROLLER_PIN_MODE_BOOLEAN)) ? 100 : output);
+    LOG_DEBUG("setControllerPinOutput", "Controller Output " << controllerPin << " Output set to: " << output);
+    return true;
+}
+
+int dewController::getControllerPinOutput(int controllerPin)
+{
+    if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
+    {
+        LOG_ERROR("getControllerPinOutput", "Invalid controller output: " << controllerPin);
+        return -1;
+    }
+    return _controllerPinSettings[controllerPin].controllerPinOutput;
+}
+
+int dewController::getControllerPinPin(int controllerPin)
+{
+    if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
+    {
+        LOG_ERROR("getControllerPinPin", "Invalid controller output: " << controllerPin);
+        return -1;
+    }
+    return _controllerPinSettings[controllerPin].controllerPinPin;
+}
+
+controllerPinModes dewController::getControllerPinMode(int controllerPin)
+{
+    if ((controllerPin < CONTROLLER_PIN0) || (controllerPin > CONTROLLER_PIN5))
+    {
+        LOG_ERROR("getControllerPinMode", "Invalid controller output value: " << controllerPin);
+        return CONTROLLER_PIN_MODE_DISABLED;
+    }
+    return _controllerPinSettings[controllerPin].controllerPinMode;
 }
 
 int dewController::_calculateOutput(float currentTemperature, float setPoint, float range, float offset)
@@ -165,16 +429,24 @@ void dewController::updateOutput(int output)
 
             PWMDutyCycle = (this->_currentOutput * (pow(2, CDC_PWM_RESOLUTION) - 1)) / 100;
             LOG_DEBUG("updateOutput", "Output set to: " << PWMDutyCycle << " of " << (pow(2, CDC_PWM_RESOLUTION) - 1));
-#ifdef CDC_ENABLE_PWM_OUTPUT
-  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
-            ledcWriteChannel(CDC_PWM_CHANNEL, PWMDutyCycle);
-  #else
-            ledcWrite(CDC_PWM_CHANNEL, PWMDutyCycle);
-  #endif
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+            ledcWriteChannel(CDC_CONTROLLER_PWM_CHANNEL, PWMDutyCycle);
+#else
+            ledcWrite(CDC_CONTROLLER_PWM_CHANNEL, PWMDutyCycle);
 #endif
+
 #ifdef CDC_STATUS_LED_BLINK_ON_POWER_CHANGE
             theSetup->statusLEDOn();
 #endif
+            // Update Pin Settings Output value for pins linked to Controller PWM
+            for (int i = CONTROLLER_PIN0; i < MAX_CONTROLLER_PINS; i++)
+            {
+                if (this->_controllerPinSettings[i].controllerPinMode == CONTROLLER_PIN_MODE_CONTROLLER)
+                {
+                    this->_controllerPinSettings[i].controllerPinOutput = this->_currentOutput;
+                }
+            }
+
             LOG_ALERT("updateOutput", "Power output changed to: " << this->_currentOutput);
         }
 
