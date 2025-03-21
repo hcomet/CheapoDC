@@ -1,4 +1,4 @@
-![CheapoDC Logo](images/logo.png)
+# ![CheapoDC Logo](images/logo.png)
 
 # Introducing CheapoDC
 
@@ -10,9 +10,9 @@ controls 2 dew heater straps.
 A primary goal was to keep the project cheap, simple and easy with:
 
 * minimal low cost off the shelf components
-* no coding or Arduino IDE experience necessary with both [Webflash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) and [HTTP OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) support
+* no coding or Arduino IDE experience necessary with both [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) and [HTTP OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) support
 * Comprehensive [Web UI](#web-ui) for configuration and management
-* [INDI](https://www.indilib.org/) and [Stellarmate](https://stellarmate.com/) support 'out-of-the-box'
+* [INDI](https://www.indilib.org/) and [StellarMate](https://stellarmate.com/) support 'out-of-the-box'
 
 CheapoDC leverages the ESP32 WiFi
 capability to query one of the open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API
@@ -24,12 +24,12 @@ support the weather service queries but it can also be used in a limited way wit
 
 The CheapoDC may be set up using a basic configuration with two dew strap outputs or it may be configured with up to
 four additional outputs. Each CheapoDC Output is controlled by a separate MOSFET module tied to one of the ESP32's
-GPIO pins. The four additional outputs may be configured to be managed either automatically using the CheapoDC dew 
+GPIO pins. The four additional outputs may be configured to be managed either automatically using the CheapoDC dew
 control algorithm, along with the two main dew controller outputs,
 or manually via the Web UI or API. Dew control algorithm managed pins and thus dew strap outputs are all tied to the
 same ESP32 PWM channel and will have the same output.
 
-CheapoDC hardware build details can be found in the [Hardware](#hardware) section of this document. 
+CheapoDC hardware build details can be found in the [Hardware](#hardware) section of this document.
 
 CheapoDC firmware may installed on your device using one of the following methods:
 
@@ -151,15 +151,15 @@ required the number of connections is minimized by using common modules. This se
 to build a basic two dew strap controller commonly needed for a primary telescope and secondary guide scope.
 
 If you need additional dew controller outputs or the ability remotely control the power to another device then that
-information is covered [here]().
+information is covered [here](https://hcomet.github.io/CheapoDC/CheapoDCBuild.html).
 
 ### Component list
 
-* ESP32-C3 SuperMini (Other ESP32 modules should work but this one is very small and low priced) Example: [https://www.aliexpress.com/item/1005005967641936.html?spm=a2g0o.order_list.order_list_main.10.3b2c1802dRy3Tw]
+* ESP32-C3 SuperMini (Other ESP32 modules should work but this one is very small and low priced) Example: [https://www.aliexpress.com/item/1005005967641936.html?spm=a2g0o.order_list.order_list_main.10.3b2c1802dRy3Tw](https://www.aliexpress.com/item/1005005967641936.html?spm=a2g0o.order_list.order_list_main.10.3b2c1802dRy3Tw)
 * Buck converter to reduce 12V to 5V. I used an [LM2596 Module](https://www.amazon.ca/dp/B08Q2YKJ6Q?psc=1&ref=ppx_yo2ov_dt_b_product_details). You could also use an [MP1584EN Module](https://www.amazon.ca/eBoot-MP1584EN-Converter-Adjustable-Module/dp/B01MQGMOKI/ref=pd_sbs_d_sccl_2_3/141-9725081-7037101?pd_rd_w=UMd8F&content-id=amzn1.sym.ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_p=ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_r=4WWMQ6QG50JQ2BTYP273&pd_rd_wg=OCFjo&pd_rd_r=381f4abb-88a8-4856-a51f-39d3190099fa&pd_rd_i=B01MQGMOKI&th=1). These modules often have an adjustable output. You'll need to use an Volt meter to adjust the output to 5 volts before hooking it up.
 * Two [dual-MOSFET Modules](https://www.amazon.ca/dp/B08ZNDG6RY?psc=1&ref=ppx_yo2ov_dt_b_product_details) to handle output to the dew straps while being able to be triggered by the 3.3V levels from the ESP32 PWM pins.
 * A resettable fuse that can handle 5A. An example [5A PPTC](https://www.amazon.ca/10pcs-5000MA-Resettable-RGEF500-GF500/dp/B092T9Q3QR/ref=sr_1_4?crid=3KNZXWN5ZIERR&dib=eyJ2IjoiMSJ9.y5Pp17w_i-KzaprejYOYzM_8u_S5MY_jz1z932C2gBBmx5zcGFKHMHtP6qYXScM_-6ii9W8lDuEq5tbkCUQdYOFESDzjnASBHIusx7zAFOkhc6SNPrOH4O8ExB9WzAI-XgtIUvz-EvjfyOzjX4IN8iGl2GSffYGCb1BvIzldhIbrwCyyvNRyEfUCehiFknfJ5Uz1PSdPnC0BJjzSZp7Frh_EDLOF4CjpyeUQckj0FTQ347ehfh3jy3kHSu3I2iTOEaQZMRdqjpkW_NBOUMMsZsbeRdkMtzq0cIrGcsbUdhk.8jKyynsByh2dYlS0gLu9IdNbxiIm4iDIQv6g0ucFzCc&dib_tag=se&keywords=5a+pptc&qid=1709138849&sprefix=5a+pptc%2Caps%2C80&sr=8-4)
-* Optionally an LED and resistor for the status LED. Many astrophotograpers do not want power LEDs or lights of any sort on their equipment. If you fall into this category then just use the ESP32 onboard LED as the status LED. If you would prefer a visible status LED on your project case then you may optionally add one. Status LED details may be found in the [Status LED Section](#cheapodc-status-led).  
+* Optionally an LED and resistor for the status LED. Many astrophotographers do not want power LEDs or lights of any sort on their equipment. If you fall into this category then just use the ESP32 onboard LED as the status LED. If you would prefer a visible status LED on your project case then you may optionally add one. Status LED details may be found in the [Status LED Section](#cheapodc-status-led).  
 In my implementation I used a red LED connected to the same pin as the onboard LED, pin 8. I used a 1K resistor to keep the LED fairly dim while still working.
 * Some assorted hardware:
   * 12VDC 5.5mm x 2.1mm socket. Common socket size used for Astronomy.
@@ -255,12 +255,13 @@ Note that a Controller Output Pin to GPIO Pin mapping must be set before an Outp
 #### WiFi Configuration
 
 Shows current network information and allows you to configure the hostname and WiFi access point to use for network access. CheapoDC can be configured to step through multiple access points to make a WiFi connection.
+
 * Network Information
   * Wifi Mode: STA = Station Mode, AP = Access Point Mode.
   * Hostname: Current active hostname. If updated a reboot is required to see the new hostname.
   * IP Address.
 * Configure WiFi
-  * Name: Allows you to pick an access point for editting the password. Or, select `Add WiFi` to add an access point.
+  * Name: Allows you to pick an access point for editing the password. Or, select `Add WiFi` to add an access point.
   * SSID: Is the access point SSID point to add or edit. To delete an access point blank out the SSID and click **Update**.
   * Password: Is the password for the access point. **Show Password** will only work for adding a new WiFi access point.
 
@@ -276,7 +277,7 @@ Used to change the Status LED pin mapping from the default of GPIO 8. Also used 
 
 #### Firmware Update
 
-CheapoDC supports two methods for updating firmware. 
+CheapoDC supports two methods for updating firmware.
 
 1. Web OTA Update: Will indicate when a new release is available and then allow for an HTTP based OTA update. This will update both the firmware and data partitions while preserving your configuration settings. No software or Arduino IDE knowledge is required for this update method. Please consult the [Web OTA Update FAQ](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
 2. Manual OTA Update: Allows for an OTA update to firmware that has been compiled and built on your own machine. This only updates the data partition. You will need to manually update the files in the data partition using the [File Management UI](#cheapodc-file-management). At least Arduino IDE knowledge is required for this method.
@@ -375,7 +376,7 @@ The table below provides a list of the commands but the code is the final correc
 |    LNM   |&check;|  None    | String [32] |   Location name|
 |    TMZ   |&check;|  Seconds    | Integer |   Location time zone (seconds)|
 |    DST   |&check;|  Seconds    | Integer |   Location DST offset (seconds)|
-|    LED   |&check;|  None    | Integer |   Status LED GPIO pin
+|    LED   |&check;|  None    | Integer |   Status LED GPIO pin|
 |LEDH|&check;|None|Integer|Status LED High value.<br>1 or 0.|
 |    NTP   |&check;|  None    | String [64] |   NTP serverName|
 |   OMIN   |&check;|  &percnt;    | Integer |   DC Min output (0 to Max-1)|
@@ -458,8 +459,8 @@ Driver version 1.2 supports the latest versions of the CheapoDC firmware adding 
   * EasyLogger from Alex Skov Jensen provides the debug logging macros. The original library may be
   found at [https://github.com/x821938/EasyLogger](https://github.com/x821938/EasyLogger).
 * Other libraries used by CheapoDC include:
-   * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)
-   * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)
-   * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)
-   * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)
+  * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)
+  * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)
+  * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)
+  * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)
 * The [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) capability uses [ESP Web Tools](https://esphome.github.io/esp-web-tools/) from [Home Assistant](https://www.home-assistant.io/).
