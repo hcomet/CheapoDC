@@ -15,6 +15,8 @@
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
 #include <WebAuthentication.h>
+#include <Wire.h>
+//#include <Adafruit_SHT31.h>
 #include "CDCdefines.h"
 #include "CDCEasyLogger.h"
 #include "CDCvars.h"
@@ -80,6 +82,8 @@ bool CDCSetup::queryWeather(void)
 	DynamicJsonDocument doc(1024);
 #endif
   float alphaDP;
+  // Fake out INTERNALSOURCE for testing
+  bool useInternalSource = (this->_currentWeatherSource == INTERNALSOURCE);
 
   if (!this->_weatherQueryEnabled)
   {
@@ -87,8 +91,11 @@ bool CDCSetup::queryWeather(void)
     return true;
   }
   
+  if (useInternalSource)
+    this->_currentWeatherSource = OPENMETEO;
+
   LOG_DEBUG("queryWeather", "Current weather source: " << this->_currentWeatherSource);
-  if (this->_currentWeatherSource != EXTERNALSOURCE)
+  if (this->_currentWeatherSource <= OPENWEATHERSOURCE)
   {
     if (this->getInWiFiAPMode())
     {
@@ -198,6 +205,10 @@ bool CDCSetup::queryWeather(void)
   LOG_DEBUG("queryWeather", "    description: " << this->_currentWeather.weatherDescription);
   LOG_DEBUG("queryWeather", "    weatherIcon: " << this->_currentWeather.weatherIcon);
   LOG_DEBUG("queryWeather", "    data updated: " << this->_currentWeather.lastWeatherUpdateDate << " " << this->_currentWeather.lastWeatherUpdateTime);
+
+  
+  if (useInternalSource)
+    this->_currentWeatherSource = INTERNALSOURCE;
 
   return true;
 }
@@ -377,6 +388,9 @@ void CDCSetup::_loadDefaults(void)
 
   memset(this->_httpOTAURL, '\0', sizeof(this->_httpOTAURL));
   strlcpy(this->_httpOTAURL, CDC_DEFAULT_HTTP_OTA_URL, sizeof(this->_httpOTAURL));
+
+  this->_humiditySensorSDAPin = -1; // Disabled
+  this->_humiditySensorSCLPin = -1; // Disabled
 
   this->resetConfigUpdated();
   
@@ -861,12 +875,13 @@ void CDCSetup::setAmbientTemperatureExternal(float temperature)
   this->_ambientTemperatureExternal = temperature;
 }
 
-void CDCSetup::setWeatherSource(weatherSource source)
+void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
 {
-    if ((source < OPENMETEO) || (source > EXTERNALSOURCE))
+    weatherSource previousWeatherSource = this->_currentWeatherSource;
+    if ((source < OPENMETEO) || (source > INTERNALSOURCE))
     {
-        LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " set to default " << (weatherSource)CDC_DEFAULT_WEATHERSOURCE);
-        this->_currentWeatherSource = (weatherSource)CDC_DEFAULT_WEATHERSOURCE;
+        LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " keeping current source " << previousWeatherSource);
+        this->_currentWeatherSource = previousWeatherSource;
     }
     else
     {
@@ -882,6 +897,16 @@ void CDCSetup::setWeatherSource(weatherSource source)
         {
           strlcpy(this->_weatherAPIURL, CDC_OPENWEATHER_APIURL, sizeof(this->_weatherAPIURL));
           strlcpy(this->_weatherIconURL, CDC_OPENWEATHER_ICONURL, sizeof(this->_weatherIconURL));
+        }
+        else if (source == INTERNALSOURCE) // Treat as OpenMeteo for testing purposes
+        {
+          if (((this->_humiditySensorSDAPin < 0) || (this->_humiditySensorSCLPin < 0)) && !forceUpdate)
+          {
+            LOG_ERROR("setWeatherSource", "Internal Source selected but Humidity sensor pins not set. Keeping previous Weather Source.");
+            this->_currentWeatherSource = previousWeatherSource;
+          }
+          strlcpy(this->_weatherAPIURL, CDC_OPENMETEO_APIURL, sizeof(this->_weatherAPIURL));
+          strlcpy(this->_weatherIconURL, CDC_OPENMETEO_ICONURL, sizeof(this->_weatherIconURL));
         }
         else
         {

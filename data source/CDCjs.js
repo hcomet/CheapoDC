@@ -195,29 +195,32 @@ function setChangeItem( item ) {
             document.getElementById(itemId).onclick = function() {sendValue(itemId);};};
 ;
         switch (element.dataset.cdc) {
-            case "Automatic":
-            case "Weather Query": 
-            case "Dew Point":
-            case "Open-Meteo":
-            case "Disabled":
-            case "0":
+            case "Automatic":       // Controller modes
+            case "Weather Query":   // Temperature modes 
+            case "Dew Point":       // Set Point modes
+            case "Open-Meteo":      // Weather Source
+            case "Disabled":        // Output modes
+            case "0":               // Generic
                 element.value = 0;
                 break;
-            case "Manual":
-            case "External Input":
-            case "Temperature":
-            case "OpenWeather":
-            case "Controller":
-            case "1":
+            case "Manual":          // Controller modes
+            case "External Input":  // Temperature modes
+            case "Temperature":     // Set Point modes
+            case "OpenWeather":     // Weather Source
+            case "Controller":      // Output modes
+            case "1":               // Generic
                 element.value = 1;
                 break;
-            case "Off":
-            case "Midpoint":
-            case "External Source":
-            case "PWM":
+            case "Off":             // Controller modes
+            case "Midpoint":        // Set Point modes
+            case "External Source": // Weather Source
+            case "PWM":             // Output modes
+            case "2":               // Generic
                 element.value = 2;
                 break;
-            case "Boolean":
+            case "Internal Source": // Weather Source
+            case "Boolean":         // Output modes
+            case "3":               // Generic
                 element.value = 3;
                 break;
             default:

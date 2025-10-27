@@ -20,7 +20,7 @@
 #endif
 
 char programName[] = "CheapoDC"; // Program name
-char programVersion[] = "2.2.0";  // program version
+char programVersion[] = "2.3.0";  // program version
 
 CDCSetup *theSetup; // main setup class
 dewController *theDController;

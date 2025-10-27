@@ -290,6 +290,8 @@
 #define CDC_CMD_LEDH 65   // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
 #define CDC_CMD_FWUP 66   // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
 #define CDC_CMD_UURL 67   // Update URL - points to the HTTP OTA update manifest.json
+#define CDC_CMD_SDAP 68   // Humidity Sensor SDA pin for internal sensor
+#define CDC_CMD_SCLP 69    // Humidity Sensor SCL pin for internal sensor
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625

@@ -29,11 +29,12 @@ struct CDCLocation {
                 int  DSTOffset;
 };
 
-#define CDC_WEATHERSOURCE_JSONARRAY "{\"Source\":[\"Open-Meteo\",\"OpenWeather\",\"External Source\"]}"
+#define CDC_WEATHERSOURCE_JSONARRAY "{\"Source\":[\"Open-Meteo\",\"OpenWeather\",\"External Source\", \"Internal Source\"]}"
 enum    weatherSource {
             OPENMETEO,          // 0
             OPENWEATHERSOURCE,   // 1 
-            EXTERNALSOURCE      // 2     
+            EXTERNALSOURCE,      // 2  
+            INTERNALSOURCE       // 3    
 }; 
 
 struct          weatherData
@@ -122,12 +123,14 @@ class CDCSetup
         const char*     getWiFiHostname() {return this->_wifiConfig.hostname;};
         const char*     getIPAddress() {return this->_IPAddress;};
         const char*     getHttpOTAURL() {return this->_httpOTAURL;};
+        int             gethumiditySensorSDAPin() { return this->_humiditySensorSDAPin; };
+        int             getHumiditySensorSCLPin() { return this->_humiditySensorSCLPin; };
 
         // setters
         void    setPasswordHash( String pwdHash );
         void    setStatusLEDPin( int pin );
         void    setStatusLEDHigh( int highValue );
-        void    setWeatherSource( weatherSource newWeatherSource );
+        void    setWeatherSource( weatherSource newWeatherSource, bool forceUpdate = false );  // forceUpdate allows Internal Source even if pins not set
         void    setWeatherQueryAPIURL( String newURL ) {strlcpy(this->_weatherAPIURL, newURL.c_str(), sizeof(this->_weatherAPIURL));};
         void    setWeatherQueryIconURL( String newURL ) {strlcpy(this->_weatherIconURL, newURL.c_str(), sizeof(this->_weatherIconURL));};
         void    setWeatherQueryAPIKey( String newURL ) {strlcpy(this->_weatherAPIKey, newURL.isEmpty() ? CDC_NA : newURL.c_str(), sizeof(this->_weatherAPIKey));};   
@@ -145,6 +148,8 @@ class CDCSetup
         void    setLocationDST( int DSTOffset );
         void    calculateAndSetDewPoint();
         void    setHttpOTAURL( String url ) {strlcpy(this->_httpOTAURL, url.c_str(), sizeof(this->_httpOTAURL));};
+        void    sethumiditySensorSDAPin( int pin ) { this->_humiditySensorSDAPin = pin; };
+        void    setHumiditySensorSCLPin( int pin ) { this->_humiditySensorSCLPin = pin; };
 
         // Time related helpers
         // All return in local time based on time values in CDCLocation
@@ -196,6 +201,8 @@ class CDCSetup
         char            _passwordHash[64];
         bool            _configUpdated; 
         char            _httpOTAURL[256];
+        int             _humiditySensorSDAPin;
+        int             _humiditySensorSCLPin;
 #if ARDUINOJSON_VERSION_MAJOR>=7
 	JsonDocument    _backupWiFiConfig;
 #else

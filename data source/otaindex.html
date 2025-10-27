@@ -289,6 +289,30 @@
             <button type="button" id="passwordButton" onclick="changePassword()" disabled>Update</button>
          </form> <br>
          <hr class="confighr">
+         <h2>Humidity Sensor Configuration</h2>
+         <div class="cf2clm">
+            <div class="cfcl1">
+               <div class="cfln">
+                  <cfitm>SDA GPIO:</cfitm>
+                  <cfvl>
+                     <div class="crdg"><input type="number" name="LED" step="1" min="-1" max="39" class="cinp"
+                           id="SDAPI" data-cdc="%SDAP%" /></div>
+                  </cfvl>
+                  <cfact><button type="button" class="cbtn" id="SDAP" disabled>Update</button></cfact>
+               </div>
+            </div>
+            <div class="cfcl2">
+               <div class="cfln">
+                  <cfitm>SCL GPIO:</cfitm>
+                  <cfvl>
+                     <div class="crdg"><input type="number" name="LED" step="1" min="-1" max="39" class="cinp"
+                           id="SCLPI" data-cdc="%SCLP%" /></div>
+                  </cfvl>
+                  <cfact><button type="button" class="cbtn" id="SCLP" disabled>Update</button></cfact>
+               </div>
+            </div>
+         </div>
+         <hr class="confighr">
          <h2>Status LED Configuration</h2>
          <div class="cf2clm">
             <div class="cfcl1">

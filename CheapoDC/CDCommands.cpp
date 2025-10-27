@@ -86,7 +86,9 @@ std::map<std::string, CDCommand> CDCCommands = {
     {"PWDH", {CDC_CMD_PWDH, 1, CDC_UNITS_NONE}},                 // Password Hash
     {"LEDH", {CDC_CMD_LEDH, 1, CDC_UNITS_NONE}},                  // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
     {"FWUP", {CDC_CMD_FWUP, 0, CDC_UNITS_NONE}},                 // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
-    {"UURL", {CDC_CMD_UURL, 1, CDC_UNITS_NONE}}                   // Update URL - points to the HTTP OTA update manifest.json
+    {"UURL", {CDC_CMD_UURL, 1, CDC_UNITS_NONE}},                   // Update URL - points to the HTTP OTA update manifest.json
+    {"SDAP", {CDC_CMD_SDAP, 1, CDC_UNITS_NONE}},                 // Humidity Sensor SDA pin for internal sensor
+    {"SCLP", {CDC_CMD_SCLP, 1, CDC_UNITS_NONE}}                  // Humidity Sensor SCL pin for internal sensor
   };  
 
 // ******************************************************************
@@ -520,6 +522,16 @@ cmdResponse getCmdProcessor(const String &var)
     newResponse.response = String(theSetup->getHttpOTAURL());
     break;
   }
+  case CDC_CMD_SDAP:
+  {
+    newResponse.response = String(theSetup->gethumiditySensorSDAPin());
+    break;
+  }
+  case CDC_CMD_SCLP:
+  {
+    newResponse.response = String(theSetup->getHumiditySensorSCLPin());
+    break;
+  }
   default:
     LOG_ALERT("getCmdProcessor", "GET function not supported for: " << var);
     return newResponse;
@@ -665,7 +677,7 @@ bool setCmdProcessor(const String &var, String newValue, cmdCaller caller)
     int oldValue = (int)theSetup->getWeatherSource();
     if (oldValue != newValue.toInt())
     {
-      theSetup->setWeatherSource((weatherSource)newValue.toInt()); 
+      theSetup->setWeatherSource((weatherSource)newValue.toInt(), (caller == LOADCONFIG)); 
 #if defined(CDC_ENABLE_CMDQUEUE) || defined(CDC_ENABLE_WEB_SOCKETS)
       cmdPostProcessQueue.doWeatherQuery = true;
       cmdPostProcessQueue.doUpdateOutput = true;
@@ -915,6 +927,17 @@ bool setCmdProcessor(const String &var, String newValue, cmdCaller caller)
     theSetup->setHttpOTAURL(newValue);
     break;
   }
+  case CDC_CMD_SDAP:
+  {
+    theSetup->sethumiditySensorSDAPin(newValue.toInt());
+    break;
+  }
+  case CDC_CMD_SCLP:
+  {
+    theSetup->setHumiditySensorSCLPin(newValue.toInt());
+    break;
+  }
+
   // Commands that have values in the configuration file but cannot be set 
   case CDC_CMD_FW:      // Set FW not supported but stored in the CDCConfig file for versioning 
     return false;   
