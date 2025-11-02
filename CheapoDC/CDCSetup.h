@@ -10,6 +10,8 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <SensirionI2cSht3x.h>
+#include <Wire.h>
 #include "CDCdefines.h"
 #include "CDCvars.h"
 
@@ -74,6 +76,9 @@ class CDCSetup
     public:
                 CDCSetup(void);
         bool setupWiFi(void);
+        bool setupHumiditySensor();
+        bool checkHumiditySensor() {return this->_humiditySensorStatus;};
+        bool updateSensorReadings();
         bool saveWiFiConfig( String wifiConfigJson );
         bool LoadConfig(void);
         bool SaveConfig(void);
@@ -176,6 +181,8 @@ class CDCSetup
         void _loadDefaults(void);
         void _writeStatusLED(uint8_t value);
         int _readStatusLED(void);
+        //float _getSensorHumidity();
+        //float _getSensorHumidity();
 
         CDCWiFiConfig   _wifiConfig;
         bool            _inWiFiAPMode;
@@ -203,6 +210,13 @@ class CDCSetup
         char            _httpOTAURL[256];
         int             _humiditySensorSDAPin;
         int             _humiditySensorSCLPin;
+        bool            _humiditySensorStatus = false;     
+        SensirionI2cSht3x* _humiditySensor;
+        float           _sensorHumidity = 0.0F;
+        float           _sensorTemperature = -127.0F;
+        char            _lastHumiditySensorUpdateTime[32];
+        char            _lastHumiditySensorUpdateDate[32];
+
 #if ARDUINOJSON_VERSION_MAJOR>=7
 	JsonDocument    _backupWiFiConfig;
 #else

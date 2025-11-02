@@ -85,15 +85,17 @@
 // - Open-Meteo: https://open-meteo.com/
 // - OpenWeather: https://home.openweathermap.org/users/sign_up (To get an API key)
 // - External Source: Temperature and Humidity must be provided via the API
+// - Internal Source: SHT3x sensor must be installed and configured to provide Temperature and Humidity
 // ************************************************************************************* 
 #define CDC_OPENMETEO_APIURL "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,is_day,weather_code&timeformat=unixtime"           
 #define CDC_OPENMETEO_ICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
 #define CDC_OPENWEATHER_APIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric" // Need metric for temperature calculations to work
 #define CDC_OPENWEATHER_ICONURL "https://openweathermap.org/img/wn/%s@2x.png"
-#define CDC_EXTERNALSOURCE_APINURL "--"
-#define CDC_EXTERNALSOURCE_ICONURL "/weatherIconNA.png"
-#define CDC_EXTERNALSOURCE_DESC "Not available."
+#define CDC_WEATHERSOURCE_APIURL_NA "--"
+#define CDC_WEATHERSOURCE_ICONURL_NA "/weatherIconNA.png"
+#define CDC_WEATHERSOURCE_DESC_NA "Not available."
 #define CDC_EXTERNALSOURCE_LOCATION_NAME "External Source"
+#define CDC_INTERNALSOURCE_LOCATION_NAME "Internal Source"
 // Set Weather Query defaults for Open-Meteo since it does not require an API key
 #define CDC_DEFAULT_WEATHERSOURCE 0 // OPENMETEO 
 #define CDC_DEFAULT_WEATHERAPIURL CDC_OPENMETEO_APIURL

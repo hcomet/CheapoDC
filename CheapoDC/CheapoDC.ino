@@ -58,6 +58,9 @@ int controllerUpdateLast = 0;
 // Save configuration check in seconds
 int saveConfigDelta = 0;
 int saveConfigLast = 0;
+// Humidity Sensor scan timer in minutes
+int humiditySensorDelta = 0;
+int humiditySensorLast = 0;
 
 // Timer functions for scheduled services
 void ledTimer(int timeCheck)
@@ -170,6 +173,31 @@ void saveConfigTimer(int timeCheck)
   }
 }
 
+void humiditySensorTimer(int timeCheck)
+{
+
+  if (theSetup->checkHumiditySensor())
+  {
+    if ((timeCheck - humiditySensorLast) < 0)
+    {
+      humiditySensorDelta = 60 - humiditySensorLast + timeCheck;
+    }
+    else
+    {
+      humiditySensorDelta = timeCheck - humiditySensorLast;
+    }
+
+    if (humiditySensorDelta >= 2)
+    {
+      if (!theSetup->updateSensorReadings())
+      {
+        LOG_ALERT("humiditySensorTimer", "Failure to update Humidity Sensor readings.");
+      }
+      humiditySensorLast = timeCheck;
+    }
+  }
+}
+
 // Main setup
 void setup()
 {
@@ -181,18 +209,14 @@ void setup()
 
   theDController = new dewController();
   theSetup = new CDCSetup();
-  /* 
-  theSetup->setWeatherQueryEnabled( false );
-   */
+  
   LOG_DEBUG("Main-setup", "Load CheapoDC configuration");
   if (!theSetup->LoadConfig())
   {
     LOG_ERROR("Main-setup", "Load Configuration Failure. Will continue on defaults.");
   }
 
-  // initialize status LED as an output.
-
-  // pinMode(CDC_DEFAULT_STATUS_LED_PIN, OUTPUT);
+  // initialize status LED
   theSetup->blinkStatusLEDEvery(CDC_DEFAULT_STATUS_BLINK);
   theSetup->statusLEDOn();
 
@@ -207,6 +231,14 @@ void setup()
     theDController->setControllerMode(OFF);
   }
 
+  if (theSetup->setupHumiditySensor())
+  {
+    LOG_ALERT("Main-setup", "Humidity sensor found and configured.");
+  }
+  else
+  {
+    LOG_ALERT("Main-setup", "Humidity sensor not found.")
+  }
   
   // Adjust Timezone etc....
   configTime(theSetup->getLocation().timezone, theSetup->getLocation().DSTOffset, theSetup->getNTPServerURL());
@@ -306,6 +338,9 @@ void loop()
 
         // call update controller timer
         controllerUpdateTimer(minCount);
+
+        // call update humidity sensor readings
+        humiditySensorTimer(minCount);
 
       } // End Minutes check
     }
