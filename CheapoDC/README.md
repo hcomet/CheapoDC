@@ -30,17 +30,19 @@ This note is to highlight the change in recommended partition scheme implemented
    * [Output to GPIO Pin mapping](../README.md#controller-output-configuration). All controller outputs may be configured using the Web UI or API. This includes the original two core dew controller outputs as well as the four new additional outputs added in V2.2.0.
    * [Status LED GPIO Pin](../README.md#status-led-configuration). The pin used for the status LED as well as whether or not it is active High or Low may be configured through the Web UI or API.
    * [Change Password](../README.md#change-password). The user Id remains **admin** but the password may now be changed in the Web UI. Password security has been improved by moving to using a [Digest access authentication](https://en.wikipedia.org/wiki/Digest_access_authentication#:~:text=In%20contrast%2C%20basic%20access%20authentication,It%20uses%20the%20HTTP%20protocol.) MD5 Password Hash.
-4. A new Weather Source has been added to support integration with personal weather stations or other weather services. When the Weather Source is set to ***External Source*** the local ambient temperature and humidity may be set through the API. The Dew Point and dew controller power output will then be calculated based on these externally set values.
+4. New Weather Sources added for more flexibility and autonomous operation:
+   * V2.2.0 added support for integration with personal weather stations or other weather services. When the Weather Source is set to ***External Source*** the local ambient temperature and humidity may be set through the API. The Dew Point and dew controller power output will then be calculated based on these externally set values.
+   * V2.3.0 added support for connecting an SHT3x humidity/temperature sensor. When the Weather Source is set to ***Internal Source***, local ambient temperature and humidty will be taken from a temperature/humidity sensor connected to the CheapoDC. The SHT3x must be properly [connected and configured](https://hcomet.github.io/CheapoDC/CheapoDCSensor.html) for ***Internal Source*** to work.
 5. API changes:
    * ***`CPPx`***, ***`CPMx`*** and ***`CPOx`*** API commands added to allow outputs **x = 0 to 5** to be configured for GPIO Pin mapping, Output Mode and Output Power respectively.
    * The ***`LED`*** API command changed to set the GPIO pin for the Status LED while ***`LEDH`*** sets the value of High to 1 or 0.
    * The Weather Source (***`WS`***) API command now supports a SET capability. This API command has also been changed
    to use an integer value to specify the Weather Source:  
-   `[Open-Meteo = 0, OpenWeather = 1, External Source = 2]`  
-   This has unfortunately
-   made the GET API call NOT backwards compatible to V1.
+   `[Open-Meteo = 0, OpenWeather = 1, External Source = 2, Internal Source = 3]`  
+   External Source added in V2.2.0. Internal Source added in V2.3.0.
    * The Ambient Temperature from Weather Query (***`ATPQ`***) API command now supports a SET capability when the Weather Source is set to External Source.
    * The Humidity (***`HU`***) API command now supports a SET capability when the Weather Source is set to External Source.
+   * ***`SDAP`*** and ***`SCLP`*** API commands added in V2.3.0 to allow for configuration of an internal humidity/temperature sensor. ***`SDAP`*** sets or gets the I2C SDA (data) pin. ***`SCLP`*** sets or gets the I2C SCL (clock) pin. Pins 10 and 9 are the recommended pins for SDA and SCL, respectively. A value of -1 (default) will disable the sensor. A reboot of the device is required for I2C changes to take effect.
    * The Weather API URL (***`WAPI`***) API command no longer supports a SET capability.
    * The Weather Icon URL (***`WIURL`***) API command no longer supports a SET capability.
    * The Cloud Coverage (***`CLC`***) API command has been deprecated.
@@ -54,11 +56,11 @@ CheapoDC configuration files.
 ## Setting Up Your Build Environment
 
 1. Install the Arduino IDE.  
-  <u>**NOTE:**</u> Version 2.3.4 of the Arduino IDE is a very stable release. As of CheapoDC v2.1.0 verification of
-  builds will only be done on IDE version 2.3.4 or newer.
+  <u>**NOTE:**</u> Version 2.3.6 of the Arduino IDE is required. As of CheapoDC v2.3.0 verification of
+  builds will only be done on IDE version 2.3.6 or newer.
 2. Add support for ESP32 modules using the Boards Manager in the Arduino IDE.  
   <u>**IMPORTANT:**</u>
-    * Install the boards plugin for ESP32 from Espressif Systems version 3.1.x (Arduino core for the ESP32). CheapoDC verification has been done with version 3.1.1.
+    * Install the boards plugin for ESP32 from Espressif Systems version 3.3.2 (Arduino core for the ESP32). CheapoDC verification has been done with version 3.3.2. (Note: 3.3.0 and 3.3.1 seemed to have some issues with WiFi connectivity so neither are recommended.)
     * CheapoDC is intended for use on ESP32 devices. The current version has been verified on an [ESP32-C3 SuperMini](https://michiel.vanderwulp.be/domotica/Modules/ESP32-C3-SuperMini/) board..
 3. Install the ESP32 Sketch data uploader with support for LittleFS. The CheapoDC uses the LittleFS file system for configuration files and web pages uploaded from the ***CheapoDC/data*** folder. If the data is uploaded using any other file system format, such as SPIFFS, the CheapoDC firmware will not run properly.  
 <u>**NOTE:**</u> The following link provides information on how to install a data uploader plugin with LittleFS support:
@@ -66,11 +68,15 @@ CheapoDC configuration files.
 
 4. Install the following libraries if not already installed:
    * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)  
-     Version: 7.3.1
+     Version: 7.4.2
    * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)  
-     Version: 3.7.4
+     Version: 3.8.1
    * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)  
-     Version: 3.3.8
+     Version: 3.4.9
+   * [Sensirion I²C SHT3X by Sensirion](https://github.com/Sensirion/arduino-i2c-sht3x)  
+     Version 1.0.1
+   * [Sensirion Core by Sensirion](https://github.com/Sensirion/arduino-core/)  
+     Version 0.7.1
    * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
      Version: 1.6.1
 
@@ -90,7 +96,7 @@ CheapoDC configuration files.
 
 ## Configure Firmware in the CDCdefines.h file
 
-As of V2.2.0 changes to the ***CDCdefines.h*** file are **not** required since all key items can now be modified at runtime and are saved to the [CDCConfig.json](#cdcconfigjson). If you do wish to to configure/customize the firmware before building the following items may be modified in the ***CDCdefines.h*** file:
+As of V2.2.0 changes to the ***CDCdefines.h*** file are <u>**not**</u> required since all key items can now be modified at runtime, via the [WebUI](../README.md#web-ui), and are saved to the [CDCConfig.json](#cdcconfigjson). If you do wish to to configure/customize the firmware before building the following items may be modified in the ***CDCdefines.h*** file:
 
 1. Set the default ESP32 GPIO pins to be used for Controller Outputs 0 & 1. ***DEFAULT: 0 & 1***.  
     ```#define CDC_DEFAULT_CONTROLLER_PIN0 0```  
@@ -156,9 +162,11 @@ If you have not modified the default CDCWiFi.json then the CheapoDC will enter A
 * Scroll down to [WiFi Configuration](../README.md#wifi-configuration) and configure your WiFi SSID and Password. You'll need to [Reboot](../README.md#reboot-device) the CheapoDC for the WiFi changes to take effect.
 * After rebooting. The CheapoDC should be connected to your WiFi network. Refresh your browser and stay on the Device Management page.
 * Configure the [Controller Outputs](../README.md#controller-output-configuration) if needed. Output 0 and 1 are always dew controller outputs and by default mapped to GPIO pins 0 and 1. Outputs 2 to 5 may be configured as Controller, PWM or Boolean. They are Disabled by default. Outputs **must** be mapped to a GPIO pin first before an [Output Mode](../README.md#output-modes) may be set.  
-  For the ESP32-C3 SuperMini GPIO pins 0, 1, 3, 5, 6 and 7 have been validated.
+  For the ESP32-C3 SuperMini GPIO pins 0, 1, 3, 4, 5 and 7 have been validated.
 * [Change your password](../README.md#change-password).
-* [Change the Status LED](../README.md#status-led-configuration) GPIO pin and High Value setting if needed.
+* Set up the Humidity Sensor if you have [added one to your device](../README.md#humidity-sensor-configuration). A [Reboot](../README.md#reboot-device) of the device will be required for SDA and SCL pin changes to take effect.  
+  For the ESP32-C3 SuperMini GPIO pins 9 (SCL) anf 10 (SDA) have been validated.
+* [Change the Status LED](../README.md#status-led-configuration) GPIO pin and High Value setting if needed. GPIO pin 8 is the default while setting it to -1 will disable the LED.
 * Go to the [Controller Configuration](../README.md#cheapodc-controller-configuration) page to set up the parameters for the dew controller, weather query and your location. Dew controller parameters are explained in the [Dew Control Algorithm](../README.md#how-the-dew-control-algorithm-works) section.
 
 Your CheapoDC should now be ready to use.
