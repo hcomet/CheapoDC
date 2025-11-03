@@ -79,7 +79,7 @@
                 <cfitm>Temperature Mode:</cfitm>
                 <cfvl>
                     <div class="crdg"><select name="DCTM" id="DCTMS" data-cdc="%DCTM%">
-                            <option id="Weather Query" value="0">Weather Query</option>
+                            <option id="Weather Query" value="0">Weather Source</option>
                             <option id="External Input" value="1">External Input</option>
                         </select>
                         <script>document.getElementById("DCTMS").value = "%DCTM%";</script>
@@ -88,7 +88,7 @@
                 <cfact><button type="button" class="cbtn" id="DCTM">Update</button></cfact>
             </div>
             <div class="cfln">
-                <cfitm>Weather Query:</cfitm>
+                <cfitm>Weather Source:</cfitm>
                 <cfvl>
                     <div class="crdg"><input type="number" name="ATPQ" step="0.1" class="cinp" id="ATPQI" 
                             data-cdc="%ATPQ%" /></div>

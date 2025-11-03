@@ -181,8 +181,6 @@ class CDCSetup
         void _loadDefaults(void);
         void _writeStatusLED(uint8_t value);
         int _readStatusLED(void);
-        //float _getSensorHumidity();
-        //float _getSensorHumidity();
 
         CDCWiFiConfig   _wifiConfig;
         bool            _inWiFiAPMode;

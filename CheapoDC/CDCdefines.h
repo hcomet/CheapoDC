@@ -24,7 +24,7 @@
 #define CDC_DEFAULT_CONTROLLER_PIN0 0  // set first Controller output default
 #define CDC_DEFAULT_CONTROLLER_PIN1 1  // set second Controller output default
 #define CDC_CONTROLLER_PWM_CHANNEL 0      // The PWM Channel used for Dew Controller managed Pins (Don't change)
-#define CONTROLLER_PIN_NOT_CONFIGURED -1  // Used to indicate that a pin has not been configured
+#define CDC_PIN_NOT_CONFIGUED -1  // Used to indicate that a pin has not been configured
 
 // *************************************************************************************
 // Builtin LED or other pin to use for Status LED.

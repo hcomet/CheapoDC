@@ -406,8 +406,8 @@ void CDCSetup::_loadDefaults(void)
   memset(this->_httpOTAURL, '\0', sizeof(this->_httpOTAURL));
   strlcpy(this->_httpOTAURL, CDC_DEFAULT_HTTP_OTA_URL, sizeof(this->_httpOTAURL));
 
-  this->_humiditySensorSDAPin = -1; // Disabled
-  this->_humiditySensorSCLPin = -1; // Disabled
+  this->_humiditySensorSDAPin = CDC_PIN_NOT_CONFIGUED; // Disabled
+  this->_humiditySensorSCLPin = CDC_PIN_NOT_CONFIGUED; // Disabled
 
   this->resetConfigUpdated();
   
@@ -1271,7 +1271,8 @@ bool CDCSetup::updateSensorReadings()
   strlcpy(this->_lastHumiditySensorUpdateTime, this->getTime().c_str(), sizeof(this->_lastHumiditySensorUpdateTime));
   strlcpy(this->_lastHumiditySensorUpdateDate, this->getDate().c_str(), sizeof(this->_lastHumiditySensorUpdateDate));
 
-  LOG_ALERT("updateSensorReadings", "Sensor values, Temperature: " << this->_sensorTemperature << ", Humidity: " << this->_sensorHumidity);
+  LOG_DEBUG("updateSensorReadings", "Sensor values, Temperature: " << this->_sensorTemperature << ", Humidity: " << this->_sensorHumidity);
+  LOG_DEBUG("updateSensorReadings", "Updated: " << String(this->_lastHumiditySensorUpdateDate) << "  " << String(this->_lastHumiditySensorUpdateTime));
 
   return true;
 
