@@ -19,7 +19,7 @@ dewController::dewController(void)
     LOG_DEBUG("dewController", "Setup and configure dew controller PWM outputs");
     for (int i = 0; i < MAX_CONTROLLER_PINS; i++)
     {
-        this->_controllerPinSettings[i].controllerPinPin = CDC_PIN_NOT_CONFIGUED;
+        this->_controllerPinSettings[i].controllerPinPin = CDC_PIN_NOT_CONFIGURED;
         this->_controllerPinSettings[i].controllerPinMode = CONTROLLER_PIN_MODE_DISABLED;
         this->_controllerPinSettings[i].controllerPinOutput = 0;
     }
@@ -58,7 +58,7 @@ bool dewController::setEnabled()
     // Enable all configured Pins
     for (int i = CONTROLLER_PIN0; i < MAX_CONTROLLER_PINS; i++)
     {
-        if (this->_controllerPinSettings[i].controllerPinPin != CDC_PIN_NOT_CONFIGUED) {
+        if (this->_controllerPinSettings[i].controllerPinPin != CDC_PIN_NOT_CONFIGURED) {
             if(!this->setControllerPinMode(i, this->_controllerPinSettings[i].controllerPinMode)) {
                 LOG_ERROR("setEnabled", "Controller Output failure " << i << ". Controller cannot be enabled.");
                 this->_controllerEnabled = false;
@@ -105,7 +105,7 @@ bool dewController::setControllerPinPin(int controllerPin, int pin)
     }
 
     if ((this->_controllerEnabled) && ((this->_controllerPinSettings[controllerPin].controllerPinMode != CONTROLLER_PIN_MODE_DISABLED) || 
-        (this->_controllerPinSettings[controllerPin].controllerPinPin != CDC_PIN_NOT_CONFIGUED)))
+        (this->_controllerPinSettings[controllerPin].controllerPinPin != CDC_PIN_NOT_CONFIGURED)))
     {
         if (!this->setControllerPinMode(controllerPin, CONTROLLER_PIN_MODE_DISABLED)) {
             LOG_ERROR("setControllerPinPin", "Controller Output " << controllerPin << " is enabled. Pin cannot be changed.");
@@ -138,7 +138,7 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
         return true;
     }
 
-    if (this->_controllerPinSettings[controllerPin].controllerPinPin == CDC_PIN_NOT_CONFIGUED)
+    if (this->_controllerPinSettings[controllerPin].controllerPinPin == CDC_PIN_NOT_CONFIGURED)
     {
         LOG_ERROR("setControllerPinMode", "Controller Output " << controllerPin << " is not configured.");
         return false;
@@ -173,7 +173,7 @@ bool dewController::setControllerPinMode(int controllerPin, controllerPinModes m
         } 
         digitalWrite(_controllerPinSettings[controllerPin].controllerPinPin, 0);
         this->_controllerPinSettings[controllerPin].controllerPinOutput = 0;
-        this->_controllerPinSettings[controllerPin].controllerPinPin = CDC_PIN_NOT_CONFIGUED;
+        this->_controllerPinSettings[controllerPin].controllerPinPin = CDC_PIN_NOT_CONFIGURED;
         break;
     case CONTROLLER_PIN_MODE_CONTROLLER:
 #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
@@ -365,26 +365,33 @@ void dewController::updateOutput(int output)
                 referenceTemperature = theSetup->getAmbientTemperatureWQ();
             }
 
-            switch (this->_currentSetPointMode)
+            if (referenceTemperature == CDC_TEMPERATURE_NOT_SET)
             {
-            case DEWPOINT:
-                setPoint = theSetup->getDewPoint();
-                break;
-            case TEMPERATURE:
-                setPoint = this->_currentTemperatureSetPoint;
-                break;
-            case MIDPOINT:
-                if (referenceTemperature <= theSetup->getDewPoint())
-                    setPoint = theSetup->getDewPoint();
-                else
-                    setPoint = (referenceTemperature + theSetup->getDewPoint()) / 2;
-                break;
-            default:
-                setPoint = theSetup->getDewPoint();
-                break;
+                newOutput = this->_minimumOutputSetting;
             }
+            else
+            {
+                switch (this->_currentSetPointMode)
+                {
+                case DEWPOINT:
+                    setPoint = theSetup->getDewPoint();
+                    break;
+                case TEMPERATURE:
+                    setPoint = this->_currentTemperatureSetPoint;
+                    break;
+                case MIDPOINT:
+                    if (referenceTemperature <= theSetup->getDewPoint())
+                        setPoint = theSetup->getDewPoint();
+                    else
+                        setPoint = (referenceTemperature + theSetup->getDewPoint()) / 2;
+                    break;
+                default:
+                    setPoint = theSetup->getDewPoint();
+                    break;
+                }
 
-            newOutput = this->_calculateOutput(referenceTemperature, setPoint, this->_currentTrackingRange, this->_currentTrackPointOffset);
+                newOutput = this->_calculateOutput(referenceTemperature, setPoint, this->_currentTrackingRange, this->_currentTrackPointOffset);
+            }
             break;
 
         case MANUAL:

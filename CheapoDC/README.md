@@ -51,7 +51,8 @@ This note is to highlight the change in recommended partition scheme implemented
 CheapoDC configuration files.
 8. Change in ESP32 Partition Scheme required for CheapoDC V2.1.x. See [Partition Scheme](#partition-scheme) for details.
 9. As of V2.2.0, CheapDC now supports firmware and data partition upgrades using the Web UI and HTTP OTA. See the documentation on [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
-10. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
+10. As of V2.3.0, when in Access Point Mode, CheapoDC will use the hostname for the SSID.
+11. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
 
 ## Setting Up Your Build Environment
 
@@ -76,7 +77,7 @@ CheapoDC configuration files.
    * [Sensirion I²C SHT3X by Sensirion](https://github.com/Sensirion/arduino-i2c-sht3x)  
      Version 1.0.1
    * [Sensirion Core by Sensirion](https://github.com/Sensirion/arduino-core/)  
-     Version 0.7.1
+     Version 0.7.2
    * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
      Version: 1.6.1
 
@@ -111,11 +112,9 @@ As of V2.2.0 changes to the ***CDCdefines.h*** file are <u>**not**</u> required 
     <u>**NOTE:**</u> Some ESP32-C3 modules have the Status LED wired so that setting the status pin high is off or reversed. Uncomment this line to reverse the High/Low setting for the status LED pin.  
     ```//#define CDC_REVERSE_HIGH_LOW```  
     *May be changed through the Web UI or API*
-4. Set up the WiFi configuration.  The CheapoDC may operate in either Access Point (AP) mode or Station (ST) mode. The CheapoDC defaults to AP mode when it cannot connect to an access point.  
+4. Set up the WiFi configuration.  The CheapoDC may operate in either Access Point (AP) mode or Station (ST) mode. The CheapoDC defaults to AP mode when it cannot connect to an access point.  The AP mode SSID will be set to be the same as the hostname which defaults to ***cheapodc***.  
 <u>**NOTE:**</u> Changing the WiFi configuration is **NOT** recommended. ST Mode settings can be changed in the Web UI while AP Mode settings will be overwritten if Web OTA Update is used.
-    * AP Mode settings must be configured in the ***CDCdefines.h*** file:
-      * Change AP mode SSID. ***DEFAULT: cheapodc***.  
-        ```#define CDC_DEFAULT_WIFI_AP_SSID "cheapodc"```  
+    * AP Mode settings must be configured in the ***CDCdefines.h*** file:  
       * Change AP mode password. ***DEFAULT: cheapodc***.  
         ```#define CDC_DEFAULT_WIFI_AP_PASSWORD "cheapodc"```  
     * ST Mode settings may be configured in either the ***CDCdefines.h*** file or the ***CDCWiFi.json*** file found in the ***data*** folder. Values in found in the ***CDCWiFi.json*** files will be used before using the values in the ***CDCdefines.h*** file. Using the ***CDCWiFi.json*** file to configure WiFi access allows multiple APs and credentials to be defined. How to configure the ***CDCWiFi.json*** file is found [here](#cdcwifijson) while configuring default values in the ***CDCdefines.h*** file is as follows:
@@ -128,15 +127,15 @@ As of V2.2.0 changes to the ***CDCdefines.h*** file are <u>**not**</u> required 
         ```//#define CDC_ENABLE_WIFI_TX_POWER_MOD WIFI_POWER_8_5dBm```  
         Uncomment to enable. If enabled the default value sets TX power to 8.5dbm. Any of the `wifi_power_t` values found [here](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFiGeneric.h#L51-L67) may be used. Extensive testing with WiFi TX Power settings has **NOT** been done.
 
-5. The hostname for the CheapoDC may also be changed. Its recommended that this be done using the [Web UI](../README.md#wifi-configuration). This is really only needed if you have multiple CheapoDC controllers on the same network.  To change the hostname in the ***CDCdefines.h*** file:
+5. The hostname for the CheapoDC may also be changed. Its recommended that this be done using the [Web UI](../README.md#wifi-configuration). This is really only needed if you have multiple CheapoDC controllers on the same network.  To change the hostname in the ***CDCdefines.h*** file:  
+<br><u>**NOTE:**</u> When in access point (AP) mode the SSID for the AP will be the same as the hostname.
     * Change the host name. ***DEFAULT: cheapodc***.  
       ```#define CDC_DEFAULT_HOSTNAME "cheapodc"```  
-      *May be changed through the Web UI or API*
+      *Recommended to be modified only through the Web UI or API*
 6. As of firmware V2.2.0, CheapoDC supports a [Web Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) capability. This is enabled by default but can be disabled by commenting out the following line:  
     ```#define CDC_ENABLE_HTTP_OTA```
 7. Do not modify any of the ```#define``` values below the line  ```DO NOT change anything below here```. The Weather Source and OpenWeather API key should be set or changed through the [Web UI](../README.md#web-ui) not in the ***CDCdefines.h*** file.  
-    <u>**IMPORTANT:**</u>
-    * **DO NOT** modify the URLs for API or Icon calls.
+<br><u>**IMPORTANT:**</u> **DO NOT** modify the URLs for API or Icon calls.
 
 ## Build and Configure a New Device
 
@@ -228,13 +227,14 @@ The example shows settings for two access points in the "wifi" section. This can
 2. To set up a second AP (or more) then update "FakeSSID2" and "Password2" for the second AP (or add more entries separated by commas for more APs). If you only want one AP then delete the entry including the preceding comma.  
 ```{"ssid":"FakeSSID2","password":"Password2"}```
 3. You can also change the "hostname" from the default of ***cheapodc***.  
-```"hostname":"cheapodc"```
+```"hostname":"cheapodc"```  
+**Note:** Changing the hostname will also change the SSID for the device when in Access Point mode.
 4. Changing "connectAttempts" will change then number of times the CheapoDC will attempt to connect to an access point before moving to the next access point in the list.  
 ```"connectAttempts":"10"```
 5. Changing "tryAPs" will change the number of times the CheapoDC will loop through the list of access points before switching to Access Point (AP) mode.  
 ```"tryAPs":"1"```
 
-If CheapoDC fails to connect to an access point in Station Mode then it will switch to Access Point mode. The default SSID and Password for AP mode are bot *CheapoDC* by default. This may be changed in the [***CDCdefines.h***](#configure-firmware-in-the-cdcdefinesh-file) file.
+If CheapoDC fails to connect to an access point in Station Mode then it will switch to Access Point (AP) mode. The AP SSID will be the same as the hostname with a default of *cheapodc*. The AP password is always *cheapodc* and can only be changed in the  [***CDCdefines.h***](#configure-firmware-in-the-cdcdefinesh-file) file.
 
 If no ***CDCWiFi.json*** file is found then the values for WiFi configuration will be taken from the [***CDCdefines.h***](#configure-firmware-in-the-cdcdefinesh-file) file.
 

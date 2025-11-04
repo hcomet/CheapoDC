@@ -262,7 +262,8 @@ Shows current network information and allows you to configure the hostname and W
 
 * Network Information
   * Wifi Mode: STA = Station Mode, AP = Access Point Mode.
-  * Hostname: Current active hostname. If updated a reboot is required to see the new hostname.
+  * Hostname: Current active hostname. If updated a reboot is required to see the new hostname.  
+  **Note:** Changing the hostname will also change the SSID for the device when in Access Point Mode.
   * IP Address.
 * Configure WiFi
   * Name: Allows you to pick an access point for editing the password. Or, select `Add WiFi` to add an access point.
@@ -316,8 +317,6 @@ CheapoDC supports two API mechanisms:
 
 1. TCP API using JSON syntax
 2. Basic Web API utilizing HTTP POST
-
-Formerly a third mechanism, Web Sockets API, was supported but wav deprecated in release v2.2.0.
 
 The APIs use the same commands which are listed in the top of [CDCommands.cpp](/CheapoDC/CDCommands.cpp). Commands are 2 to 4 character strings. For each command there is a map indicating:
 
@@ -447,10 +446,6 @@ The Web API uses POST and "x-www-form-urlencoded" with name value pairs.
 * Response: **cmd=value**  
 success has HTTP status code of 200.
 
-### Web Sockets API
-
-Deprecated in release v2.2.0.
-
 ## Configuration Files
 
 See the Configuration Files section in [Building and Installing CheapoDC](./CheapoDC/README.md/#configuration-files).
@@ -472,5 +467,7 @@ Driver version 1.2 supports the latest versions of the CheapoDC firmware adding 
   * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)
   * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)
   * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)
+  * [Sensirion I²C SHT3X by Sensirion](https://github.com/Sensirion/arduino-i2c-sht3x)
+  * [Sensirion Core by Sensirion](https://github.com/Sensirion/arduino-core/)
   * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)
 * The [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) capability uses [ESP Web Tools](https://esphome.github.io/esp-web-tools/) from [Home Assistant](https://www.home-assistant.io/).

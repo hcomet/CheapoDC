@@ -361,8 +361,6 @@ void CDCSetup::_loadDefaults(void)
 
   this->_location.DSTOffset = CDC_DEFAULT_DSTOFFSET;
 
-  this->_ambientTemperatureExternal = 0.0;
-
   this->_currentWeatherSource = (weatherSource)CDC_DEFAULT_WEATHERSOURCE;
 
   memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
@@ -397,17 +395,18 @@ void CDCSetup::_loadDefaults(void)
   memset(this->_currentWeather.lastWeatherUpdateDate, '\0', sizeof(this->_currentWeather.lastWeatherUpdateDate));
   strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
 
-  this->_currentWeather.ambientTemperature = 0.0;
-  this->_currentWeather.humidity = 0.0;
-  this->_currentWeather.dewPoint = 0.0;
+  this->_currentWeather.ambientTemperature = CDC_TEMPERATURE_NOT_SET;
+  this->_currentWeather.humidity = 0.0F;
+  this->_currentWeather.dewPoint = CDC_TEMPERATURE_NOT_SET;
+  this->_ambientTemperatureExternal = CDC_TEMPERATURE_NOT_SET;
   memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
   memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
 
   memset(this->_httpOTAURL, '\0', sizeof(this->_httpOTAURL));
   strlcpy(this->_httpOTAURL, CDC_DEFAULT_HTTP_OTA_URL, sizeof(this->_httpOTAURL));
 
-  this->_humiditySensorSDAPin = CDC_PIN_NOT_CONFIGUED; // Disabled
-  this->_humiditySensorSCLPin = CDC_PIN_NOT_CONFIGUED; // Disabled
+  this->_humiditySensorSDAPin = CDC_PIN_NOT_CONFIGURED; // Disabled
+  this->_humiditySensorSCLPin = CDC_PIN_NOT_CONFIGURED; // Disabled
 
   this->resetConfigUpdated();
   
@@ -544,6 +543,9 @@ bool CDCSetup::_connectWiFi(void)
     LOG_ERROR("_connectWiFi", "Could not connect to AP: " << this->_wifiConfig.ssid);
     this->statusLEDOn();
     this->blinkStatusLEDEvery(statusLEDEvery);
+    // Work around for ESP32 Arduino Core 3.3.x
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
     return false;
   }
 
@@ -652,10 +654,10 @@ bool CDCSetup::setupWiFi(void)
   // Could not connect to WiFi. Set up in AP mode
   WiFi.mode(WIFI_MODE_NULL);
   WiFi.setHostname(this->_wifiConfig.hostname);
-  WiFi.softAP(CDC_DEFAULT_WIFI_AP_SSID, CDC_DEFAULT_WIFI_AP_PASSWORD);
+  WiFi.softAP(this->_wifiConfig.hostname, CDC_DEFAULT_WIFI_AP_PASSWORD);
   this->_inWiFiAPMode = true;
   strlcpy(this->_IPAddress, WiFi.softAPIP().toString().c_str(), sizeof(this->_IPAddress));
-  LOG_ALERT("setupWiFi", "WiFi in AP mode SSID " << CDC_DEFAULT_WIFI_AP_SSID << " with IP address: " << this->_IPAddress);
+  LOG_ALERT("setupWiFi", "WiFi in AP mode SSID " << this->_wifiConfig.hostname << " with IP address: " << this->_IPAddress);
 
   /*use mdns for host name resolution*/
   if (!MDNS.begin(this->_wifiConfig.hostname))
@@ -992,9 +994,9 @@ void CDCSetup::calculateAndSetDewPoint()
 {
   float alphaDP;
 
-  if ((this->_currentWeather.ambientTemperature == 0.0) && (this->_currentWeather.humidity == 0.0))
+  if (this->_currentWeather.ambientTemperature == CDC_TEMPERATURE_NOT_SET)
   {
-    this->_currentWeather.dewPoint = 0.0;
+    this->_currentWeather.dewPoint = CDC_TEMPERATURE_NOT_SET;
   }
   else
   {
@@ -1213,7 +1215,7 @@ bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
     return false;
   }
   
-  #if LOG_LEVEL == LOG_LEVEL_DEBUG
+#if LOG_LEVEL == LOG_LEVEL_DEBUG
   JsonArray wifi = doc["wifi"];
   for (JsonVariant item : wifi)
   {
@@ -1223,7 +1225,7 @@ bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
       << " password: " << password);    
   } 
   LOG_DEBUG("saveWiFiConfig", "doc " << wifiConfigJson.c_str());
-  #endif  // LOG_LEVEL == LOG_LEVEL_DEBUG
+#endif  // LOG_LEVEL == LOG_LEVEL_DEBUG
 
   error = deserializeJson(this->_backupWiFiConfig, wifiConfigJson);
   if (error)
@@ -1264,7 +1266,7 @@ bool CDCSetup::updateSensorReadings()
       errorToString(error, errorMessage, sizeof errorMessage);
       LOG_ERROR("updateSensorReadings", "Error trying to execute measureSingleShot(): " << String(errorMessage));
       this->_sensorHumidity = 0.0F;
-      this->_sensorTemperature = -127.0F;
+      this->_sensorTemperature = CDC_TEMPERATURE_NOT_SET;
       return false;
   }
   

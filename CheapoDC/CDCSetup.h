@@ -211,7 +211,7 @@ class CDCSetup
         bool            _humiditySensorStatus = false;     
         SensirionI2cSht3x* _humiditySensor;
         float           _sensorHumidity = 0.0F;
-        float           _sensorTemperature = -127.0F;
+        float           _sensorTemperature = CDC_TEMPERATURE_NOT_SET;
         char            _lastHumiditySensorUpdateTime[32];
         char            _lastHumiditySensorUpdateDate[32];
 
