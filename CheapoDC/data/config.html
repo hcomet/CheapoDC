@@ -74,7 +74,7 @@
 <cfitm>Temperature Mode:</cfitm>
 <cfvl>
 <div class=crdg><select name=DCTM id=DCTMS data-cdc="%DCTM%">
-<option id="Weather Query" value=0>Weather Query</option>
+<option id="Weather Query" value=0>Weather Source</option>
 <option id="External Input" value=1>External Input</option>
 </select>
 <script>document.getElementById("DCTMS").value="%DCTM%"</script>
@@ -83,12 +83,12 @@
 <cfact><button type=button class=cbtn id=DCTM>Update</button></cfact>
 </div>
 <div class=cfln>
-<cfitm>Weather Query:</cfitm>
+<cfitm>Weather Source:</cfitm>
 <cfvl>
 <div class=crdg><input type=number name=ATPQ step=0.1 class=cinp id=ATPQI data-cdc="%ATPQ%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class=cbtn id=ATPQ>Update</button></cfact>
 </div>
@@ -98,7 +98,7 @@
 <div class=crdg><input type=number name=ATPX step=0.1 class=cinp id=ATPXI data-cdc="%ATPX%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class=cbtn id=ATPX>Update</button></cfact>
 </div>
@@ -132,7 +132,7 @@
 <div class=crdg><input type=number name=DP step=0.1 class=cinp id=DPI disabled data-cdc="%DP%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class="cbtn hidden" id=DP>Update</button></cfact>
 </div>
@@ -142,7 +142,7 @@
 <div class=crdg><input type=number name=SP step=0.1 class=cinp id=SPI data-cdc="%SP%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class=cbtn id=SP>Update</button></cfact>
 
@@ -155,7 +155,7 @@
 </div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class=cbtn id=TPO>Update</button></cfact>
 </div>
@@ -165,7 +165,7 @@
 <div class=crdg><input type=number name=TKR step=0.1 min=4 max=10 class=cinp id=TKRI data-cdc="%TKR%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class=cbtn id=TKR>Update</button></cfact>
 </div>
@@ -175,14 +175,30 @@
 <div class=crdg><input type=number step=0.1 name=CTP class=cinp id=CTPI disabled data-cdc="%CTP%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>Degrees C</div>
+<div class=crdg>&deg;C</div>
 </cfcmt>
 <cfact><button type=button class="cbtn hidden" id=CTP>Update</button></cfact>
 </div>
 <hr class=confighr>
-<h2>Weather Query Configuration</h2>
+<h2>Weather Source Configuration</h2>
 <div class=cfln>
-<cfitm>Weather Query Every:</cfitm>
+<cfitm>Weather Source:</cfitm>
+<cfvl>
+<div class=crdg><select name=WS id=WSS data-cdc="%WS%">
+<option id=Open-Meteo value=0>Open-Meteo</option>
+<option id=OpenWeather value=1>OpenWeather</option>
+<option id="External Source" value=2>External Source</option>
+<option id="Internal Source" value=3>Internal Source</option>
+</select>
+</div>
+</cfvl>
+<cfcmt>
+<div class=crdg></div>
+</cfcmt>
+<cfact><button type=button class=cbtn id=WS disabled>Update</button></cfact>
+</div>
+<div class=cfln>
+<cfitm>Query Source Every:</cfitm>
 <cfvl>
 <div class=crdg><input type=number name=WQE step=1 min=0 max=20 class=cinp id=WQEI data-cdc="%WQE%"></div>
 </cfvl>
@@ -191,38 +207,23 @@
 </cfcmt>
 <cfact><button type=button class=cbtn id=WQE>Update</button></cfact>
 </div>
-<div class=cfln>
-<cfitm>Weather Source:</cfitm>
-<cfvl>
-<div class=crdg><select name=WS id=WSS data-cdc="%WS%">
-<option id=Open-Meteo value=0>Open-Meteo</option>
-<option id=OpenWeather value=1>OpenWeather</option>
-<option id="External Source" value=2>External Source</option>
-</select>
-</div>
-</cfvl>
-<cfcmt>
-<div class=crdg>Service</div>
-</cfcmt>
-<cfact><button type=button class=cbtn id=WS disabled>Update</button></cfact>
-</div>
 <div class=urlconfig>
 <cfitm>Weather API URL:</cfitm>
 <cfvl>
-<div class="crdg url"><input type=url name=WAPI class=cinp id=WAPII disabled data-cdc="%WAPI%"></div>
+<div class=crdg><input type=url name=WAPI class=cinp id=WAPII disabled data-cdc="%WAPI%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>printf format</div>
+<div class=crdg></div>
 </cfcmt>
 <cfact><button type=button class="cbtn hidden" id=WAPI>Update</button></cfact>
 </div>
 <div class=urlconfig>
 <cfitm>Weather Icon URL:</cfitm>
 <cfvl>
-<div class="crdg url"><input type=url name=WIURL class=cinp id=WIURLI disabled data-cdc="%WIURL%"></div>
+<div class=crdg><input type=url name=WIURL class=cinp id=WIURLI disabled data-cdc="%WIURL%"></div>
 </cfvl>
 <cfcmt>
-<div class=crdg>printf format</div>
+<div class=crdg></div>
 </cfcmt>
 <cfact><button type=button class="cbtn hidden" id=WIURL>Update</button></cfact>
 </div>
@@ -235,7 +236,7 @@
 <cfact><button type=button class=cbtn id=WKEY>Update</button></cfact>
 </div>
 <div class=cfln>
-<cfitm>Last Weather Query:</cfitm>
+<cfitm>Last Source Query:</cfitm>
 <cfvl>
 <div class=crdg><input name=LQT id=LQTI readonly data-cdc="%LQT%"></div>
 </cfvl>

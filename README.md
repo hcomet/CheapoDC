@@ -140,7 +140,8 @@ The Temperature Mode selects how the Reference Temperature will be determined fo
 
 #### External Input
 
-* Use the **External Input** temperature set through the Web UI or API as the reference temperature for calculating the controller output. This may be the preferred mode when using the controller with KStars/Indi. The CheapoDC Indilib driver can use a temperature probe attached to a focuser as the external input.
+* Use the **External Input** temperature set through the [Web UI](#cheapodc-controller-configuration) or [API](#cheapodc-api) as the reference temperature for calculating the controller output. This may be the preferred mode when using the controller with KStars/Indi. The CheapoDC [Indilib driver](#indi-driver) can use a temperature probe attached to a focuser as the external input.  
+<br>**NOTE:** If no temperature values have been set for External Input then a value of **-127.0°C** will be shown. The Controller, when in Automatic Mode with Temperature Mode set to External Input,  will set output power at the configured minimum output until a value is set via the WebUI or API.
 
 ## Hardware
 
@@ -189,21 +190,21 @@ Two completed CheapoDCs from the outside.
 
 How to build the CheapoDC firmware can be found [here](/CheapoDC/README.md). All aspects of the CheapoDC are configurable through the [WebUI](#web-ui) making [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) the easiest way to install and then configure firmware.
 
-## Weather Service
+## Weather Source
 
-The current temperature and humidity for your location may be obtained by using one of the two CheapoDC supported open weather service APIs, from an external client through the CheapoDC API or by using an internal humidity/temperature sensor. Dew point is calculated based on the temperature and humidity values. The Weather Source may be set using the [Web UI](#cheapodc-controller-configuration) or through the [API](#cheapodc-api). CheapoDC defaults to using Open-Meteo.
+CheapoDC requires temperature and humidity information to calculate the dew point and then the required controller output power for dew prevention. This information is provided by a Weather Source. CheapoDC can query one of two open weather API services, be provided weather information via the CheapoDC API or use an optional internal humidity sensor. The Weather Source may be set using the [Web UI](#cheapodc-controller-configuration) or through the [API](#cheapodc-api). The following four Weather Sources are available:
 
-### [Open-Meteo](https://open-meteo.com/)
+### [Open-Meteo](https://open-meteo.com/) (Default)
 
-Open-Meteo is the default Weather Source configured for CheapoDC. Use of the Open-Meteo API does not require any registration for current weather queries. The free level allows for 10,000 API calls per day. Weather updates seem to be regular at a 15 minute interval. While using a 5 minute query interval, several CheapoDCs can be running at the same time without issue.
+pen-Meteo, an open API based weather service, is the default Weather Source for CheapoDC. Use of the Open-Meteo API does not require any registration for current weather queries. The free level allows for 10,000 API calls per day. Weather updates seem to be regular at a 15 minute interval. While using a 5 minute query interval, several CheapoDCs can be running at the same time without issue. Requires correct location information and internet access to work.
 
 ### [OpenWeather](https://openweathermap.org/)
 
- In order to use the OpenWeather API a registered account and API key is required. The account is free and allows for up to 60 queries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up).
+ OpenWeather, also an API based weather service, requires a registered account and API key. The account is free and allows for up to 60 queries/minute and 1,000,000 per month. Weather updates can occur from 5 to 20 minutes apart. Doing an API call every 5 minutes is more than adequate for dew control and even with 2 or 3 CheapoDC's sharing a key should have no issue at the free account level. Register and get your API key [here](https://home.openweathermap.org/users/sign_up). Requires correct location information and internet access to work.
 
 ### External Source
 
- When the Weather Source is set to External Source the temperature and humidity values for your location must be set via the CheapoDC API. This allows for integration with other weather services or personal weather stations.
+ When the Weather Source is set to External Source the temperature and humidity values for your location must be set via the CheapoDC API. This allows for integration with other weather services or personal weather stations. The [INDI driver](#indi-driver) supports this capability.
 
  ### Internal Source
 
@@ -217,7 +218,7 @@ As indicated the default service is Open-Meteo. This is primarily because no reg
 
 ## Web UI
 
-CheapoDC comes with a Web UI that supports basic web authentication. The ID and password for the web authentication is set in the CDCdefines.h file as part of the build configuration. Default is "admin" for both. TLS (or HTTPS) is not supported so the security is minimal. The intention is to provide a deterrent to someone on your network from easily doing a Web OTA upgrade to the firmware or uploading files to the LittleFS partition.
+CheapoDC comes with a Web UI that supports basic web authentication. The default is "admin" for both username and password. The password can (and should) be changed on the WebUI [Device Management](#cheapodc-device-management) page. TLS (or HTTPS) is not supported. Security is minimal with the intention to provide a deterrent to someone easily doing an OTA upgrade to the firmware or uploading files to the LittleFS partition.
 
 The Web UI has 4 main pages, a dashboard, a configuration page, a device management page and a file management page.
 
@@ -231,9 +232,9 @@ The Dashboard provides a summary of the current location, weather, controller ou
 
 ![CheapoDC Configuration](images/configuration.jpg)  
 
-CheapoDC Configuration page is where dew controller parameters may be set. These include the [Controller Mode](#controller-mode), [Temperature Mode](#temperature-mode), [Set Point Mode](#set-point-mode) and [variables](#variables) that affect dew controller output.
+CheapoDC Configuration page is where dew controller parameters may be set. These include the [Controller Mode](#controller-mode), [Temperature Mode](#temperature-mode), [Set Point Mode](#set-point-mode), [Weather Source](#weather-source-1) and [variables](#variables) that affect dew controller output.
 
-The Location and Time Zone may also be set here.
+The Location and Time Zone may be set here and are required for proper operation when using either Open-Meteo or OpenWeather as a Weather Source.
 
 ### CheapoDC Device Management
 

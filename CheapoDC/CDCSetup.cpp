@@ -942,7 +942,7 @@ void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
         LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " keeping current source " << previousWeatherSource);
         this->_currentWeatherSource = previousWeatherSource;
     }
-    else
+    else if ( source != previousWeatherSource)
     {
         this->_currentWeatherSource = source;
         memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
@@ -964,14 +964,16 @@ void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
             LOG_ERROR("setWeatherSource", "Internal Source selected but Humidity sensor pins not set. Keeping previous Weather Source.");
             this->_currentWeatherSource = previousWeatherSource;
           }
-          
-          strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
-          strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
-          memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
-          strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
-          memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
-          strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-          strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_INTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
+          else
+          {
+            strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
+            strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
+            memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
+            strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
+            memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
+            strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+            strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_INTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
+          }
         }
         else
         {
@@ -981,12 +983,20 @@ void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
           strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
           memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
           strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-          strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
-          strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
           strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_EXTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
 
         }
+
+        // Reset query & update times as well as temperature, humidity & dew point
+      strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+      strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+      strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+      strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+      this->_currentWeather.ambientTemperature = CDC_TEMPERATURE_NOT_SET;
+      this->_currentWeather.humidity = 0.0F;
+      this->_currentWeather.dewPoint = 0.0F;
     }
+    
     LOG_DEBUG("setWeatherSource", "Set weather source set to: " << this->_currentWeatherSource);
 }
 

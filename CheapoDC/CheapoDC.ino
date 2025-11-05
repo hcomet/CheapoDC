@@ -4,10 +4,7 @@
 // Details at https://github.com/hcomet/CheapoDC
 // (c) Copyright Stephen Hillier 2024. All Rights Reserved.
 // ******************************************************************
-//
-// Look at CDCdefines.h to configure ESP32 and WiF before building
-//
-// ******************************************************************
+
 #include <Arduino.h>
 #include <TimeLib.h>
 #include "CDCdefines.h"

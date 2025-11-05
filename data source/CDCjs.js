@@ -147,7 +147,10 @@ function sendValue( itemId ) {
         console.log("No Input or Select found for: " + itemId);
         return;
     }
-
+    if ((itemId == "SDAP") || (itemId == "SCLP")) {
+        document.getElementById("i2cMessage").innerHTML = 
+        "<strong>Important:</strong> Reboot required before changes will take effect.";
+    }
     var xhr = new XMLHttpRequest();
     xhr.open('POST', "/setvalue", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -199,7 +202,7 @@ function setChangeItem( item ) {
 
         switch (element.dataset.cdc) {
             case "Automatic":       // Controller modes
-            case "Weather Query":   // Temperature modes 
+            case "Weather Source":   // Temperature modes 
             case "Dew Point":       // Set Point modes
             case "Open-Meteo":      // Weather Source
             case "Disabled":        // Output modes
