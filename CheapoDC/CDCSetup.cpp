@@ -15,6 +15,8 @@
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
 #include <WebAuthentication.h>
+#include <Wire.h>
+//#include <Adafruit_SHT31.h>
 #include "CDCdefines.h"
 #include "CDCEasyLogger.h"
 #include "CDCvars.h"
@@ -87,8 +89,34 @@ bool CDCSetup::queryWeather(void)
     return true;
   }
   
+  // If internal source then get latest readings and return
+  if (this->_currentWeatherSource == INTERNALSOURCE)
+  {
+    if (!this->checkHumiditySensor())
+    {
+      LOG_ERROR("queryWeather", "CheapoDC in Internal Source mode but Humidity Sensor is not enabled. Cannot do a weather query.");
+      return false;
+    }
+
+    // Update query and update times
+    strlcpy(this->_currentWeather.lastWeatherQueryTime, this->getTime().c_str(), sizeof(this->_currentWeather.lastWeatherQueryTime));
+    strlcpy(this->_currentWeather.lastWeatherQueryDate, this->getDate().c_str(), sizeof(this->_currentWeather.lastWeatherQueryDate));
+
+    strlcpy(this->_currentWeather.lastWeatherUpdateTime, this->_lastHumiditySensorUpdateTime, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+    strlcpy(this->_currentWeather.lastWeatherUpdateDate, this->_lastHumiditySensorUpdateDate, sizeof(this->_currentWeather.lastWeatherUpdateDate)); 
+
+    // Set temperature and humidity
+    this->_currentWeather.ambientTemperature = this->_sensorTemperature;
+    this->_currentWeather.humidity = this->_sensorHumidity;
+
+    this->calculateAndSetDewPoint();
+
+    return true;
+
+  }
+
   LOG_DEBUG("queryWeather", "Current weather source: " << this->_currentWeatherSource);
-  if (this->_currentWeatherSource != EXTERNALSOURCE)
+  if (this->_currentWeatherSource <= OPENWEATHERSOURCE)
   {
     if (this->getInWiFiAPMode())
     {
@@ -333,8 +361,6 @@ void CDCSetup::_loadDefaults(void)
 
   this->_location.DSTOffset = CDC_DEFAULT_DSTOFFSET;
 
-  this->_ambientTemperatureExternal = 0.0;
-
   this->_currentWeatherSource = (weatherSource)CDC_DEFAULT_WEATHERSOURCE;
 
   memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
@@ -369,14 +395,18 @@ void CDCSetup::_loadDefaults(void)
   memset(this->_currentWeather.lastWeatherUpdateDate, '\0', sizeof(this->_currentWeather.lastWeatherUpdateDate));
   strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
 
-  this->_currentWeather.ambientTemperature = 0.0;
-  this->_currentWeather.humidity = 0.0;
-  this->_currentWeather.dewPoint = 0.0;
+  this->_currentWeather.ambientTemperature = CDC_TEMPERATURE_NOT_SET;
+  this->_currentWeather.humidity = 0.0F;
+  this->_currentWeather.dewPoint = CDC_TEMPERATURE_NOT_SET;
+  this->_ambientTemperatureExternal = CDC_TEMPERATURE_NOT_SET;
   memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
   memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
 
   memset(this->_httpOTAURL, '\0', sizeof(this->_httpOTAURL));
   strlcpy(this->_httpOTAURL, CDC_DEFAULT_HTTP_OTA_URL, sizeof(this->_httpOTAURL));
+
+  this->_humiditySensorSDAPin = CDC_PIN_NOT_CONFIGURED; // Disabled
+  this->_humiditySensorSCLPin = CDC_PIN_NOT_CONFIGURED; // Disabled
 
   this->resetConfigUpdated();
   
@@ -513,6 +543,9 @@ bool CDCSetup::_connectWiFi(void)
     LOG_ERROR("_connectWiFi", "Could not connect to AP: " << this->_wifiConfig.ssid);
     this->statusLEDOn();
     this->blinkStatusLEDEvery(statusLEDEvery);
+    // Work around for ESP32 Arduino Core 3.3.x
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
     return false;
   }
 
@@ -621,10 +654,10 @@ bool CDCSetup::setupWiFi(void)
   // Could not connect to WiFi. Set up in AP mode
   WiFi.mode(WIFI_MODE_NULL);
   WiFi.setHostname(this->_wifiConfig.hostname);
-  WiFi.softAP(CDC_DEFAULT_WIFI_AP_SSID, CDC_DEFAULT_WIFI_AP_PASSWORD);
+  WiFi.softAP(this->_wifiConfig.hostname, CDC_DEFAULT_WIFI_AP_PASSWORD);
   this->_inWiFiAPMode = true;
   strlcpy(this->_IPAddress, WiFi.softAPIP().toString().c_str(), sizeof(this->_IPAddress));
-  LOG_ALERT("setupWiFi", "WiFi in AP mode SSID " << CDC_DEFAULT_WIFI_AP_SSID << " with IP address: " << this->_IPAddress);
+  LOG_ALERT("setupWiFi", "WiFi in AP mode SSID " << this->_wifiConfig.hostname << " with IP address: " << this->_IPAddress);
 
   /*use mdns for host name resolution*/
   if (!MDNS.begin(this->_wifiConfig.hostname))
@@ -640,6 +673,46 @@ bool CDCSetup::setupWiFi(void)
   this->statusLEDOn();
 
   return false;
+}
+
+// Set up Humidity sensor if configured
+bool CDCSetup::setupHumiditySensor() 
+{
+  uint16_t aStatusRegister = 0u;
+  char errorMessage[64];
+  int16_t error;
+
+  this->_humiditySensorStatus = false;
+
+  if ((this->_humiditySensorSDAPin <0) || (this->_humiditySensorSCLPin <0))
+  {
+    return false;
+  }
+
+  Wire.begin(this->_humiditySensorSDAPin, this->_humiditySensorSCLPin);
+
+  this->_humiditySensor = new SensirionI2cSht3x();
+
+  this->_humiditySensor->begin(Wire, 0x44);
+  this->_humiditySensor->stopMeasurement();
+  delay(1);
+  this->_humiditySensor->softReset();
+  delay(100);
+
+  error = this->_humiditySensor->readStatusRegister(aStatusRegister);
+  if (error != NO_ERROR) {
+      errorToString(error, errorMessage, sizeof errorMessage);
+      LOG_ERROR("setupHumiditySensor","Error trying to execute readStatusRegister(): " << String(errorMessage));
+      return false;
+  }
+  LOG_DEBUG("setupHumiditySensor", "Status register: " << aStatusRegister);
+
+  // Do an initial reading of the sensor to set it up
+  this->_humiditySensorStatus = true;
+
+  this->_humiditySensorStatus = this->updateSensorReadings();
+
+  return this->_humiditySensorStatus;
 }
 
 // status LED
@@ -861,14 +934,15 @@ void CDCSetup::setAmbientTemperatureExternal(float temperature)
   this->_ambientTemperatureExternal = temperature;
 }
 
-void CDCSetup::setWeatherSource(weatherSource source)
+void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
 {
-    if ((source < OPENMETEO) || (source > EXTERNALSOURCE))
+    weatherSource previousWeatherSource = this->_currentWeatherSource;
+    if ((source < OPENMETEO) || (source > INTERNALSOURCE))
     {
-        LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " set to default " << (weatherSource)CDC_DEFAULT_WEATHERSOURCE);
-        this->_currentWeatherSource = (weatherSource)CDC_DEFAULT_WEATHERSOURCE;
+        LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " keeping current source " << previousWeatherSource);
+        this->_currentWeatherSource = previousWeatherSource;
     }
-    else
+    else if ( source != previousWeatherSource)
     {
         this->_currentWeatherSource = source;
         memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
@@ -883,20 +957,46 @@ void CDCSetup::setWeatherSource(weatherSource source)
           strlcpy(this->_weatherAPIURL, CDC_OPENWEATHER_APIURL, sizeof(this->_weatherAPIURL));
           strlcpy(this->_weatherIconURL, CDC_OPENWEATHER_ICONURL, sizeof(this->_weatherIconURL));
         }
+        else if (source == INTERNALSOURCE) // Treat as OpenMeteo for testing purposes
+        {
+          if (((this->_humiditySensorSDAPin < 0) || (this->_humiditySensorSCLPin < 0)) && !forceUpdate)
+          {
+            LOG_ERROR("setWeatherSource", "Internal Source selected but Humidity sensor pins not set. Keeping previous Weather Source.");
+            this->_currentWeatherSource = previousWeatherSource;
+          }
+          else
+          {
+            strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
+            strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
+            memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
+            strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
+            memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
+            strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+            strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_INTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
+          }
+        }
         else
         {
-          strlcpy(this->_weatherAPIURL, CDC_EXTERNALSOURCE_APINURL, sizeof(this->_weatherAPIURL));
-          strlcpy(this->_weatherIconURL, CDC_EXTERNALSOURCE_ICONURL, sizeof(this->_weatherIconURL));
+          strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
+          strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
           memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
-          strlcpy(this->_currentWeather.weatherDescription, CDC_EXTERNALSOURCE_DESC, sizeof(this->_currentWeather.weatherDescription));
+          strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
           memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
           strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-          strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
-          strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
           strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_EXTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
 
         }
+
+        // Reset query & update times as well as temperature, humidity & dew point
+      strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
+      strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
+      strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
+      strlcpy(this->_currentWeather.lastWeatherUpdateDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateDate));
+      this->_currentWeather.ambientTemperature = CDC_TEMPERATURE_NOT_SET;
+      this->_currentWeather.humidity = 0.0F;
+      this->_currentWeather.dewPoint = 0.0F;
     }
+    
     LOG_DEBUG("setWeatherSource", "Set weather source set to: " << this->_currentWeatherSource);
 }
 
@@ -904,9 +1004,9 @@ void CDCSetup::calculateAndSetDewPoint()
 {
   float alphaDP;
 
-  if ((this->_currentWeather.ambientTemperature == 0.0) && (this->_currentWeather.humidity == 0.0))
+  if (this->_currentWeather.ambientTemperature == CDC_TEMPERATURE_NOT_SET)
   {
-    this->_currentWeather.dewPoint = 0.0;
+    this->_currentWeather.dewPoint = CDC_TEMPERATURE_NOT_SET;
   }
   else
   {
@@ -1125,7 +1225,7 @@ bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
     return false;
   }
   
-  #if LOG_LEVEL == LOG_LEVEL_DEBUG
+#if LOG_LEVEL == LOG_LEVEL_DEBUG
   JsonArray wifi = doc["wifi"];
   for (JsonVariant item : wifi)
   {
@@ -1135,7 +1235,7 @@ bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
       << " password: " << password);    
   } 
   LOG_DEBUG("saveWiFiConfig", "doc " << wifiConfigJson.c_str());
-  #endif  // LOG_LEVEL == LOG_LEVEL_DEBUG
+#endif  // LOG_LEVEL == LOG_LEVEL_DEBUG
 
   error = deserializeJson(this->_backupWiFiConfig, wifiConfigJson);
   if (error)
@@ -1159,4 +1259,33 @@ bool CDCSetup::saveWiFiConfig( String wifiConfigJson ) {
   }
   
   return true;  
+}
+
+bool CDCSetup::updateSensorReadings()
+{
+  char errorMessage[64];
+  int16_t error;
+
+  if (!this->_humiditySensorStatus)
+  {
+    return false;
+  }
+
+  error = this->_humiditySensor->measureSingleShot(REPEATABILITY_HIGH, false, this->_sensorTemperature, this->_sensorHumidity);
+  if (error != NO_ERROR) {
+      errorToString(error, errorMessage, sizeof errorMessage);
+      LOG_ERROR("updateSensorReadings", "Error trying to execute measureSingleShot(): " << String(errorMessage));
+      this->_sensorHumidity = 0.0F;
+      this->_sensorTemperature = CDC_TEMPERATURE_NOT_SET;
+      return false;
+  }
+  
+  strlcpy(this->_lastHumiditySensorUpdateTime, this->getTime().c_str(), sizeof(this->_lastHumiditySensorUpdateTime));
+  strlcpy(this->_lastHumiditySensorUpdateDate, this->getDate().c_str(), sizeof(this->_lastHumiditySensorUpdateDate));
+
+  LOG_DEBUG("updateSensorReadings", "Sensor values, Temperature: " << this->_sensorTemperature << ", Humidity: " << this->_sensorHumidity);
+  LOG_DEBUG("updateSensorReadings", "Updated: " << String(this->_lastHumiditySensorUpdateDate) << "  " << String(this->_lastHumiditySensorUpdateTime));
+
+  return true;
+
 }

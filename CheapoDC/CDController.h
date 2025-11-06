@@ -19,7 +19,7 @@ enum controllerMode
         OFF        // 2
 };
 
-#define CDC_TEMPERATUREMODE_JSONARRAY "{\"Mode\":[\"Weather Query\",\"External Input\"]}"
+#define CDC_TEMPERATUREMODE_JSONARRAY "{\"Mode\":[\"Weather Source\",\"External Input\"]}"
 enum temperatureMode
 {
         WEATHER_QUERY, // 0

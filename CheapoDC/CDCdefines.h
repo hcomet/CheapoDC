@@ -24,7 +24,7 @@
 #define CDC_DEFAULT_CONTROLLER_PIN0 0  // set first Controller output default
 #define CDC_DEFAULT_CONTROLLER_PIN1 1  // set second Controller output default
 #define CDC_CONTROLLER_PWM_CHANNEL 0      // The PWM Channel used for Dew Controller managed Pins (Don't change)
-#define CONTROLLER_PIN_NOT_CONFIGURED -1  // Used to indicate that a pin has not been configured
+#define CDC_PIN_NOT_CONFIGURED -1  // Used to indicate that a pin has not been configured
 
 // *************************************************************************************
 // Builtin LED or other pin to use for Status LED.
@@ -54,7 +54,6 @@
 #define CDC_DEFAULT_HOSTNAME "cheapodc"             // default hostname. Can also be set in CDCWiFi.json
 #define CDC_DEFAULT_WIFI_SSID "defaultSSID"         // default SSID for STA mode. Can also be set in CDCWiFi.json
 #define CDC_DEFAULT_WIFI_PASSWORD "defaultPassword" // default WiFi Password. Can also be set in CDCWiFi.json
-#define CDC_DEFAULT_WIFI_AP_SSID "cheapodc"         // Name used for SSID of AP mode if STA mode fails
 #define CDC_DEFAULT_WIFI_AP_PASSWORD "cheapodc"     // WiFi password for AP mode
 #define CDC_DEFAULT_WIFI_CONNECTATTEMPTS 15         // Number of times to try to connect to an AP when in STA mode
 #define CDC_DEFAULT_WIFI_TRYAPS 1                   // Number of times to cycle through APs when in STA mode
@@ -85,20 +84,22 @@
 // - Open-Meteo: https://open-meteo.com/
 // - OpenWeather: https://home.openweathermap.org/users/sign_up (To get an API key)
 // - External Source: Temperature and Humidity must be provided via the API
+// - Internal Source: SHT3x sensor must be installed and configured to provide Temperature and Humidity
 // ************************************************************************************* 
 #define CDC_OPENMETEO_APIURL "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,is_day,weather_code&timeformat=unixtime"           
 #define CDC_OPENMETEO_ICONURL "https://openweathermap.org/img/wn/%s@2x.png" // reuse the Open Weather Icon API - no API Key required
 #define CDC_OPENWEATHER_APIURL "https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&appid=%s&units=metric" // Need metric for temperature calculations to work
 #define CDC_OPENWEATHER_ICONURL "https://openweathermap.org/img/wn/%s@2x.png"
-#define CDC_EXTERNALSOURCE_APINURL "--"
-#define CDC_EXTERNALSOURCE_ICONURL "/weatherIconNA.png"
-#define CDC_EXTERNALSOURCE_DESC "Not available."
+#define CDC_WEATHERSOURCE_APIURL_NA "--"
+#define CDC_WEATHERSOURCE_ICONURL_NA "/weatherIconNA.png"
+#define CDC_WEATHERSOURCE_DESC_NA "Not available."
 #define CDC_EXTERNALSOURCE_LOCATION_NAME "External Source"
+#define CDC_INTERNALSOURCE_LOCATION_NAME "Internal Source"
 // Set Weather Query defaults for Open-Meteo since it does not require an API key
 #define CDC_DEFAULT_WEATHERSOURCE 0 // OPENMETEO 
 #define CDC_DEFAULT_WEATHERAPIURL CDC_OPENMETEO_APIURL
 #define CDC_DEFAULT_WEATHERICONURL CDC_OPENWEATHER_ICONURL
-#define CDC_DEFAULT_WEATHERAPIKEY "--"   // Do not change the default. Enter your key throught the Web UI.
+#define CDC_DEFAULT_WEATHERAPIKEY "--"   // Do not change the default. Enter your key through the Web UI.
 #define CDC_DEFAULT_WEATHER_QUERY_EVERY 5
 #define CDC_DEFAULT_HTTP_REQ_RETRY 1
 
@@ -110,13 +111,14 @@
 #define CDC_DEFAULT_CONTROLLER_MODE AUTOMATIC
 #define CDC_DEFAULT_TEMPERATURE_MODE WEATHER_QUERY
 #define CDC_DEFAULT_SET_POINT_MODE DEWPOINT
-#define CDC_DEFAULT_TEMPERATURE_SET_POINT 0.0
-#define CDC_DEFAULT_TRACK_POINT_OFFSET 0.0
-#define CDC_MINIMUM_TRACK_POINT_OFFSET -5.0
-#define CDC_MAXIMUM_TRACK_POINT_OFFSET 5.0
-#define CDC_DEFAULT_TRACKING_RANGE 5.0
-#define CDC_MINIMUM_TRACKING_RANGE 4.0
-#define CDC_MAXIMUM_TRACKING_RANGE 10.0
+#define CDC_TEMPERATURE_NOT_SET -127.0F
+#define CDC_DEFAULT_TEMPERATURE_SET_POINT 0.0F
+#define CDC_DEFAULT_TRACK_POINT_OFFSET 0.0F
+#define CDC_MINIMUM_TRACK_POINT_OFFSET -5.0F
+#define CDC_MAXIMUM_TRACK_POINT_OFFSET 5.0F
+#define CDC_DEFAULT_TRACKING_RANGE 5.0F
+#define CDC_MINIMUM_TRACKING_RANGE 4.0F
+#define CDC_MAXIMUM_TRACKING_RANGE 10.0F
 #define CDC_DEFAULT_UPDATE_OUTPUT_EVERY 1 // in minutes
 #define CDC_DEFAULT_SAVE_CONFIG_EVERY 20  // in seconds
 
@@ -135,18 +137,6 @@
 // *************************************************************************************
 #define CDC_DEFAULT_WEBSRVR_PORT 80
 #define CDC_DEFAULT_TCP_SERVER_PORT 58000 // Port used for the TCP based API
-
-// *************************************************************************************
-// Web Socket support - Has been deprecated
-// Read the README.md in https://github.com/hcomet/CheapoDC/tree/main/CheapoDC for
-// changes needed to AsyncTCP.cpp and AsyncWebSocket.h  before enabling Web Sockets
-// When Web Sockets are enabled then the post processing queue is also enabled so that  
-// commands requiring longer actions like initiating a Wed Query go into a queue. The 
-// asyncWebSocket implementation will not handle long transactions that block and cause 
-// watchdog process timeouts.
-// *************************************************************************************
-//#define CDC_ENABLE_WEB_SOCKETS      // Do not uncomment has been deprecated
-//#define CDC_DEFAULT_WEBSOCKET_URL "/ws"  // Do not uncomment has been deprecated
 
 // Command post processing queue support
 // Some API commands may auto generate post processing actions such as weather queries or 
@@ -290,6 +280,8 @@
 #define CDC_CMD_LEDH 65   // Status LED High, if 1 then HIGH = 1 if 0 then HIGH = 0 (LOW is opposite)
 #define CDC_CMD_FWUP 66   // Firmware Update GET returns 1=yes 0=no POST initiates update PWD Hash required
 #define CDC_CMD_UURL 67   // Update URL - points to the HTTP OTA update manifest.json
+#define CDC_CMD_SDAP 68   // Humidity Sensor SDA pin for internal sensor
+#define CDC_CMD_SCLP 69    // Humidity Sensor SCL pin for internal sensor
 
 // Constants for calculating Dew Point from Temperature & Humidity
 #define CDC_MC_A 17.625

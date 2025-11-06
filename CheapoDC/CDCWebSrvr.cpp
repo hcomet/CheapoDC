@@ -507,8 +507,8 @@ void setupServers(void) {
   });
 
   // Assorted special function pages and images
-  CDCWebServer->on(CDC_EXTERNALSOURCE_ICONURL, HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(LittleFS, CDC_EXTERNALSOURCE_ICONURL, "image/png");
+  CDCWebServer->on(CDC_WEATHERSOURCE_ICONURL_NA, HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(LittleFS, CDC_WEATHERSOURCE_ICONURL_NA, "image/png");
   });
 
   CDCWebServer->on("/WiFiAPmode.png", HTTP_GET, [](AsyncWebServerRequest *request) {
