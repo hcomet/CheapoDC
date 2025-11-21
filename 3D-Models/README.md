@@ -17,6 +17,15 @@ Files that may be used to print cases for the CheapoDC 3-Output and 6-Output bui
 |[led-mount-press.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/led-mount-press.stl)|Tool to help press the backer onto the mount.|
 |[led-mount.step](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/led-mount.step)|LED mount pieces in STEP format.|
 
+## SHT3x Sensor Probe Files
+
+|File|Comments|
+|---|---|
+|[sht3x-case-front.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/sht3x-case-front.stl)|Front for SHT3x probe case.|
+|[sht3x-case-back.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/sht3x-case-back.stl)|Back for SHT3x probe case.|
+|[sht3x-probe-case.step](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/sht3x-probe-case.step)|SHT3x probe case pieces in STEP format.|
+|[sht3x-probe-case.3mf](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/sht3x-probe-case.3mf)|SHT3x probe case pieces in STEP format.|
+
 ## 3-Output Build Files
 
 |File|Comments|
@@ -25,6 +34,7 @@ Files that may be used to print cases for the CheapoDC 3-Output and 6-Output bui
 |[3-output-top.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-top.stl)|Top for clam shell case.|
 |[3-output-output-panel.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-output-panel.stl)|Rear Output-panel for clam shell case.|
 |[3-output-switch-panel.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-switch-panel.stl)|Front Switch-panel for clam shell case.|
+|[3-output-switch-panel-sht3x.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-switch-panel-sht3x.stl)|Front Switch-panel with SHT3x sensor jack hole for clam shell case.|
 |[3-output-usb-plug.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-usb-plug.stl)|A press fit plug to cover the ESP32-C3 USB connector hole in the Switch-panel.|
 |[3-output-case.3mf](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-case.3mf)|All case pieces in a single 3mf file.|
 |[3-output-case.step](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/3-output-case.step)|3D design file for all case pieces in STEP format.|
@@ -38,6 +48,9 @@ Files that may be used to print cases for the CheapoDC 3-Output and 6-Output bui
 |[6-output-top.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-top.stl)|Top for clam shell case.|
 |[6-output-output-panel.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-output-panel.stl)|Rear Output-panel for clam shell case. Includes holes for output LEDs.|
 |[6-output-output-panel-noleds.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-output-panel-noleds.stl)|Rear Output-panel for clam shell case. No output LED holes.|
-|[6-output-switch-panel.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-switch-panel.stl)|Front Switch-panel for clam shell case.|
+|[6-output-switch-panel.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-switch-panel.stl)|Front Switch-panel for clam shell case. Includes holes for output LEDs.|
+|[6-output-switch-panel-noleds.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-switch-panel-noleds.stl)|Front Switch-panel for clam shell case. No output LED holes.|
+|[6-output-switch-panel-sht3x.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-switch-panel-sht3x.stl)|Front Switch-panel with SHT3x sensor jack hole for clam shell case. Includes holes for output LEDs.|
+|[6-output-switch-panel-noleds-sht3x.stl](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-switch-panel-noleds-sht3x.stl)|Front Switch-panel with SHT3x sensor jack hole for clam shell case. No output LED holes.|
 |[6-output-case.3mf](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-case.3mf)|All case pieces and options in a single 3mf file.|
 |[6-output-case.step](https://github.com/hcomet/CheapoDC/blob/main/3D-Models/6-output-case.step)|3D design file for all case pieces in STEP format.|
