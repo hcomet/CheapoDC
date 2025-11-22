@@ -959,7 +959,7 @@ void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
         }
         else if (source == INTERNALSOURCE) // Treat as OpenMeteo for testing purposes
         {
-          if (((this->_humiditySensorSDAPin < 0) || (this->_humiditySensorSCLPin < 0)) && !forceUpdate)
+          if (((this->_humiditySensorSDAPin < 0) || (this->_humiditySensorSCLPin < 0) || !this->_humiditySensorStatus) && !forceUpdate)
           {
             LOG_ERROR("setWeatherSource", "Internal Source selected but Humidity sensor pins not set. Keeping previous Weather Source.");
             this->_currentWeatherSource = previousWeatherSource;
