@@ -604,8 +604,8 @@ bool CDCSetup::setupWiFi(void)
   {
     LOG_DEBUG("setupWiFi", "Using WiFi Defaults");
     strlcpy(this->_wifiConfig.hostname, CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
-    this->_wifiConfig.connectAttempts, CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
-    this->_wifiConfig.tryAPs, CDC_DEFAULT_WIFI_TRYAPS;
+    this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
+    this->_wifiConfig.tryAPs = CDC_DEFAULT_WIFI_TRYAPS;
     strlcpy(this->_wifiConfig.ssid, CDC_DEFAULT_WIFI_SSID, sizeof(this->_wifiConfig.ssid));
     strlcpy(this->_wifiConfig.password, CDC_DEFAULT_WIFI_PASSWORD, sizeof(this->_wifiConfig.password));
 
@@ -624,8 +624,23 @@ bool CDCSetup::setupWiFi(void)
   {
 
     strlcpy(this->_wifiConfig.hostname, doc["hostname"] | CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
-    this->_wifiConfig.connectAttempts = (doc["connectAttempts"] | CDC_DEFAULT_WIFI_CONNECTATTEMPTS);
-    this->_wifiConfig.tryAPs = (doc["tryAPs"] | CDC_DEFAULT_WIFI_TRYAPS);
+    if (doc["connectAttempts"].is<int>())
+      this->_wifiConfig.connectAttempts = doc["connectAttempts"].as<int>();
+    else if (doc["connectAttempts"].is<const char*>())
+      this->_wifiConfig.connectAttempts = atoi(doc["connectAttempts"].as<const char*>());
+    else
+      this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
+    if (this->_wifiConfig.connectAttempts <= 0)
+      this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
+
+    if (doc["tryAPs"].is<int>())
+      this->_wifiConfig.tryAPs = doc["tryAPs"].as<int>();
+    else if (doc["tryAPs"].is<const char*>())
+      this->_wifiConfig.tryAPs = atoi(doc["tryAPs"].as<const char*>());
+    else
+      this->_wifiConfig.tryAPs = CDC_DEFAULT_WIFI_TRYAPS;
+    if (this->_wifiConfig.tryAPs <= 0)
+      this->_wifiConfig.tryAPs = 1;
 
     LOG_DEBUG("setupWiFi", "hostname:" << this->_wifiConfig.hostname);
     LOG_DEBUG("setupWiFi", "Connection attempts:" << this->_wifiConfig.connectAttempts);
