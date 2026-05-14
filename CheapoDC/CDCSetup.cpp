@@ -1079,7 +1079,7 @@ String CDCSetup::getDateTime()
   char dtBuff[CDC_MAX_DATETIME_STRING] = {};
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   sprintf(dtBuff, CDC_DATE_TIME, mydayShortStr[lTime.tm_wday], mymonthShortStr[lTime.tm_mon], lTime.tm_mday, (lTime.tm_year + 1900), lTime.tm_hour, lTime.tm_min, second(lTime.tm_sec));
 
@@ -1093,7 +1093,7 @@ String CDCSetup::getDateTime( time_t t )
   tmElements_t lTElements;
   time_t local_t = t + this->_location.timezone;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   if (lTime.tm_isdst == 1)
     local_t = local_t + this->_location.DSTOffset;
@@ -1109,7 +1109,7 @@ String CDCSetup::getDate( )
   char dtBuff[CDC_MAX_DATETIME_STRING] = {};
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   sprintf(dtBuff, CDC_DATE, mydayShortStr[lTime.tm_wday], mymonthShortStr[lTime.tm_mon], lTime.tm_mday, (lTime.tm_year + 1900));
 
@@ -1123,7 +1123,7 @@ String CDCSetup::getDate( time_t t )
   tmElements_t lTElements;
   time_t local_t = t + this->_location.timezone;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   if (lTime.tm_isdst == 1)
     local_t = local_t + this->_location.DSTOffset;
@@ -1140,7 +1140,7 @@ String CDCSetup::getTime( )
   char dtBuff[CDC_MAX_DATETIME_STRING];
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   sprintf(dtBuff, CDC_TIME, lTime.tm_hour, lTime.tm_min, second(lTime.tm_sec));
 
@@ -1154,7 +1154,7 @@ String CDCSetup::getTime( time_t t )
   tmElements_t lTElements;
   time_t local_t = t + this->_location.timezone;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   if (lTime.tm_isdst == 1)
     local_t = local_t + this->_location.DSTOffset;
@@ -1169,7 +1169,7 @@ int CDCSetup::getSecond()
 {
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   return lTime.tm_sec;
 }
@@ -1178,7 +1178,7 @@ int CDCSetup::getMinute()
 {
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   return lTime.tm_min;
 }
