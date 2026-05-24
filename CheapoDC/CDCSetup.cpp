@@ -604,8 +604,8 @@ bool CDCSetup::setupWiFi(void)
   {
     LOG_DEBUG("setupWiFi", "Using WiFi Defaults");
     strlcpy(this->_wifiConfig.hostname, CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
-    this->_wifiConfig.connectAttempts, CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
-    this->_wifiConfig.tryAPs, CDC_DEFAULT_WIFI_TRYAPS;
+    this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
+    this->_wifiConfig.tryAPs = CDC_DEFAULT_WIFI_TRYAPS;
     strlcpy(this->_wifiConfig.ssid, CDC_DEFAULT_WIFI_SSID, sizeof(this->_wifiConfig.ssid));
     strlcpy(this->_wifiConfig.password, CDC_DEFAULT_WIFI_PASSWORD, sizeof(this->_wifiConfig.password));
 
@@ -624,8 +624,23 @@ bool CDCSetup::setupWiFi(void)
   {
 
     strlcpy(this->_wifiConfig.hostname, doc["hostname"] | CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
-    this->_wifiConfig.connectAttempts = (doc["connectAttempts"] | CDC_DEFAULT_WIFI_CONNECTATTEMPTS);
-    this->_wifiConfig.tryAPs = (doc["tryAPs"] | CDC_DEFAULT_WIFI_TRYAPS);
+    if (doc["connectAttempts"].is<int>())
+      this->_wifiConfig.connectAttempts = doc["connectAttempts"].as<int>();
+    else if (doc["connectAttempts"].is<const char*>())
+      this->_wifiConfig.connectAttempts = atoi(doc["connectAttempts"].as<const char*>());
+    else
+      this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
+    if (this->_wifiConfig.connectAttempts <= 0)
+      this->_wifiConfig.connectAttempts = CDC_DEFAULT_WIFI_CONNECTATTEMPTS;
+
+    if (doc["tryAPs"].is<int>())
+      this->_wifiConfig.tryAPs = doc["tryAPs"].as<int>();
+    else if (doc["tryAPs"].is<const char*>())
+      this->_wifiConfig.tryAPs = atoi(doc["tryAPs"].as<const char*>());
+    else
+      this->_wifiConfig.tryAPs = CDC_DEFAULT_WIFI_TRYAPS;
+    if (this->_wifiConfig.tryAPs <= 0)
+      this->_wifiConfig.tryAPs = 1;
 
     LOG_DEBUG("setupWiFi", "hostname:" << this->_wifiConfig.hostname);
     LOG_DEBUG("setupWiFi", "Connection attempts:" << this->_wifiConfig.connectAttempts);
@@ -1064,7 +1079,7 @@ String CDCSetup::getDateTime()
   char dtBuff[CDC_MAX_DATETIME_STRING] = {};
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   sprintf(dtBuff, CDC_DATE_TIME, mydayShortStr[lTime.tm_wday], mymonthShortStr[lTime.tm_mon], lTime.tm_mday, (lTime.tm_year + 1900), lTime.tm_hour, lTime.tm_min, second(lTime.tm_sec));
 
@@ -1078,7 +1093,7 @@ String CDCSetup::getDateTime( time_t t )
   tmElements_t lTElements;
   time_t local_t = t + this->_location.timezone;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   if (lTime.tm_isdst == 1)
     local_t = local_t + this->_location.DSTOffset;
@@ -1094,7 +1109,7 @@ String CDCSetup::getDate( )
   char dtBuff[CDC_MAX_DATETIME_STRING] = {};
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   sprintf(dtBuff, CDC_DATE, mydayShortStr[lTime.tm_wday], mymonthShortStr[lTime.tm_mon], lTime.tm_mday, (lTime.tm_year + 1900));
 
@@ -1108,7 +1123,7 @@ String CDCSetup::getDate( time_t t )
   tmElements_t lTElements;
   time_t local_t = t + this->_location.timezone;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   if (lTime.tm_isdst == 1)
     local_t = local_t + this->_location.DSTOffset;
@@ -1125,7 +1140,7 @@ String CDCSetup::getTime( )
   char dtBuff[CDC_MAX_DATETIME_STRING];
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   sprintf(dtBuff, CDC_TIME, lTime.tm_hour, lTime.tm_min, second(lTime.tm_sec));
 
@@ -1139,7 +1154,7 @@ String CDCSetup::getTime( time_t t )
   tmElements_t lTElements;
   time_t local_t = t + this->_location.timezone;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
   
   if (lTime.tm_isdst == 1)
     local_t = local_t + this->_location.DSTOffset;
@@ -1154,7 +1169,7 @@ int CDCSetup::getSecond()
 {
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   return lTime.tm_sec;
 }
@@ -1163,7 +1178,7 @@ int CDCSetup::getMinute()
 {
   struct tm lTime;
 
-  getLocalTime(&lTime);
+  getLocalTime(&lTime, 10);
 
   return lTime.tm_min;
 }
