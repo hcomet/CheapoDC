@@ -707,13 +707,14 @@ void setupHttpOTA() {
   File file = LittleFS.open(CDC_HTTP_OTA_ROOT_CA_FILE, "r");
   if (!file)
   {
-    const char* root_ca = WEB_OTA_ROOT_CA;
+    // Use CA certs bundle supported by esp32FOTA
     LOG_DEBUG("setupHttpOTA", "No Root CA file found: " << CDC_HTTP_OTA_ROOT_CA_FILE << " Using default.");
-    CryptoMemAsset  *MyRootCA = new CryptoMemAsset("Root CA", root_ca, strlen(root_ca)+1 );
-    CDCFota->setRootCA( MyRootCA );
+    CDCFota->useBundledCerts(true);
   } else {
+    // Use CA cert file from LittleFS
     file.close();
     LOG_ALERT("setupHttpOTA", "Root CA file found: " << CDC_HTTP_OTA_ROOT_CA_FILE << " Using it instead of default.");
+    CDCFota->useBundledCerts(false);
     CryptoFileAsset *MyRootCA =  new CryptoFileAsset(CDC_HTTP_OTA_ROOT_CA_FILE, &LittleFS);
     CDCFota->setRootCA( MyRootCA );  
   }
