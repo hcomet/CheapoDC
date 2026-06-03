@@ -6,34 +6,40 @@ Go to the [WebFlash page](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) 
 
 If you prefer to build the firmware yourself using the Arduino IDE please continue on to [Building and Installing CheapoDC](#building-and-installing-cheapodc)
 
-Note that as of CheapoDC v2.2.0, the Web UI supports an semi-automatic web-based upgrade that preserves your configuration files. Web OTA Update while upgrading the firmware and data partitions. See the documentation on [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
+Note that as of CheapoDC V2.2.0, the Web UI supports an semi-automatic web-based upgrade that preserves your configuration files. Web OTA Update while upgrading the firmware and data partitions. See the documentation on [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
 
 # Building and installing CheapoDC
 
 ## If you are Upgrading from a Previous Release
 
-This note is to highlight the change in recommended partition scheme implemented for release v2.1.0. If you are upgrading from a release prior to v2.1.0 then you will need to switch partition schemes as part of the upgrade. Please read the [Partition Scheme](#partition-scheme) section for the reasons for the change.
+This note is to highlight the change in recommended partition scheme implemented for release V2.1.0. If you are upgrading from a release prior to V2.1.0 then you will need to switch partition schemes as part of the upgrade. Please read the [Partition Scheme](#partition-scheme) section for the reasons for the change. Unfortunately, upgrading from CheapDC 2.3.0 to 2.3.1 must be done using the Manual OTA Update in the Web UI, Device Management page.
 
 ## Changes in CheapoDC V2
 
-1. V2 contains changes to support new library versions:
-   * Arduino core for ESP32 version 3.1.x support. Core Version 2.x support now deprecated as of CheapoDC v2.1.0.
+1. As of V2.2.0, CheapDC now supports firmware and data partition upgrades using the Web UI and HTTP OTA. See the documentation on [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.  
+> [!IMPORTANT]
+> After the release of V2.3.0 (Nov. 2025) GitHub Pages changed the root CA for HTTPS causing Web OTA Update to stop working. V2.3.1 (June 2026) fixes Web OTA Update by using a new version of esp32FOTA, 0.3.0, which supports using the Mozilla trusted CA list as a CA bundle.
+2. V2 contains changes to support new library versions:
+   * Arduino core for ESP32 version 3.1.x support. Core Version 2.x support now deprecated as of CheapoDC V2.1.0.
    * Switch to the [ESP32 Asynchronous Networking Organization](https://github.com/ESP32Async) versions of
    ESPAsyncWebServer and AsyncTCP.
    * ArduinoJson version 7. Version 6 should also continue to work but migration to version 7 is encouraged.
-2. The following libraries are no longer required:
+3. New libraries required in V2:
+   * As of V2.3.0, [Sensirion Core by Sensirion](https://github.com/Sensirion/arduino-core/) and [Sensirion I²C SHT3X by Sensirion](https://github.com/Sensirion/arduino-i2c-sht3x) are required for humidity sensor support.
+   * As of V2.3.1, [ESP32CertBundle](https://github.com/tanakamasayuki/ESP32CertBundle) is required to support [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html).
+4. The following libraries are no longer required:
    * EasyLogger - a fixed copy of this library is included in the CheapoDC source to remove a macro definition conflict with ArduinoJSON.
    * ESP32Time.
-3. As of V2.2.0, all major items that were previously required to be configured at compile time can now be configured through the Web UI or API at runtime. This includes:
+5. As of V2.2.0, all major items that were previously required to be configured at compile time can now be configured through the Web UI or API at runtime. This includes:
    * [WiFi Configuration](../README.md#wifi-configuration): WiFi SSID and password can be set on the Device Management page.
    * Weather Source: The Weather Source may now be set through the Web UI or API. Open-Meteo is now the default Weather Source.
    * [Output to GPIO Pin mapping](../README.md#controller-output-configuration). All controller outputs may be configured using the Web UI or API. This includes the original two core dew controller outputs as well as the four new additional outputs added in V2.2.0.
    * [Status LED GPIO Pin](../README.md#status-led-configuration). The pin used for the status LED as well as whether or not it is active High or Low may be configured through the Web UI or API.
    * [Change Password](../README.md#change-password). The user Id remains **admin** but the password may now be changed in the Web UI. Password security has been improved by moving to using a [Digest access authentication](https://en.wikipedia.org/wiki/Digest_access_authentication#:~:text=In%20contrast%2C%20basic%20access%20authentication,It%20uses%20the%20HTTP%20protocol.) MD5 Password Hash.
-4. New Weather Sources added for more flexibility and autonomous operation:
+6. New Weather Sources added for more flexibility and autonomous operation:
    * V2.2.0 added support for integration with personal weather stations or other weather services. When the Weather Source is set to ***External Source*** the local ambient temperature and humidity may be set through the API. The Dew Point and dew controller power output will then be calculated based on these externally set values.
    * V2.3.0 added support for connecting an SHT3x humidity/temperature sensor. When the Weather Source is set to ***Internal Source***, local ambient temperature and humidty will be taken from a temperature/humidity sensor connected to the CheapoDC. The SHT3x must be properly [connected and configured](https://hcomet.github.io/CheapoDC/CheapoDCSensor.html) for ***Internal Source*** to work.
-5. API changes:
+7. API changes:
    * ***`CPPx`***, ***`CPMx`*** and ***`CPOx`*** API commands added to allow outputs **x = 0 to 5** to be configured for GPIO Pin mapping, Output Mode and Output Power respectively.
    * The ***`LED`*** API command changed to set the GPIO pin for the Status LED while ***`LEDH`*** sets the value of High to 1 or 0.
    * The Weather Source (***`WS`***) API command now supports a SET capability. This API command has also been changed
@@ -46,22 +52,22 @@ This note is to highlight the change in recommended partition scheme implemented
    * The Weather API URL (***`WAPI`***) API command no longer supports a SET capability.
    * The Weather Icon URL (***`WIURL`***) API command no longer supports a SET capability.
    * The Cloud Coverage (***`CLC`***) API command has been deprecated.
-6. Support for the Web Sockets based API has been deprecated and removed in V2.2.0. The TCP API continues to be supported and used by the INDI driver.
-7. CheapoDC V2 will automatically upgrade the CDCConfig.json on your CheapoDC device when the new firmware version is installed. Previous configuration settings will be maintained. Follow the [Upgrade Steps](#upgrading-from-a-previous-release) below to preserve your
+8. Support for the Web Sockets based API has been deprecated and removed in V2.2.0. The TCP API continues to be supported and used by the INDI driver.
+9. CheapoDC V2 will automatically upgrade the CDCConfig.json on your CheapoDC device when the new firmware version is installed. Previous configuration settings will be maintained. Follow the [Upgrade Steps](#upgrading-from-a-previous-release) below to preserve your
 CheapoDC configuration files.
-8. Change in ESP32 Partition Scheme required for CheapoDC V2.1.x. See [Partition Scheme](#partition-scheme) for details.
-9. As of V2.2.0, CheapDC now supports firmware and data partition upgrades using the Web UI and HTTP OTA. See the documentation on [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
-10. As of V2.3.0, when in Access Point Mode, CheapoDC will use the hostname for the SSID.
-11. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
+10. Change in ESP32 Partition Scheme required for CheapoDC V2.1.x. See [Partition Scheme](#partition-scheme) for details.
+
+11. As of V2.3.0, when in Access Point Mode, CheapoDC will use the hostname for the SSID.
+12. See the CheapoDC [release notes](https://github.com/hcomet/CheapoDC/releases) for additional details.
 
 ## Setting Up Your Build Environment
 
 1. Install the Arduino IDE.  
-  <u>**NOTE:**</u> Version 2.3.6 of the Arduino IDE is required. As of CheapoDC v2.3.0 verification of
-  builds will only be done on IDE version 2.3.6 or newer.
+  <u>**NOTE:**</u> Version 2.3.8 of the Arduino IDE is required. As of CheapoDC V2.3.1 verification of
+  builds will only be done on IDE version 2.3.8 or newer.
 2. Add support for ESP32 modules using the Boards Manager in the Arduino IDE.  
   <u>**IMPORTANT:**</u>
-    * Install the boards plugin for ESP32 from Espressif Systems version 3.3.2 (Arduino core for the ESP32). CheapoDC verification has been done with version 3.3.2. (Note: 3.3.0 and 3.3.1 seemed to have some issues with WiFi connectivity so neither are recommended.)
+    * Install the boards plugin for ESP32 from Espressif Systems version 3.3.8 (Arduino core for the ESP32). CheapoDC V2.3.1 verification has been done with version 3.3.8.
     * CheapoDC is intended for use on ESP32 devices. The current version has been verified on an [ESP32-C3 SuperMini](https://michiel.vanderwulp.be/domotica/Modules/ESP32-C3-SuperMini/) board..
 3. Install the ESP32 Sketch data uploader with support for LittleFS. The CheapoDC uses the LittleFS file system for configuration files and web pages uploaded from the ***CheapoDC/data*** folder. If the data is uploaded using any other file system format, such as SPIFFS, the CheapoDC firmware will not run properly.  
 <u>**NOTE:**</u> The following link provides information on how to install a data uploader plugin with LittleFS support:
@@ -69,22 +75,24 @@ CheapoDC configuration files.
 
 4. Install the following libraries if not already installed:
    * [ArduinoJson by Benoit Blanchon](https://arduinojson.org/)  
-     Version: 7.4.2
+     Version: 7.4.3
    * [ESP Async WebServer by ESP32Async](https://github.com/ESP32Async/ESPAsyncWebServer)  
-     Version: 3.8.1
+     Version: 3.11.0
    * [Async TCP by ESP32Async](https://github.com/ESP32Async/AsyncTCP)  
-     Version: 3.4.9
+     Version: 3.4.10
    * [Sensirion I²C SHT3X by Sensirion](https://github.com/Sensirion/arduino-i2c-sht3x)  
      Version 1.0.1
    * [Sensirion Core by Sensirion](https://github.com/Sensirion/arduino-core/)  
-     Version 0.7.2
+     Version 0.7.3
    * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)  
      Version: 1.6.1
+   * [ESP32CertBundle](https://github.com/tanakamasayuki/ESP32CertBundle)  
+     Version: 20260514.0.0
 
    <u>**NOTES:**</u>
-   * CheapoDC v2.1.0 has migrated from the [dvarrel](https://github.com/dvarrel) versions of EspAsyncWebServer and AsyncTCP to the [ESP32Async Organization](https://github.com/ESP32Async) versions. ESP32Async Organization looks to be very proactive in maintaining the libraries and also contains members of the Arduino core for ESP32 team helping to keep it in sync. Currently the Arduino Library Manager shows Me-No-Dev as the owner but will likely change to ESP32Async.
+   * CheapoDC V2.1.0 has migrated from the [dvarrel](https://github.com/dvarrel) versions of EspAsyncWebServer and AsyncTCP to the [ESP32Async Organization](https://github.com/ESP32Async) versions. ESP32Async Organization looks to be very proactive in maintaining the libraries and also contains members of the Arduino core for ESP32 team helping to keep it in sync. Currently the Arduino Library Manager shows Me-No-Dev as the owner but will likely change to ESP32Async.
    * If you have other versions of the ESPSyncWebServer or AsyncTCP not from the links above they will need to be uninstalled to prevent issues with the build.
-   * In general, if newer versions of a library are available then only use new subversions not new major versions.
+   * In general, if newer versions of a library are available then only use new subversions not new major versions. CheapoDC v2.3.1 was verified using the versions of libraries listed above.
 
 5. Download the latest firmware release source code from <https://github.com/hcomet/CheapoDC/releases>  
   <u>**NOTE:**</u> After extracting the release to your file system open the CheapoDC.ino file in the Arduino IDE. This will open the full set of source files in the IDE. Now configure the firmware before building it.
@@ -172,7 +180,7 @@ Your CheapoDC should now be ready to use.
 
 ## Upgrading from a previous release
 
-Note that v2.1.0 required a change in the [Partition Scheme](#partition-scheme) and upgrades from a pre-V2.1.0 release must be done using a USB connection to the device.
+Note that V2.1.0 required a change in the [Partition Scheme](#partition-scheme) and upgrades from a pre-V2.1.0 release must be done using a USB connection to the device.
 
 New versions of ESPAsyncWebServer and AsyncTCP libraries are also required for Arduino core of ESP32 version 3.1.x. Please read the [Setting Up Your Build Environment](#setting-up-your-build-environment) section to make sure you have the correct libraries installed in the Arduino IDE. Be sure to have only one version of the AsyncTCP library installed.
 
@@ -191,22 +199,31 @@ Place both files in the sketch data folder: ***CheapoDC/data***.
 
 ### OTA Upgrade using the Web UI Firmware Update
 
-If upgrading from a release prior to v2.1.0, an OTA firmware upgrade cannot be used. Go back to the [USB connected upgrade](#upgrade-using-usb-connected-device).
+If upgrading from a release prior to V2.1.0, an OTA firmware upgrade cannot be used. Go back to the [USB connected upgrade](#upgrade-using-usb-connected-device).
 
 If upgrading from V2.1.0 or newer then use **Manual Update** on the Web UI [Device Management](../README.md#cheapodc-device-management) page.
 
 #### Web OTA Update
 
-Introduced in the V2.2.0 release, [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) which makes upgrades simple and easy.
+Introduced in the V2.2.0 release, [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) which makes upgrades simple and easy.  
+>[!IMPORTANT]
+> Due to a change to the issuing CA for GitHub Pages HTTPS certificate upgrading from V2.3.0 or earlier must be done using Manual OTA Update. V2.3.1 fixes the issue.
 
 #### Manual OTA Update
 
-If you have firmware without Web OTA Update support or you prefer to do your own builds and updates then:
+Manual OTA Update allows you to do an OTA update using your own copy of the CheapoDC firmware binary image. Use the following steps:
 
-* Generate the firmware binary image using the Arduino IDE and selecting `Sketch->Export Compiled Binary`. This will create a ***CheapoDC.ino.bin*** file under a ***build*** folder created in your sketch folder.
-* Use the **Manual OTA Update** `Choose File` in the Web UI to select the new bin file. Then click `Update` to flash the CheapoDC to the new version.
-* After the reboot, go to the [File Management](../README.md#cheapodc-file-management) page to upload the new release data files. Use `Choose Files` to browse to the ***CheapoDC/data*** folder in your sketch folder. Then select all files **EXCEPT** the CDCWiFi.json file. Then click `Upload`.
-* Your upgrade should now be complete.
+1. Download the latest firmware release source code from <https://github.com/hcomet/CheapoDC/releases> and extract it to your local file system.
+2. Get or generate the firmware binary image file by either:
+
+   * Downloading the latest CheapoDC binary image file from [https://hcomet.github.io/CheapoDC/firmware/CheapoDC.ESP32-C3.bin](https://hcomet.github.io/CheapoDC/firmware/CheapoDC.ESP32-C3.bin).
+   * Generating the firmware binary image using the Arduino IDE and selecting `Sketch->Export Compiled Binary`. This will create a ***CheapoDC.ino.bin*** file under a ***build*** folder created in your sketch folder.  
+     > [!NOTE]
+     > Follow the instructions in [Build and Install the Firmware](#build-and-install-the-firmware) to set up the Arduino IDE for CheapoDC builds.
+
+3. Use the **Manual OTA Update** `Choose File` in the Web UI to select the ***.bin*** file from step 2. Then click `Update` to flash the CheapoDC to the new version.
+4. After the reboot, go to the [File Management](../README.md#cheapodc-file-management) page to upload the new release data files. Use `Choose Files` to browse to the ***CheapoDC/CheapoDC/data*** folder in the downloaded release from step 1. Then select all files **EXCEPT** the CDCWiFi.json file. Then click `Upload`.
+5. Your upgrade should now be complete.
 
 ## Configuration Files
 
@@ -255,12 +272,12 @@ The *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)* partition scheme provides
 3. The other predefined partition schemes didn't provide a good option for larger application size, OTA support and a partition large enough for the LittleFS data CheapoDC needed.
 
 It turns out that I was wrong about the second point. Although I have not added a lot of code to the initial version of CheapoDC the underlying libraries it relies on have changed and expanded in size. A combination of moving to the Arduino core for ESP32 3.1.x,
-Arduino 2.3.x, adopting the ESPAsync Organization version of ESPAsync Web Server plus other new library releases has put the CheapoDC v2.1.0 release at 98.6% of the application space. This is without Debug logging or WebSockets support enabled, which can no longer be enabled.
+Arduino 2.3.x, adopting the ESPAsync Organization version of ESPAsync Web Server plus other new library releases has put the CheapoDC V2.1.0 release at 98.6% of the application space. This is without Debug logging or WebSockets support enabled, which can no longer be enabled.
 
-The only solution is to move to a different partition scheme starting with CheapoDC release v2.1.0. As of v2.1.0 the recommended partition scheme is *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)*. This scheme should hopefully provide plenty of application space going forward. The basic configuration of CheapoDC v2.1.0 takes 62% of the available space. In order to fit in the smaller SPIFFS partition the HTML, CSS and JS files used by CheapoDC have been run through a minimizer and additional compression applied to the PNG images.
+The only solution is to move to a different partition scheme starting with CheapoDC release V2.1.0. As of V2.1.0 the recommended partition scheme is *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)*. This scheme should hopefully provide plenty of application space going forward. The basic configuration of CheapoDC V2.1.0 takes 62% of the available space. In order to fit in the smaller SPIFFS partition the HTML, CSS and JS files used by CheapoDC have been run through a minimizer and additional compression applied to the PNG images.
 
 ### Impact of the change in Partition Scheme
 
 If this is your first time building the CheapoDC then you are not affected. The [new device build instructions](#build-and-configure-a-new-device) still apply.
 
-If you are upgrading to v2.1.x from a release prior to v2.1.0 then you are affected. Read and follow the [upgrading from a previous release](#upgrading-from-a-previous-release) instructions.
+If you are upgrading to V2.1.x from a release prior to V2.1.0 then you are affected. Read and follow the [upgrading from a previous release](#upgrading-from-a-previous-release) instructions.
