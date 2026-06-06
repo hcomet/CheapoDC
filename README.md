@@ -27,13 +27,12 @@ control algorithm, along with the two main dew controller outputs,
 or manually via the Web UI or API. Dew control algorithm managed pins and thus dew strap outputs are all tied to the
 same ESP32 PWM channel and will have the same output.
 
-CheapoDC hardware build details can be found in the [Hardware](#hardware) section of this document.
+CheapoDC hardware details can be found in the [Hardware](#hardware) section of this document.
 
-CheapoDC firmware may installed on your device using one of the following methods:
+CheapoDC firmware installation details may be found with the source code in the [CheapoDC/README.md](./CheapoDC/README.md#installing-cheapodc). Installation may be done by:
 
-* Using the Arduino IDE: Details on how to build the CheapoDC firmware as well as information about the latest
-firmware release may be found with the source code in the [CheapoDC/README.md](./CheapoDC#webflash-as-an-option).
-* WebFlash: A web based utility that allows for the installation of the latest firmware directly to your ESP32-C3 based device.
+* Using WebFlash, a web based utility that allows for the installation of the latest firmware directly to your ESP32-C3 based device.
+* Building it yourself with the Arduino IDE.
 
 CheapoDC also supports web based Over-the-air (OTA) upgrades of the firmware using the CheapoDC Web UI.
 
