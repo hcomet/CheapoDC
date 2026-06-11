@@ -114,7 +114,7 @@ The *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)* partition scheme provides
 
 To allow for OTA updates, LittleFS storage and some expansion room for CheapoDC firmware the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme is used. Although this scheme provides enough application space it provides too little SPIFFS (data partition) space for the CheapoDC HTML, CSS and JS files without compression. The repository [**data source**](../data%20source/) folder contains he original source for these files. The repository [**CheapoDC/data**](../CheapoDC/data/) folder contains minified or compressed versions for installation in the LittleFS formatted data partition.
 
-### Setting Up Your Build Environment\
+### Setting Up Your Build Environment
 
 1. Install the Arduino IDE.  
   **NOTE:** Version 2.3.10 of the Arduino IDE is required. As of CheapoDC V2.3.1 verification of
