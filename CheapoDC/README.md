@@ -6,10 +6,7 @@ If you are using an [ESP32-C3 SuperMini](https://michiel.vanderwulp.be/domotica/
 
 You need to connect your ESP32-C3 to your computer via USB to use WebFlash. Go to the [WebFlash page](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) to install CheapoDC on your ESP32-C3. Then follow the instructions below in the [First Time Device Configuration](#first-time-device-configuration) section.
 
-If you prefer to build the firmware yourself using the Arduino IDE, please continue to [Building and Installing CheapoDC](#building-and-installing-CheapoDC)
-
->[NOTE!]
->CheapoDC V2.2.0 added Web UI support for a semi-automatic web-based upgrade that preserves your configuration files. See the documentation on [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) for details.
+If you prefer to build the firmware yourself using the Arduino IDE, please continue to [Building and Installing CheapoDC](#building-and-installing-cheapodc)
 
 ## Upgrading from a Previous Release
 
@@ -17,11 +14,11 @@ There are four methods described below for upgrading CheapoDC firmware. Two leve
 
 ### 1. Web OTA Update
 
-Introduced in the V2.2.0 release, [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) is the simple and easy way to upgrade your CHeapoDC firmware. When a new release is available it will be indicated in the **Web OTA Update**
+Introduced in the V2.2.0 release, [Web OTA Update](https://hcomet.github.io/CheapoDC/CheapoDCWebUpdate.html) is the simple and easy way to upgrade your CheapoDC firmware. When a new release is available it will be indicated in the **Web OTA Update**
 section on the **Device Management** page of the CheapoDC WebUI. Just enter your CheapoDC password, click `Update` and the new release will be installed while preserving your CheapoDC configuration files.
 
 >[!IMPORTANT]
-> Due to a change to the issuing CA for GitHub Pages HTTPS certificates, Web OTA Update from V2.3.0 or earlier no longer works. One of the other upgrade methods must be used to update to V2.3.1 or newer. V2.3.1 fixes the issue and Web OTA Update should work properly from that version onwards.
+> Due to a change to the issuing CA for GitHub Pages HTTPS certificates, Web OTA Update from V2.3.0 or earlier no longer works. V2.3.1 fixes the issue and Web OTA Update should work properly from that version onwards.
 >
 > Go to the section [***Web OTA Root CA Issue***](#web-ota-root-ca-issue) for details on how to get Web OTA Update to detect a new release and perform the firmware update from V2.2.0 or V2.3.0.
 
@@ -38,14 +35,14 @@ Manual OTA Update allows you to do an OTA update using your own copy of the Chea
    **Note:** Follow the instructions in [Build and Install the Firmware](#build-and-install-the-firmware) to set up the Arduino IDE for CheapoDC builds.
 
 3. Use the **Manual OTA Update** `Choose File` in the Web UI to select the ***.bin*** file from step 2. Then click `Update` to flash the CheapoDC to the new version.
-4. After the reboot, go to the [File Management](../README.md#CheapoDC-file-management) page to upload the new release data files. Use `Choose Files` to browse to the ***CheapoDC/CheapoDC/data*** folder in the downloaded release from step 1. Then select all files **EXCEPT** the CDCWiFi.json file. Then click `Upload`.
+4. After the reboot, go to the [File Management](../README.md#cheapodc-file-management) page to upload the new release data files. Use `Choose Files` to browse to the ***CheapoDC/CheapoDC/data*** folder in the downloaded release from step 1. Then select all files **EXCEPT** the CDCWiFi.json file. Then click `Upload`.
 5. Your upgrade should now be complete.
 
 
 ### 3. Upgrade using USB Connected Device and Arduino IDE
 
 1. Preserve your current CheapoDC configuration and WiFi settings by first downloading the CDCConfig.json and CDCWiFi.json files
-from your CheapoDC. This can be done using the Web UI from the [File Management](../README.md#CheapoDC-file-management) page.
+from your CheapoDC. This can be done using the Web UI from the [File Management](../README.md#cheapodc-file-management) page.
 Place both files in the sketch data folder: ***CheapoDC/data***.
 2. Build and upload the new firmware to your device.
    * If upgrading from a pre-V2.1.0 release, make sure to set *Erase All Flash Before Sketch Upload:* ***"Enabled"***  
@@ -58,10 +55,10 @@ Place both files in the sketch data folder: ***CheapoDC/data***.
 ### 4. Upgrade using USB Connected Device and WebFlash
 
 1. WebFlash will erase all flash memory on your CheapoDC. You must backup your current CheapoDC configuration and WiFi settings by first downloading the **CDCConfig.json** and **CDCWiFi.json** files
-from your CheapoDC. This can be done using the Web UI from the [File Management](../README.md#CheapoDC-file-management) page.
+from your CheapoDC. This can be done using the Web UI from the [File Management](../README.md#cheapodc-file-management) page.
 2. Use [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) to install the latest CheapoDC firmware onto your device.
-3. Once the device has rebooted, it will be in access point mode. Use your computer to connect to the access point, SSID: CheapoDC and Password: CheapoDC.
-4. Browse to the CheapoDC Web UI at [http://CheapoDC.local](http://CheapoDC.local) and login using the default userid and password: admin, admin.
+3. Once the device has rebooted, it will be in access point mode. Use your computer to connect to the access point, SSID: cheapodc and Password: cheapodc.
+4. Browse to the CheapoDC Web UI at [http://cheapodc.local](http://cheapodc.local) and login using the default userid and password: admin, admin.
 5. Upload the previously backed up **CDCConfig.json** and **CDCWifi.json** files using the File Management page.
 5. Goto to the Device Management page and reboot the device to complete the upgrade.
 
@@ -117,7 +114,7 @@ The *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)* partition scheme provides
 
 To allow for OTA updates, LittleFS storage and some expansion room for CheapoDC firmware the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme is used. Although this scheme provides enough application space it provides too little SPIFFS (data partition) space for the CheapoDC HTML, CSS and JS files without compression. The repository [**data source**](../data%20source/) folder contains he original source for these files. The repository [**CheapoDC/data**](../CheapoDC/data/) folder contains minified or compressed versions for installation in the LittleFS formatted data partition.
 
-### Setting Up Your Build Environment
+### Setting Up Your Build Environment\
 
 1. Install the Arduino IDE.  
   **NOTE:** Version 2.3.10 of the Arduino IDE is required. As of CheapoDC V2.3.1 verification of
@@ -151,7 +148,7 @@ To allow for OTA updates, LittleFS storage and some expansion room for CheapoDC 
    * In general, if newer versions of a library are available then only use new subversions not new major versions. CheapoDC v2.3.1 was verified using the versions of libraries listed above.
 
 5. Download the latest firmware release source code from <https://github.com/hcomet/CheapoDC/releases>  
-  **NOTE:** After extracting the release to your filesystem open the CheapoDC.ino file in the Arduino IDE. This will open the full set of source files in the IDE. Now configure the firmware before building it.
+  **NOTE:** After extracting the release to your filesystem open the ***CheapoDC.ino*** file in the Arduino IDE. This will open the full set of source files in the IDE.
 
 >[!TIP]
 >* Many ESP32-C3 board configurations (Dev Module, mini, super mini, micro etc..) have *USB CDC On BOOT:* ***"Disabled"***. This needs to be ***"ENABLED"*** or the Serial Monitor will not work.
@@ -175,11 +172,11 @@ As of V2.2.0 changes to the ***CDCdefines.h*** file are **not** required since a
     **NOTE:** Some ESP32-C3 modules have the Status LED wired so that setting the status pin high is off or reversed. Uncomment this line to reverse the High/Low setting for the status LED pin.  
     ```//#define CDC_REVERSE_HIGH_LOW```  
     *May be changed through the Web UI or API*
-4. Set up the WiFi configuration.  The CheapoDC may operate in either Access Point (AP) mode or Station (ST) mode. The CheapoDC defaults to AP mode when it cannot connect to an access point.  The AP mode SSID will be set to be the same as the hostname which defaults to ***CheapoDC***.  
+4. Set up the WiFi configuration.  The CheapoDC may operate in either Access Point (AP) mode or Station (ST) mode. The CheapoDC defaults to AP mode when it cannot connect to an access point.  The AP mode SSID will be set to be the same as the hostname which defaults to **cheapodc**.  
 **NOTE:** Changing the WiFi configuration is **NOT** recommended. ST Mode settings can be changed in the Web UI while AP Mode settings will be overwritten if Web OTA Update is used.
     * AP Mode settings must be configured in the ***CDCdefines.h*** file:  
-      * Change AP mode password. ***DEFAULT: CheapoDC***.  
-        ```#define CDC_DEFAULT_WIFI_AP_PASSWORD "CheapoDC"```  
+      * Change AP mode password. ***DEFAULT: cheapodc***.  
+        ```#define CDC_DEFAULT_WIFI_AP_PASSWORD "cheapodc"```  
     * ST Mode settings may be configured in either the ***CDCdefines.h*** file or the ***CDCWiFi.json*** file found in the ***data*** folder. Values in found in the ***CDCWiFi.json*** files will be used before using the values in the ***CDCdefines.h*** file. Using the ***CDCWiFi.json*** file to configure WiFi access allows multiple APs and credentials to be defined. How to configure the ***CDCWiFi.json*** file is found [here](#cdcwifijson) while configuring default values in the ***CDCdefines.h*** file is as follows:
       * Change ST mode SSID. ***DEFAULT: defaultSSID***.  
         ```#define CDC_DEFAULT_WIFI_SSID "defaultSSID"```  
@@ -190,9 +187,9 @@ As of V2.2.0 changes to the ***CDCdefines.h*** file are **not** required since a
         ```//#define CDC_ENABLE_WIFI_TX_POWER_MOD WIFI_POWER_8_5dBm```  
         Uncomment to enable. If enabled the default value sets TX power to 8.5dbm. Any of the `wifi_power_t` values found [here](https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFiGeneric.h#L51-L67) may be used. Extensive testing with WiFi TX Power settings has **NOT** been done.
 
-5. The hostname for the CheapoDC may also be changed. Its recommended that this be done using the [Web UI](../README.md#wifi-configuration). This is only needed if you have multiple CheapoDC controllers on the same network. The default hostname in the ***CDCdefines.h*** file may be modified but it will be  by any hostname value in the [***CDCWiFi.json***](#cdcwifijson) file.: 
-    * Change the default host name. ***DEFAULT: CheapoDC***.  
-      ```#define CDC_DEFAULT_HOSTNAME "CheapoDC"```
+5. The hostname for the CheapoDC may also be changed. Its recommended that this be done using the [Web UI](../README.md#wifi-configuration). This is only needed if you have multiple CheapoDC controllers on the same network. The default hostname in the ***CDCdefines.h*** file may be modified but it will be overridden by any hostname value in the [***CDCWiFi.json***](#cdcwifijson) file.: 
+    * Change the default host name. ***DEFAULT: cheapodc***.  
+      ```#define CDC_DEFAULT_HOSTNAME "cheapodc"```
 
 >[!NOTE]
 >When in access point (AP) mode the SSID for the AP will be the same as the hostname.
@@ -221,8 +218,8 @@ As of V2.2.0 changes to the ***CDCdefines.h*** file are **not** required since a
 If you have not modified the default CDCWiFi.json then the CheapoDC will enter AP (Access Point) mode when booted the first time.
 
 * Connect to the access point, SSID: CheapoDC and Password: CheapoDC.
-* Browse to the CheapoDC Web UI at [http://CheapoDC.local](http://CheapoDC.local) to configure your device. When prompted login using the default userid and password: admin, admin. You should be on the [Dashboard](../README.md#CheapoDC-dashboard) page.
-* Go to the [Device Management](../README.md#CheapoDC-device-management) page by clicking on the button at the bottom of the page.
+* Browse to the CheapoDC Web UI at [http://cheapodc.local](http://cheapodc.local) to configure your device. When prompted login using the default userid and password: admin, admin. You should be on the [Dashboard](../README.md#cheapodc-dashboard) page.
+* Go to the [Device Management](../README.md#cheapodc-device-management) page by clicking on the button at the bottom of the page.
 * Scroll down to [WiFi Configuration](../README.md#wifi-configuration) and configure your WiFi SSID and Password. You'll need to [Reboot](../README.md#reboot-device) the CheapoDC for the WiFi changes to take effect.
 * After rebooting. The CheapoDC should be connected to your WiFi network. Refresh your browser and stay on the Device Management page.
 * Configure the [Controller Outputs](../README.md#controller-output-configuration) if needed. Output 0 and 1 are always dew controller outputs and by default mapped to GPIO pins 0 and 1. Outputs 2 to 5 may be configured as Controller, PWM or Boolean. They are Disabled by default. Outputs **must** be mapped to a GPIO pin first before an [Output Mode](../README.md#output-modes) may be set.  
@@ -231,17 +228,17 @@ If you have not modified the default CDCWiFi.json then the CheapoDC will enter A
 * Set up the Humidity Sensor if you have [added one to your device](../README.md#humidity-sensor-configuration). A [Reboot](../README.md#reboot-device) of the device will be required for SDA and SCL pin changes to take effect.  
   For the ESP32-C3 SuperMini GPIO pins 9 (SCL) and 10 (SDA) have been validated.
 * [Change the Status LED](../README.md#status-led-configuration) GPIO pin and High Value setting if needed. GPIO pin 8 is the default while setting it to -1 will disable the LED.
-* Go to the [Controller Configuration](../README.md#CheapoDC-controller-configuration) page to set up the parameters for the dew controller, weather query and your location. Dew controller parameters are explained in the [Dew Control Algorithm](../README.md#how-the-dew-control-algorithm-works) section.
+* Go to the [Controller Configuration](../README.md#cheapodc-controller-configuration) page to set up the parameters for the dew controller, weather query and your location. Dew controller parameters are explained in the [Dew Control Algorithm](../README.md#how-the-dew-control-algorithm-works) section.
 
 Your CheapoDC should now be ready to use.
 
 ## Configuration Files
 
-All of the configuration information for the CheapoDC is stored in two files save to the data partition on the device.
+All the configuration information for the CheapoDC is stored in two files saved to the data partition on the device.
 
 ### CDCWiFi.json
 
-This file provides a list of WiFi access points that will be tried by the CheapoDC to establish a network connection. The Hostname and WiFi access point information may be modified using the [Web UI](../README.md#wifi-configuration). This file may also be edited and uploaded using the [File Management](../README.md#CheapoDC-file-management) page.
+This file provides a list of WiFi access points that will be tried by the CheapoDC to establish a network connection. The Hostname and WiFi access point information may be modified using the [Web UI](../README.md#wifi-configuration). This file may also be edited and uploaded using the [File Management](../README.md#cheapodc-file-management) page.
 
 The file content is json formatted using "name":"value" pairs.
 
@@ -253,23 +250,23 @@ The example shows settings for two access points in the "wifi" section. This can
 ```{"ssid":"FakeSSID1","password":"Password1"}```
 2. To set up a second AP (or more) then update "FakeSSID2" and "Password2" for the second AP (or add more entries separated by commas for more APs). If you only want one AP, then delete the entry including the preceding comma.  
 ```{"ssid":"FakeSSID2","password":"Password2"}```
-3. You can also change the "hostname" from the default of ***CheapoDC***.  
-```"hostname":"CheapoDC"```  
+3. You can also change the "hostname" from the default of ***cheapodc***.  
+```"hostname":"cheapodc"```  
 **Note:** Changing the hostname will also change the SSID for the device when in Access Point mode.
 4. Changing "connectAttempts" will change then number of times the CheapoDC will attempt to connect to an access point before moving to the next access point in the list.  
 ```"connectAttempts":"10"```
 5. Changing "tryAPs" will change the number of times the CheapoDC will loop through the list of access points before switching to Access Point (AP) mode.  
 ```"tryAPs":"1"```
 
-If CheapoDC fails to connect to an access point in Station Mode, then it will switch to Access Point (AP) mode. The AP SSID will be the same as the hostname with a default of *CheapoDC*. The AP password is always *CheapoDC* and can only be changed in the  [***CDCdefines.h***](#configure-firmware-in-the-cdcdefinesh-file) file.
+If CheapoDC fails to connect to an access point in Station Mode, then it will switch to Access Point (AP) mode. The AP SSID will be the same as the hostname with a default of *cheapodc*. The AP password is always *cheapodc* and can only be changed in the  [***CDCdefines.h***](#configure-firmware-in-the-cdcdefinesh-file) file.
 
 If no ***CDCWiFi.json*** file is found, then the values for WiFi configuration will be taken from the [***CDCdefines.h***](#configure-firmware-in-the-cdcdefinesh-file) file.
 
 ### CDCConfig.json
 
-This file is used to save the dew controller configuration between power cycles. If the file is not present, then the values defined in the ***CDCdefines.h*** file (the firmware defaults) will be used. The CheapoDC checks for changes to the controller's configuration every 10 seconds and if a change is detected then the full ***CDCdefines.h*** file will be written to the LittleFS file system on the controller.
+This file is used to save the device and dew controller configuration between power cycles. If the file is not present, then the values defined in the ***CDCdefines.h*** file (the firmware defaults) will be used. The CheapoDC checks for changes to any configuration values every 10 seconds and if a change is detected then the full ***CDCConfig.json*** file will be written to the LittleFS file system on the device.
 
-Controller configuration may be modified via the [Web UI](../README.md/#web-ui) or the [CheapoDC API](../README.md/#CheapoDC-api). The [CheapoDC commands](../README.md/#CheapoDC-commands) which support a ***Setter*** function also represent the values stored in the ***CDCConfig.json*** file.
+CheapoDC device and controller configuration may be modified via the [Web UI](../README.md/#web-ui) or the [CheapoDC API](../README.md/#cheapodc-api). The [CheapoDC commands](../README.md/#cheapodc-commands) which support a ***Setter*** function also represent the values stored in the ***CDCConfig.json*** file.
 
 ## Web OTA Root CA Issue
 
