@@ -32,7 +32,7 @@ dewController::dewController(void)
     this->_controllerPinSettings[CONTROLLER_PIN0].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;
 #endif // CDC_DEFAULT_CONTROLLER_PIN0
 #ifdef CDC_DEFAULT_CONTROLLER_PIN1
-    LOG_DEBUG("dewController", "Contorller Pin 1: " << CDC_DEFAULT_CONTROLLER_PIN1);
+    LOG_DEBUG("dewController", "Controller Pin 1: " << CDC_DEFAULT_CONTROLLER_PIN1);
 
     this->_controllerPinSettings[CONTROLLER_PIN1].controllerPinPin = CDC_DEFAULT_CONTROLLER_PIN1;
     this->_controllerPinSettings[CONTROLLER_PIN1].controllerPinMode = CONTROLLER_PIN_MODE_CONTROLLER;

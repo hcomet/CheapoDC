@@ -624,6 +624,7 @@ bool CDCSetup::setupWiFi(void)
   {
 
     strlcpy(this->_wifiConfig.hostname, doc["hostname"] | CDC_DEFAULT_HOSTNAME, sizeof(this->_wifiConfig.hostname));
+
     if (doc["connectAttempts"].is<int>())
       this->_wifiConfig.connectAttempts = doc["connectAttempts"].as<int>();
     else if (doc["connectAttempts"].is<const char*>())
@@ -640,7 +641,7 @@ bool CDCSetup::setupWiFi(void)
     else
       this->_wifiConfig.tryAPs = CDC_DEFAULT_WIFI_TRYAPS;
     if (this->_wifiConfig.tryAPs <= 0)
-      this->_wifiConfig.tryAPs = 1;
+      this->_wifiConfig.tryAPs = CDC_DEFAULT_WIFI_TRYAPS;
 
     LOG_DEBUG("setupWiFi", "hostname:" << this->_wifiConfig.hostname);
     LOG_DEBUG("setupWiFi", "Connection attempts:" << this->_wifiConfig.connectAttempts);
