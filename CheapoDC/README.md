@@ -20,7 +20,7 @@ section on the **Device Management** page of the CheapoDC WebUI. Just enter your
 >[!IMPORTANT]
 > Due to a change to the issuing CA for GitHub Pages HTTPS certificates, Web OTA Update from V2.3.0 or earlier no longer works. V2.3.1 fixes the issue and Web OTA Update should work properly from that version onwards.
 >
-> Go to the section [***Web OTA Root CA Issue***](#web-ota-root-ca-issue) for details on how to get Web OTA Update to detect a new release and perform the firmware update from V2.2.0 or V2.3.0.
+> Go to the section [***Web OTA Update Root CA Issue***](#web-ota-update-root-ca-issue) for details on how to get Web OTA Update to detect a new release and perform the firmware update from V2.2.0 or V2.3.0.
 
 
 ### 2. Manual OTA Update
@@ -114,7 +114,7 @@ The *Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)* partition scheme provides
 
 To allow for OTA updates, LittleFS storage and some expansion room for CheapoDC firmware the *Minimal SPIFFS (1.9MB APP with OTA/190KB SPIFFS)* partition scheme is used. Although this scheme provides enough application space it provides too little SPIFFS (data partition) space for the CheapoDC HTML, CSS and JS files without compression. The repository [**data source**](../data%20source/) folder contains he original source for these files. The repository [**CheapoDC/data**](../CheapoDC/data/) folder contains minified or compressed versions for installation in the LittleFS formatted data partition.
 
-### Setting Up Your Build Environment\
+### Setting Up Your Build Environment
 
 1. Install the Arduino IDE.  
   **NOTE:** Version 2.3.10 of the Arduino IDE is required. As of CheapoDC V2.3.1 verification of
@@ -268,7 +268,7 @@ This file is used to save the device and dew controller configuration between po
 
 CheapoDC device and controller configuration may be modified via the [Web UI](../README.md/#web-ui) or the [CheapoDC API](../README.md/#cheapodc-api). The [CheapoDC commands](../README.md/#cheapodc-commands) which support a ***Setter*** function also represent the values stored in the ***CDCConfig.json*** file.
 
-## Web OTA Root CA Issue
+## Web OTA Update Root CA Issue
 
 CheapoDC uses esp32FOTA to detect the availability of a CheapoDC firmware update. The updates are hosted at [https://hcomet.github.io/](https://hcomet.github.io/) on GitHub Pages. The version of esp32FOTA used in CheapoDC V2.2.0 and V2.3.0 required that the root CA for the hosting site be provided to verify the HTTPS link to the site. When the root CA for GitHub Pages was changed after the CheapoDC V2,3,0 release, updates could no longer be verified. Automatic Web OTA Update for V2.2.0 and V2.3.0 stopped working.
 

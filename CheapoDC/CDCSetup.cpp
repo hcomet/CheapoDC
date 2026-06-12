@@ -952,58 +952,60 @@ void CDCSetup::setAmbientTemperatureExternal(float temperature)
 
 void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
 {
-    weatherSource previousWeatherSource = this->_currentWeatherSource;
-    if ((source < OPENMETEO) || (source > INTERNALSOURCE))
+  weatherSource previousWeatherSource = this->_currentWeatherSource;
+  if ((source < OPENMETEO) || (source > INTERNALSOURCE)) // In range check
+  {
+    LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " keeping current source " << previousWeatherSource);
+    this->_currentWeatherSource = previousWeatherSource;
+  } // In range check
+  else if ( source != previousWeatherSource) // Source change check
+  {
+    if ((source == INTERNALSOURCE) && (!forceUpdate) && ((this->_humiditySensorSDAPin < 0) || (this->_humiditySensorSCLPin < 0) || !this->_humiditySensorStatus))
     {
-        LOG_ALERT("setWeatherSource", "Invalid weather source: " << source << " keeping current source " << previousWeatherSource);
-        this->_currentWeatherSource = previousWeatherSource;
+      LOG_ERROR("setWeatherSource", "Internal Source selected but Humidity sensor pins not set. Keeping previous Weather Source.");
+      this->_currentWeatherSource = previousWeatherSource;
     }
-    else if ( source != previousWeatherSource)
+    else // Pass Internal source error check
     {
-        this->_currentWeatherSource = source;
-        memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
-        memset(this->_weatherIconURL, '\0', sizeof(this->_weatherIconURL));
-        if (source ==  OPENMETEO)
-        {
-          strlcpy(this->_weatherAPIURL, CDC_OPENMETEO_APIURL, sizeof(this->_weatherAPIURL));
-          strlcpy(this->_weatherIconURL, CDC_OPENMETEO_ICONURL, sizeof(this->_weatherIconURL));
-        }
-        else if (source == OPENWEATHERSOURCE)
-        {
-          strlcpy(this->_weatherAPIURL, CDC_OPENWEATHER_APIURL, sizeof(this->_weatherAPIURL));
-          strlcpy(this->_weatherIconURL, CDC_OPENWEATHER_ICONURL, sizeof(this->_weatherIconURL));
-        }
-        else if (source == INTERNALSOURCE) // Treat as OpenMeteo for testing purposes
-        {
-          if (((this->_humiditySensorSDAPin < 0) || (this->_humiditySensorSCLPin < 0) || !this->_humiditySensorStatus) && !forceUpdate)
-          {
-            LOG_ERROR("setWeatherSource", "Internal Source selected but Humidity sensor pins not set. Keeping previous Weather Source.");
-            this->_currentWeatherSource = previousWeatherSource;
-          }
-          else
-          {
-            strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
-            strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
-            memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
-            strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
-            memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
-            strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-            strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_INTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
-          }
-        }
-        else
-        {
-          strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
-          strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
-          memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
-          strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
-          memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
-          strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
-          strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_EXTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
+      this->_currentWeatherSource = source;
+      memset(this->_weatherAPIURL, '\0', sizeof(this->_weatherAPIURL));
+      memset(this->_weatherIconURL, '\0', sizeof(this->_weatherIconURL));
+      if (source ==  OPENMETEO) // Change to OPENMETEO
+      {
+        strlcpy(this->_weatherAPIURL, CDC_OPENMETEO_APIURL, sizeof(this->_weatherAPIURL));
+        strlcpy(this->_weatherIconURL, CDC_OPENMETEO_ICONURL, sizeof(this->_weatherIconURL));
+      }  // Change to OPENMETEO
+      else if (source == OPENWEATHERSOURCE) // Change to OPENWEATHER
+      {
+        strlcpy(this->_weatherAPIURL, CDC_OPENWEATHER_APIURL, sizeof(this->_weatherAPIURL));
+        strlcpy(this->_weatherIconURL, CDC_OPENWEATHER_ICONURL, sizeof(this->_weatherIconURL));
+      }  // Change to OPENWEATHER
+      else if (source == EXTERNALSOURCE) // Change to EXTERNALSOURCE
+      {
+        strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
+        strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
+        memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
+        strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
+        memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
+        strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+        strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_EXTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
+      } // Change to EXTERNALSOURCE
+      else if (source == INTERNALSOURCE) // Change to INTERNALSOURCE
+      {       
+        strlcpy(this->_weatherAPIURL, CDC_WEATHERSOURCE_APIURL_NA, sizeof(this->_weatherAPIURL));
+        strlcpy(this->_weatherIconURL, CDC_WEATHERSOURCE_ICONURL_NA, sizeof(this->_weatherIconURL));
+        memset(this->_currentWeather.weatherDescription, '\0', sizeof(this->_currentWeather.weatherDescription));
+        strlcpy(this->_currentWeather.weatherDescription, CDC_WEATHERSOURCE_DESC_NA, sizeof(this->_currentWeather.weatherDescription));
+        memset(this->_currentWeather.weatherIcon, '\0', sizeof(this->_currentWeather.weatherIcon));
+        strlcpy(this->_currentWeather.weatherIcon, CDC_NA, sizeof(this->_currentWeather.weatherIcon));
+        strlcpy(this->_currentWeather.weatherUpdateLocation, CDC_INTERNALSOURCE_LOCATION_NAME, sizeof(this->_currentWeather.weatherUpdateLocation));
+      } // Change to INTERNALSOURCE
+      else  // Something is wrong...
+      {
+        LOG_ERROR("setWeatherSource", "Invalid weather source: " << source << ", not sure how we got here.");
+      } 
 
-        }
-
-        // Reset query & update times as well as temperature, humidity & dew point
+      // Reset query & update times as well as temperature, humidity & dew point
       strlcpy(this->_currentWeather.lastWeatherQueryTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryTime));
       strlcpy(this->_currentWeather.lastWeatherQueryDate, CDC_NA, sizeof(this->_currentWeather.lastWeatherQueryDate));
       strlcpy(this->_currentWeather.lastWeatherUpdateTime, CDC_NA, sizeof(this->_currentWeather.lastWeatherUpdateTime));
@@ -1011,9 +1013,10 @@ void CDCSetup::setWeatherSource(weatherSource source, bool forceUpdate)
       this->_currentWeather.ambientTemperature = CDC_TEMPERATURE_NOT_SET;
       this->_currentWeather.humidity = 0.0F;
       this->_currentWeather.dewPoint = 0.0F;
-    }
-    
-    LOG_DEBUG("setWeatherSource", "Set weather source set to: " << this->_currentWeatherSource);
+    } // Pass Internal source error check
+  } // Source change check
+  
+  LOG_DEBUG("setWeatherSource", "Set weather source set to: " << this->_currentWeatherSource);
 }
 
 void CDCSetup::calculateAndSetDewPoint()
