@@ -502,8 +502,22 @@ void setupServers(void) {
     request->send(LittleFS, "/listfiles.html", String(), false, processor);
   });
 
+  // File list
   CDCWebServer->on("/filelist", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(200, "text/html", filelist, processor);
+    String fileListResponse = processor("TMFL");
+    AsyncWebServerResponse *response = request->beginChunkedResponse("text/plain", [fileListResponse](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+      unsigned int fileListLength = fileListResponse.length();
+      if (index >= fileListLength) {
+        return 0; // No more data to send
+      }
+
+      const int bytesToSend = min( (size_t)1024, min(maxLen, (fileListLength - index)));
+      memcpy(buffer, fileListResponse.c_str() + index, bytesToSend);
+
+      return bytesToSend;
+
+    });
+      request->send(response);
   });
 
   // Assorted special function pages and images
@@ -533,7 +547,19 @@ void setupServers(void) {
 
   CDCWebServer->on("/delete", HTTP_GET, [](AsyncWebServerRequest *request) {
     processDelete(request);
-    request->send(200, "text/html", filelist, processor);
+    String fileListResponse = processor("TMFL");
+    AsyncWebServerResponse *response = request->beginChunkedResponse("text/plain", [fileListResponse](uint8_t *buffer, size_t maxLen, size_t index) -> size_t {
+      unsigned int fileListLength = fileListResponse.length();
+      if (index >= fileListLength) {
+        return 0; // No more data to send
+      }
+
+      const int bytesToSend = min( (size_t)1024, min(maxLen, (fileListLength - index)));
+      memcpy(buffer, fileListResponse.c_str() + index, bytesToSend);
+
+      return bytesToSend;
+    });
+    request->send(response);
   });
 
   CDCWebServer->on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -707,13 +733,14 @@ void setupHttpOTA() {
   File file = LittleFS.open(CDC_HTTP_OTA_ROOT_CA_FILE, "r");
   if (!file)
   {
-    const char* root_ca = WEB_OTA_ROOT_CA;
+    // Use CA certs bundle supported by esp32FOTA
     LOG_DEBUG("setupHttpOTA", "No Root CA file found: " << CDC_HTTP_OTA_ROOT_CA_FILE << " Using default.");
-    CryptoMemAsset  *MyRootCA = new CryptoMemAsset("Root CA", root_ca, strlen(root_ca)+1 );
-    CDCFota->setRootCA( MyRootCA );
+    CDCFota->useBundledCerts(true);
   } else {
+    // Use CA cert file from LittleFS
     file.close();
     LOG_ALERT("setupHttpOTA", "Root CA file found: " << CDC_HTTP_OTA_ROOT_CA_FILE << " Using it instead of default.");
+    CDCFota->useBundledCerts(false);
     CryptoFileAsset *MyRootCA =  new CryptoFileAsset(CDC_HTTP_OTA_ROOT_CA_FILE, &LittleFS);
     CDCFota->setRootCA( MyRootCA );  
   }

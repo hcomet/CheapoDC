@@ -17,11 +17,10 @@
 #endif
 
 char programName[] = "CheapoDC"; // Program name
-char programVersion[] = "2.3.0";  // program version
+char programVersion[] = "2.3.1";  // program version
 
 CDCSetup *theSetup; // main setup class
 dewController *theDController;
-//ESP32Time *theTime;
 
 // Counters used for time based scheduler in main loop
 int milliCount = 0;

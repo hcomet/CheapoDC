@@ -163,8 +163,9 @@ cmdResponse getCmdProcessor(const String &var)
         LOG_INFO("processor", "--FILE: " << file.name() << " tSIZE: " << file.size());
         newResponse.response += String("<div class=\"filelist\"><fileItem>") + String(file.name()) + String("</fileItem><fileAction1>");
         newResponse.response += String(" <a href=\"./download?file=") + String(file.path()) + String("\" download=\"") + String(file.name()) + String("\">Download</a></fileAction1><fileAction2>");
-        newResponse.response += String("<div class=\"danger\" onclick=\"deleteFile('") + String(file.path()) + String("')\" >Delete</div></fileAction2></div></li>");
+        newResponse.response += String("<div class=\"danger\" onclick=\"deleteFile('") + String(file.path()) + String("')\" >Delete</div></fileAction2></div>");
       }
+      file.close();
       file = root.openNextFile();
     }
 

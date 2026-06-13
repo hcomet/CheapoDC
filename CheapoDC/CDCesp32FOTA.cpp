@@ -31,6 +31,8 @@
 */
 
 #include "CDCesp32FOTA.hpp"
+// include ESP32CertBundle Arduino library for root CA certificates management
+#include <esp32_cert_bundle.h>
 
 
 // arduino-esp32 core 2.x => 3.x migration
@@ -192,6 +194,7 @@ void esp32FOTA::setConfig( FOTAConfig_t cfg )
     _cfg.signature_len = cfg.signature_len;
     _cfg.allow_reuse   = cfg.allow_reuse;
     _cfg.use_http10    = cfg.use_http10;
+    _cfg.use_bundled_certs = cfg.use_bundled_certs;
 }
 
 
@@ -240,7 +243,15 @@ void esp32FOTA::setupCryptoAssets()
 }
 
 
-
+/* Enable ESP-IDF bundled certs */
+void esp32FOTA::useBundledCerts(bool enable)
+{
+    _cfg.use_bundled_certs = enable;
+    if (enable) {
+        _cfg.unsafe = false;     // strict
+        _cfg.root_ca = nullptr;  // disable custom CA
+    }
+}
 void esp32FOTA::handle()
 {
   if ( execHTTPcheck() ) {
@@ -371,34 +382,73 @@ bool esp32FOTA::setupHTTP( const char* url )
     _http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
     _http.setReuse(_cfg.allow_reuse);
     _http.useHTTP10(_cfg.use_http10);
-    
 
     log_i("Connecting to: %s", url );
-    if( String(url).startsWith("https") ) {
-        if (!_cfg.unsafe) {
-            if( !_cfg.root_ca ) {
-                log_e("A strict security context has been set but no RootCA was provided");
-                return false;
+
+    bool is_https = String(url).startsWith("https");
+
+    if (is_https) {
+
+        bool https_initialized = false;
+
+        /* ================================
+           1. Bundled ESP-IDF CA certificate
+           ================================ */
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+        if (!https_initialized && _cfg.use_bundled_certs) {
+            // Modified to use ESP32CertBundle Arduino library
+
+            if (x509_crt_bundle != nullptr) {
+                log_i("Using built-in ESP-IDF certificate bundle (%u bytes)", x509_crt_bundle_len);
+
+                _client.setCACertBundle(x509_crt_bundle, x509_crt_bundle_len);
+                _http.begin(_client, url);
+                https_initialized = true;
+            } else {
+                log_w("Bundled certs requested, but CA bundle not linked. Falling back.");
             }
-            if( _cfg.root_ca->size() == 0 ) {
-                log_e("A strict security context has been set but an empty RootCA was provided");
+        }
+#endif
+
+        /* ================================
+           2. Custom root CA certificate
+           ================================ */
+        if (!https_initialized && !_cfg.unsafe && _cfg.root_ca) {
+            if (_cfg.root_ca->size() == 0) {
+                log_e("Strict HTTPS but empty RootCA provided");
                 return false;
             }
             rootcastr = _cfg.root_ca->get();
-            if( !rootcastr ) {
-                log_e("Unable to get RootCA, aborting");
-                log_e("rootcastr=%s", rootcastr);
+            if (!rootcastr) {
+                log_e("Strict HTTPS but failed to get RootCA contents");
                 return false;
             }
-            log_d("Loading root_ca.pem");
-            _client.setCACert( rootcastr );
-        } else {
-            // We're downloading from a secure URL, but we don't want to validate the root cert.
-            _client.setInsecure();
+            log_i("Using custom RootCA for TLS");
+            _client.setCACert(rootcastr);
+            _http.begin(_client, url);
+            https_initialized = true;
         }
-        _http.begin( _client, url );
+
+        /* ================================
+           3. Insecure HTTPS
+           ================================ */
+        if (!https_initialized && _cfg.unsafe) {
+            log_w("Insecure HTTPS enabled");
+            _client.setInsecure();
+            _http.begin(_client, url);
+            https_initialized = true;
+        }
+
+        /* ================================
+           4. No CA available (strict)
+           ================================ */
+        if (!https_initialized) {
+            log_e("Strict HTTPS enabled but no CA source available (neither bundled nor custom)");
+            return false;
+        }
+
     } else {
-        _http.begin( url );
+        _http.begin(url);
     }
 
     if( extraHTTPHeaders.size() > 0 ) {
@@ -909,6 +959,7 @@ bool esp32FOTA::forceUpdate(const char* firmwareHost, uint16_t firmwarePort, con
 {
     static String firmwareURL("http");
     if ( firmwarePort == 443 || firmwarePort == 4433 ) firmwareURL += "s";
+    firmwareURL += "://";
     firmwareURL += String(firmwareHost);
     firmwareURL += ":";
     firmwareURL += String(firmwarePort);

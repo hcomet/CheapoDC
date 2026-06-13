@@ -14,28 +14,30 @@ A primary goal was to keep the project cheap, simple and easy with:
 * Comprehensive [Web UI](#web-ui) for configuration and management
 * [INDI](https://www.indilib.org/) and [StellarMate](https://stellarmate.com/) support 'out-of-the-box'
 
-CheapoDC can select from four weather sources to provide the local temperature and humidity. The first two, OpenWeather and Open-Meteo, leverage the ESP32 WiFi
+CheapoDC can select from four weather sources to provide the local temperature and humidity. 
+* The first two, **OpenWeather** and **Open-Meteo**, leverage the ESP32 WiFi
 capability to query one of the two open weather service APIs. Either the [OpenWeather](https://openweathermap.org/) API
 or the [Open-Meteo](https://open-meteo.com/) API may be used to retrieve ambient temperature, humidity and dew point
 for the controller's geographic location. No additional
-components, such as temperature or humidity probes, are required with these weather sources. As a third weather source option an External Sources, such as a personal weather station, can push weather information to the CheapoDC via the API. Then as a fourth option an optional Humidity Sensor may be added to the CheapoDC to provide the required weather data and selected as the Internal Source.
+components, such as temperature or humidity probes, are required with these weather sources. 
+* The third weather source option, **External Source**, allows weather information to be pushed to the CheapoDC via the API. A personal weather station may be leveraged for local weather data using this option.
+* The fourth option, **Internal Source**, requires an optional Humidity Sensor be added to the CheapoDC to provide required weather data.
 
 The CheapoDC may be set up using a basic configuration with two dew strap outputs or it may be configured with up to
-four additional outputs or the optional humidity sensor. Each CheapoDC Output is controlled by a separate MOSFET module tied to one of the ESP32's
+four additional outputs or the optional humidity sensor. Each CheapoDC Output is controlled by a separate MOSFET module tied to one of the ESP32
 GPIO pins. The four additional outputs may be configured to be managed either automatically using the CheapoDC dew
 control algorithm, along with the two main dew controller outputs,
 or manually via the Web UI or API. Dew control algorithm managed pins and thus dew strap outputs are all tied to the
 same ESP32 PWM channel and will have the same output.
 
-CheapoDC hardware build details can be found in the [Hardware](#hardware) section of this document.
+CheapoDC hardware details can be found in the [Hardware](#hardware) section of this document.
 
-CheapoDC firmware may installed on your device using one of the following methods:
+CheapoDC firmware installation details may be found with the source code in the [CheapoDC/README.md](./CheapoDC/README.md#installing-cheapodc). Installation may be done by:
 
-* Using the Arduino IDE: Details on how to build the CheapoDC firmware as well as information about the latest
-firmware release may be found with the source code in the [CheapoDC/README.md](./CheapoDC#webflash-as-an-option).
-* WebFlash: A web based utility that allows for the installation of the latest firmware directly to your ESP32-C3 based device.
+* Using WebFlash, a web-based utility that allows for the installation of the latest firmware directly to your ESP32-C3 based device.
+* Building it yourself with the Arduino IDE.
 
-CheapoDC also supports web based Over-the-air (OTA) upgrades of the firmware using the CheapoDC Web UI.
+CheapoDC also supports web-based Over-the-air (OTA) upgrades of the firmware using the CheapoDC Web UI.
 
 # How the Dew Control Algorithm Works
 
@@ -89,7 +91,7 @@ Example 1 is primarily a reference image to illustrate the variables defined abo
 
 Example 2 shows changing the values of the controller configuration variables can affect the Power Output calculation.
 
-* The Set Point, SP = -2°C, and the Reference Temperature, RT = 8°C, the same as in Example 1. However changing the Track Point Offset, now TPO = 2°C, and the Tracking Range, now TR = 10°C, has changed the Power Output as well as flattening the Power Output curve.
+* The Set Point, SP = -2°C, and the Reference Temperature, RT = 8°C, the same as in Example 1. However, changing the Track Point Offset, now TPO = 2°C, and the Tracking Range, now TR = 10°C, has changed the Power Output as well as flattening the Power Output curve.
 * The Maximum Output has been increased, MaxO = 100%, to allow full power output to be reached at 0&deg;C.
 
 ![Example 2](images/example2.jpg)
@@ -108,7 +110,7 @@ The Controller Mode selects the overall operating mode of the dew controller.
 
 #### Manual
 
-* Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the API. When in Manual mode the the periodic Power Output calculation is suspended. Using Manual control is an option if internet access for OpenWeather API queries is not available.
+* Controller output is manually controlled by setting the **Dew Controller Output** either through the Web UI or the API. When in Manual mode the periodic Power Output calculation is suspended. Using Manual control is an option if internet access for OpenWeather API queries is not available.
 
 #### Off
 
@@ -124,7 +126,7 @@ The Set Point Mode selects what will be used as the SetPoint for calculating Pow
 
 #### Temperature
 
-* Uses a **Temperature Set Point** value input via the Web UI or API as the Set Point for calculating output. If the CheapoDC is being used without internet access then this mode allows a Set Point to be defined when a the DeW Point cannot be determined through the OpenWeather API.
+* Uses a **Temperature Set Point** value input via the Web UI or API as the Set Point for calculating output. If the CheapoDC is being used without internet access, then this mode allows a Set Point to be defined when the Dew Point cannot be determined through the OpenWeather API.
 
 #### Midpoint
 
@@ -136,12 +138,12 @@ The Temperature Mode selects how the Reference Temperature will be determined fo
 
 #### Weather Source
 
-* Uses the Ambient Temperature returned by the selected Weather Source.This is then used as the Reference Temperature for calculating the controller output.
+* Uses the Ambient Temperature returned by the selected Weather Source. This is then used as the Reference Temperature for calculating the controller output.
 
 #### External Input
 
 * Use the **External Input** temperature set through the [Web UI](#cheapodc-controller-configuration) or [API](#cheapodc-api) as the reference temperature for calculating the controller output. This may be the preferred mode when using the controller with KStars/Indi. The CheapoDC [Indilib driver](#indi-driver) can use a temperature probe attached to a focuser as the external input.  
-<br>**NOTE:** If no temperature values have been set for External Input then a value of **-127.0°C** will be shown. The Controller, when in Automatic Mode with Temperature Mode set to External Input,  will set output power at the configured minimum output until a value is set via the WebUI or API.
+<br>**NOTE:** If no temperature values have been set for External Input, then a value of **-127.0°C** will be shown. The Controller, when in Automatic Mode with Temperature Mode set to External Input,  will set output power at the configured minimum output until a value is set via the WebUI or API.
 
 ## Hardware
 
@@ -157,10 +159,10 @@ If you are looking to add the optional SHT30 Humidity sensor to support a comple
 ### Component list
 
 * ESP32-C3 SuperMini (Other ESP32 modules should work but this one is very small and low priced) Example: [https://www.aliexpress.com/item/1005005967641936.html?spm=a2g0o.order_list.order_list_main.10.3b2c1802dRy3Tw](https://www.aliexpress.com/item/1005005967641936.html?spm=a2g0o.order_list.order_list_main.10.3b2c1802dRy3Tw)
-* Buck converter to reduce 12V to 5V. I used an [LM2596 Module](https://www.amazon.ca/dp/B08Q2YKJ6Q?psc=1&ref=ppx_yo2ov_dt_b_product_details). You could also use an [MP1584EN Module](https://www.amazon.ca/eBoot-MP1584EN-Converter-Adjustable-Module/dp/B01MQGMOKI/ref=pd_sbs_d_sccl_2_3/141-9725081-7037101?pd_rd_w=UMd8F&content-id=amzn1.sym.ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_p=ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_r=4WWMQ6QG50JQ2BTYP273&pd_rd_wg=OCFjo&pd_rd_r=381f4abb-88a8-4856-a51f-39d3190099fa&pd_rd_i=B01MQGMOKI&th=1). These modules often have an adjustable output. You'll need to use a Volt meter to adjust the output to 5 volts before hooking it up.
+* Buck converter to reduce 12V to 5V. I used an [LM2596 Module](https://www.amazon.ca/dp/B08Q2YKJ6Q?psc=1&ref=ppx_yo2ov_dt_b_product_details). You could also use an [MP1584EN Module](https://www.amazon.ca/eBoot-MP1584EN-Converter-Adjustable-Module/dp/B01MQGMOKI/ref=pd_sbs_d_sccl_2_3/141-9725081-7037101?pd_rd_w=UMd8F&content-id=amzn1.sym.ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_p=ca022dba-8a59-468d-95a1-3216f611a75e&pf_rd_r=4WWMQ6QG50JQ2BTYP273&pd_rd_wg=OCFjo&pd_rd_r=381f4abb-88a8-4856-a51f-39d3190099fa&pd_rd_i=B01MQGMOKI&th=1). These modules often have an adjustable output. You'll need to use a Voltmeter to adjust the output to 5 volts before hooking it up.
 * Two [dual-MOSFET Modules](https://www.amazon.ca/dp/B08ZNDG6RY?psc=1&ref=ppx_yo2ov_dt_b_product_details) to handle output to the dew straps while being able to be triggered by the 3.3V levels from the ESP32 PWM pins.
 * A resettable fuse that can handle 5A. An example [5A PPTC](https://www.amazon.ca/10pcs-5000MA-Resettable-RGEF500-GF500/dp/B092T9Q3QR/ref=sr_1_4?crid=3KNZXWN5ZIERR&dib=eyJ2IjoiMSJ9.y5Pp17w_i-KzaprejYOYzM_8u_S5MY_jz1z932C2gBBmx5zcGFKHMHtP6qYXScM_-6ii9W8lDuEq5tbkCUQdYOFESDzjnASBHIusx7zAFOkhc6SNPrOH4O8ExB9WzAI-XgtIUvz-EvjfyOzjX4IN8iGl2GSffYGCb1BvIzldhIbrwCyyvNRyEfUCehiFknfJ5Uz1PSdPnC0BJjzSZp7Frh_EDLOF4CjpyeUQckj0FTQ347ehfh3jy3kHSu3I2iTOEaQZMRdqjpkW_NBOUMMsZsbeRdkMtzq0cIrGcsbUdhk.8jKyynsByh2dYlS0gLu9IdNbxiIm4iDIQv6g0ucFzCc&dib_tag=se&keywords=5a+pptc&qid=1709138849&sprefix=5a+pptc%2Caps%2C80&sr=8-4)
-* Optionally an LED and resistor for the status LED. Many astrophotographers do not want power LEDs or lights of any sort on their equipment. If you fall into this category then just use the ESP32 onboard LED as the status LED. If you would prefer a visible status LED on your project case then you may optionally add one. Status LED details may be found in the [Status LED Section](#cheapodc-status-led).  
+* Optionally an LED and resistor for the status LED. Many astrophotographers do not want power LEDs or lights of any sort on their equipment. If you fall into this category, then just use the ESP32 onboard LED as the status LED. If you would prefer a visible status LED on your project case, then you may optionally add one. Status LED details may be found in the [Status LED Section](#cheapodc-status-led).  
 In my implementation I used a red LED connected to the same pin as the onboard LED, pin 8. I used a 1K resistor to keep the LED fairly dim while still working.
 * Some assorted hardware:
   * 12VDC 5.5mm x 2.1mm socket. Common socket size used for Astronomy.
@@ -172,13 +174,13 @@ In my implementation I used a red LED connected to the same pin as the onboard L
 ![Wiring Diagram](images/wiring.jpg)
 
 The default configuration for the basic dual output controller uses Controller Outputs, 0 and 1, mapped to GPIO pins 0 and 1.
-If you cannot use these GPIO pins then they may be changed using the Web UI on the [Device Management](#cheapodc-device-management)
+If you cannot use these GPIO pins, then they may be changed using the Web UI on the [Device Management](#cheapodc-device-management)
 page or the default values may be changed in the [CDCDefines.h](CheapoDC/README.md#configure-firmware-in-the-cdcdefinesh-file) file
 before building the firmware.
 
 ### Working Implementation
 
-Assembled in a 6 inch long piece of 2"x1" aluminum channel. This also has Pin 8, which is the status LED, connected to an extra LED on the left side for external visibility. The ESP32-C3 is also mounted in some protoboard to make the wiring easier. If you plan to use a small case like this, use silicone hookup wire. The extra flexibility of silicone wire will save a lot of frustration. I used 22 awg wire for the 5V and 3.3V ESP32 connections and 18 awg wire for the 12V connections.
+Assembled in a 6 inch piece of 2"x1" aluminum channel. This also has Pin 8, which is the status LED, connected to an extra LED on the left side for external visibility. The ESP32-C3 is also mounted in some protoboard to make the wiring easier. If you plan to use a small case like this, use silicone hookup wire. The extra flexibility of silicone wire will save a lot of frustration. I used 22 awg wire for the 5V and 3.3V ESP32 connections and 18 awg wire for the 12V connections.
 
 ![Working Prototype](images/prototype.jpg)
 
@@ -212,7 +214,7 @@ pen-Meteo, an open API based weather service, is the default Weather Source for 
 
 ### Which Open Weather Service to use?
 
-Both services require a location using Latitude and Longitude which you can set using the CheapoDC [Web UI](/README.md#web-ui) or [CHeapoDC API](#cheapodc-api). Both sources will use weather stations close to the provided coordinates. OpenWeather provides the name of the weather station used in its response. Open-Meteo does not. If run side-by-side with the same co-ordinates they provide slightly different results. You may want to check which service provides the best results for your location.
+Both services require a location using Latitude and Longitude which you can set using the CheapoDC [Web UI](/README.md#web-ui) or [CheapoDC API](#cheapodc-api). Both sources will use weather stations close to the provided coordinates. OpenWeather provides the name of the weather station used in its response. Open-Meteo does not. If run side-by-side with the same co-ordinates they provide slightly different results. You may want to check which service provides the best results for your location.
 
 As indicated the default service is Open-Meteo. This is primarily because no registration is required to use the open service.
 
@@ -262,13 +264,13 @@ Note that a Controller Output Pin to GPIO Pin mapping must be set before an Outp
 Shows current network information and allows you to configure the hostname and WiFi access point to use for network access. CheapoDC can be configured to step through multiple access points to make a WiFi connection.
 
 * Network Information
-  * Wifi Mode: STA = Station Mode, AP = Access Point Mode.
+  * WiFi Mode: STA = Station Mode, AP = Access Point Mode.
   * Hostname: Current active hostname. If updated a reboot is required to see the new hostname.  
   **Note:** Changing the hostname will also change the SSID for the device when in Access Point Mode.
   * IP Address.
 * Configure WiFi
-  * Name: Allows you to pick an access point for editing the password. Or, select `Add WiFi` to add an access point.
-  * SSID: Is the access point SSID point to add or edit. To delete an access point blank out the SSID and click **Update**.
+  * Name: Allows you to pick an access point for editing the password. Or select `Add WiFi` to add an access point.
+  * SSID: Is the access point SSID point to add or edit. To delete an access point, blank out the SSID and click **Update**.
   * Password: Is the password for the access point. **Show Password** will only work for adding a new WiFi access point.
 
 Changes to any of the WiFi Configuration setting require a reboot to take effect.
@@ -279,7 +281,7 @@ Changing the default password of ***admin*** to your own password is recommended
 
 #### Humidity Sensor Configuration
 
-Used to configure which pins are used for by the SHT3x humidity sensor. The humidity sensor uses the I2C protocol and two GPIO pins are required. One for the I2C SDA (data) line and one for the I2C SCL (clock) line. If using the humidity sensor then its recommend to use pin 10 for SDA GPIO and pin 9 for SCL GPIO. If not using the humidity sensor then leave the two values set to -1. If either setting has a negative value then the firmware will not attempt to intialize I2C and the humidity sensor.
+Used to configure which pins are used for by the SHT3x humidity sensor. The humidity sensor uses the I2C protocol and two GPIO pins are required. One for the I2C SDA (data) line and one for the I2C SCL (clock) line. If using the humidity sensor, then it's recommended to use pin 10 for SDA GPIO and pin 9 for SCL GPIO. If not using the humidity sensor, then leave the two values set to -1. If either setting has a negative value, then the firmware will not attempt to initialize I2C and the humidity sensor.
 
 #### Status LED Configuration
 
@@ -304,15 +306,15 @@ The CheapoDC uses LittleFS for file storage on the ESP32. Although LittleFS supp
 
 ## CheapoDC Status LED
 
-The Status LED is used to provide information about the current status of the CheapoDC. Status blinking lasts for 10 seconds. It will blink as WiFi access attempts are made. If a Station mode connection is successfully made to an access point then the status LED will slow blink (1 second cycle). If no connection is made then the CheapoDC will go into Access Point mode. The status LED will then fast blink (200ms cycle).
+The Status LED is used to provide information about the current status of the CheapoDC. Status blinking lasts for 10 seconds. It will blink as WiFi access attempts are made. If a Station mode connection is successfully made to an access point, then the status LED will slow blink (1 second cycle). If no connection is made, then the CheapoDC will go into Access Point mode. The status LED will then fast blink (200ms cycle).
 
 The status LED will also blink for 10 seconds after the controller changes the power output and after an API or Web UI driven controller configuration change.
 
-If the status LED is not turning off after connecting to WiFI or after the 10 second blink then you may need to reverse the High value setting. This can also be done in the Web UI by changing the High Value setting in [Status LED Configuration](#status-led-configuration).
+If the status LED is not turning off after connecting to WiFI or after the 10 second blink, then you may need to reverse the High value setting. This can also be done in the Web UI by changing the High Value setting in [Status LED Configuration](#status-led-configuration).
 
 ## CheapoDC API
 
-The CheapoDC provides API access to all configuration and data items available through the [Web UI](/README.md#web-ui). There is no authentication support in the API but the API also does not support firmware OTA updates or file management. These can only be done through the Web UI.
+The CheapoDC provides API access to all configuration and data items available through the [Web UI](/README.md#web-ui). There is no authentication support in the API, but the API also does not support firmware OTA updates or file management. These can only be done through the Web UI.
 
 CheapoDC supports two API mechanisms:
 
@@ -334,7 +336,7 @@ The APIs use the same commands which are listed in the top of [CDCommands.cpp](/
   * JSON ENUM, for enumerated values like Controller Mode.
     * ie: "{"Mode":["Automatic","Manual","Off"]}"
 
-The table below provides a list of the commands but the code is the final correct source of truth here.
+The table below provides a list of the commands, but the code is the final correct source of truth here.
 
 * String maximum lengths are identified in the table.
 * Floats are truncated to 2 decimal places.
@@ -471,4 +473,5 @@ Driver version 1.2 supports the latest versions of the CheapoDC firmware adding 
   * [Sensirion I²C SHT3X by Sensirion](https://github.com/Sensirion/arduino-i2c-sht3x)
   * [Sensirion Core by Sensirion](https://github.com/Sensirion/arduino-core/)
   * [Time by Michael Margolis](https://playground.arduino.cc/Code/Time/)
+  * [ESP32CertBundle by TANAKA Masayuki](https://github.com/tanakamasayuki/ESP32CertBundle)  
 * The [WebFlash](https://hcomet.github.io/CheapoDC/CheapoDCFlash.html) capability uses [ESP Web Tools](https://esphome.github.io/esp-web-tools/) from [Home Assistant](https://www.home-assistant.io/).
